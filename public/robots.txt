@@ -1,0 +1,20 @@
+# STRIDE - Premium Footwear
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /account/
+Disallow: /cart/
+Disallow: /auth/
+
+# Specific crawl delays for different bots
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 2
+
+# Sitemap
+Sitemap: https://stride.example.com/sitemap.xml
