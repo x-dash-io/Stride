@@ -124,11 +124,11 @@ export function CheckoutClient({ cart, defaultAddress, userEmail }: CheckoutClie
   const renderStep = () => {
     switch (currentStep) {
       case 'shipping':
-        return <ShippingStep formData={shippingData} setFormData={setShippingData} onSubmit={handleShippingSubmit} />
+        return <ShippingStep formData={shippingData} setFormData={setShippingData} onSubmit={handleShippingSubmit} router={router} />
       case 'payment':
-        return <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} onSubmit={handlePaymentSubmit} isProcessing={isProcessing} mpesaStatus={mpesaStatus} mpesaMessage={mpesaMessage} />
+        return <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} onSubmit={handlePaymentSubmit} isProcessing={isProcessing} mpesaStatus={mpesaStatus} mpesaMessage={mpesaMessage} router={router} />
       case 'confirmation':
-        return <ConfirmationStep orderNumber={orderNumber} />
+        return <ConfirmationStep orderNumber={orderNumber} router={router} />
     }
   }
 
@@ -137,24 +137,24 @@ export function CheckoutClient({ cart, defaultAddress, userEmail }: CheckoutClie
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-12">Checkout</h1>
 
       <div className="mb-12 flex items-center gap-4">
-        {steps.map((step, idx) => (
-          <div key={step.key} className="flex items-center gap-4">
-            <div
-              className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors',
-                currentStep === step.key
-                  ? 'bg-primary text-primary-foreground'
-                  : steps.indexOf(currentStep) > idx
-                  ? 'bg-green-600 text-white'
-                  : 'bg-muted text-muted-foreground'
-              )}
-            >
-              {steps.indexOf(currentStep) > idx ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                idx + 1
-              )}
-            </div>
+{steps.map((step, idx) => (
+              <div key={step.key} className="flex items-center gap-4">
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors',
+                    currentStep === step.key
+                      ? 'bg-primary text-primary-foreground'
+                      : steps.findIndex(s => s.key === currentStep) > idx
+                      ? 'bg-green-600 text-white'
+                      : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {steps.findIndex(s => s.key === currentStep) > idx ? (
+                    <Check className="w-5 h-5" />
+                  ) : (
+                    idx + 1
+                  )}
+                </div>
             <span className="text-sm font-medium capitalize">{step.label}</span>
             {idx < steps.length - 1 && <ChevronRight className="w-4 h-4 text-muted-foreground ml-2" />}
           </div>
@@ -174,7 +174,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail }: CheckoutClie
   )
 }
 
-function ShippingStep({ formData, setFormData, onSubmit }: { formData: any; setFormData: any; onSubmit: (formData: FormData) => void }) {
+function ShippingStep({ formData, setFormData, onSubmit, router }: { formData: any; setFormData: any; onSubmit: (formData: FormData) => void; router: any }) {
   return (
     <form action={onSubmit} className="space-y-6">
       <h2 className="text-2xl font-serif font-bold mb-6">Shipping Address</h2>
@@ -229,7 +229,7 @@ function ShippingStep({ formData, setFormData, onSubmit }: { formData: any; setF
   )
 }
 
-function PaymentStep({ paymentMethod, setPaymentMethod, phoneNumber, setPhoneNumber, onSubmit, isProcessing, mpesaStatus, mpesaMessage }: any) {
+function PaymentStep({ paymentMethod, setPaymentMethod, phoneNumber, setPhoneNumber, onSubmit, isProcessing, mpesaStatus, mpesaMessage, router }: any) {
   return (
     <form action={onSubmit} className="space-y-6">
       <h2 className="text-2xl font-serif font-bold mb-6">Payment Method</h2>
@@ -297,7 +297,7 @@ function PaymentStep({ paymentMethod, setPaymentMethod, phoneNumber, setPhoneNum
         <Button type="button" variant="outline" onClick={() => router.push('/cart/checkout')}>Back</Button>
         <Button type="submit" disabled={isProcessing} className="w-full sm:w-auto">
           {isProcessing ? (
-            <> <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing... </ </>
+            <> <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing... </>
           ) : paymentMethod === 'MPESA_STK_PUSH' ? (
             'Pay with M-Pesa'
           ) : (
@@ -309,10 +309,10 @@ function PaymentStep({ paymentMethod, setPaymentMethod, phoneNumber, setPhoneNum
   )
 }
 
-function ConfirmationStep({ orderNumber }: { orderNumber: string }) {
+function ConfirmationStep({ orderNumber, router }: { orderNumber: string; router: ReturnType<typeof useRouter> }) {
   return (
     <div className="text-center py-12">
-      <div className="mb-6 text-6xl">✓</div>
+      <Check className="w-16 h-16 text-green-600 mx-auto mb-6" />
       <h2 className="text-3xl font-serif font-bold mb-3">Order Confirmed!</h2>
       <p className="text-muted-foreground mb-6 text-lg">
         Thank you for your purchase. Your order has been received and is being processed.
@@ -341,7 +341,7 @@ function OrderSummary({ cart }: { cart: Cart }) {
         {cart.items.map((item) => (
           <div key={`${item.variantId}-${item.variant.size}`} className="flex justify-between text-sm">
             <span className="text-muted-foreground flex-1 pr-2">
-              {item.variant.product.name.substring(0, 25)}... ×{item.quantity}
+              {item.variant.product?.name.substring(0, 25) || 'Product'}... ×{item.quantity}
             </span>
             <span className="font-medium">{formatPrice(Number(item.unitPrice) * item.quantity)}</span>
           </div>

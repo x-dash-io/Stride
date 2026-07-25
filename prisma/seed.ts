@@ -41,27 +41,27 @@ async function main() {
     prisma.brand.upsert({
       where: { slug: 'nike' },
       update: {},
-      create: { name: 'Nike', slug: 'nike', description: 'Just Do It', isFeatured: true, isGlobalBrand: true, sortOrder: 1 },
+      create: { name: 'Nike', slug: 'nike', description: 'Just Do It', isFeatured: true, sortOrder: 1 },
     }),
     prisma.brand.upsert({
       where: { slug: 'adidas' },
       update: {},
-      create: { name: 'Adidas', slug: 'adidas', description: 'Impossible is Nothing', isFeatured: true, isGlobalBrand: true, sortOrder: 2 },
+      create: { name: 'Adidas', slug: 'adidas', description: 'Impossible is Nothing', isFeatured: true, sortOrder: 2 },
     }),
     prisma.brand.upsert({
       where: { slug: 'puma' },
       update: {},
-      create: { name: 'Puma', slug: 'puma', description: 'Forever Faster', isFeatured: true, isGlobalBrand: true, sortOrder: 3 },
+      create: { name: 'Puma', slug: 'puma', description: 'Forever Faster', isFeatured: true, sortOrder: 3 },
     }),
     prisma.brand.upsert({
       where: { slug: 'new-balance' },
       update: {},
-      create: { name: 'New Balance', slug: 'new-balance', description: 'Fearlessly Independent', isFeatured: false, isGlobalBrand: true, sortOrder: 4 },
+      create: { name: 'New Balance', slug: 'new-balance', description: 'Fearlessly Independent', isFeatured: false, sortOrder: 4 },
     }),
     prisma.brand.upsert({
       where: { slug: 'african-footwear' },
       update: {},
-      create: { name: 'African Footwear Co.', slug: 'african-footwear', description: 'Handcrafted in Kenya', isFeatured: true, isGlobalBrand: false, sortOrder: 5 },
+      create: { name: 'African Footwear Co.', slug: 'african-footwear', description: 'Handcrafted in Kenya', isFeatured: true, sortOrder: 5 },
     }),
   ])
   console.log('✅ Brands created:', brands.length)
@@ -96,7 +96,7 @@ async function main() {
   ])
   console.log('✅ Categories created:', categories.length)
 
-  // Create warehouse
+  // Create default warehouse
   const warehouse = await prisma.warehouse.upsert({
     where: { code: 'MAIN' },
     update: {},
@@ -238,15 +238,15 @@ async function main() {
   ]
 
   for (const productData of productsData) {
-    const { variants, images, ...productInfo } = productData
+    const { variants, images, brand, category, ...productInfo } = productData
     
     const product = await prisma.product.upsert({
       where: { slug: productInfo.slug },
       update: {},
       create: {
         ...productInfo,
-        brandId: productInfo.brand.id,
-        categoryId: productInfo.category.id,
+        brandId: brand.id,
+        categoryId: category.id,
         status: ProductStatus.ACTIVE,
         publishedAt: new Date(),
       },
@@ -267,8 +267,8 @@ async function main() {
         data: {
           ...variantInfo,
           productId: product.id,
-          basePrice: variantInfo.basePrice || productInfo.basePrice,
-          salePrice: variantInfo.salePrice || productInfo.salePrice,
+          basePrice: productInfo.basePrice,
+          salePrice: productInfo.salePrice,
         },
       })
 

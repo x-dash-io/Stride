@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import { getServerSession } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
@@ -17,9 +17,9 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
+export const authOptions = {
+  adapter: PrismaAdapter(prisma) as any,
+  session: { strategy: 'jwt' as const, maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
@@ -66,32 +66,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user?: any }) {
       if (user) {
         token.id = user.id
         token.role = (user as any).role ?? 'CUSTOMER'
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as any).role = token.role as string
       }
       return session
     },
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const isOnDashboard = nextUrl.pathname.startsWith('/account')
-      const isOnAdmin = nextUrl.pathname.startsWith('/admin')
-      const isOnCheckout = nextUrl.pathname.startsWith('/cart/checkout')
-      const isOnAuth = nextUrl.pathname.startsWith('/auth')
-      const userRole = (auth?.user as any)?.role
-
-      if (isOnAuth && isLoggedIn) return Response.redirect(new URL('/account', nextUrl))
-      if ((isOnDashboard || isOnCheckout) && !isLoggedIn) return false
-      if (isOnAdmin && (!isLoggedIn || userRole !== 'ADMIN')) return false
-      return true
-    },
   },
-})
+}
+
+export async function auth() {
+  return getServerSession(authOptions as any) as Promise<{
+    user: { id: string; name?: string | null; email: string; image?: string | null; role?: string }
+  } | null>
+}
