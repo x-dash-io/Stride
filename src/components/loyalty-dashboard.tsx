@@ -1,6 +1,6 @@
 'use client'
 
-import { Gift, Zap, Award, TrendingUp } from 'lucide-react'
+import { Gift, Zap, Award, TrendingUp, Crown, Star, Medal, Check } from 'lucide-react'
 
 interface LoyaltyDashboardProps {
   userId: string
@@ -13,12 +13,11 @@ export default function LoyaltyDashboard({
   totalSpent,
   ordersCount,
 }: LoyaltyDashboardProps) {
-  // Calculate loyalty tier based on spending
   const getTier = (spent: number) => {
-    if (spent >= 2000) return { name: 'Platinum', color: 'text-purple-600', icon: '👑' }
-    if (spent >= 1000) return { name: 'Gold', color: 'text-yellow-600', icon: '⭐' }
-    if (spent >= 500) return { name: 'Silver', color: 'text-gray-400', icon: '🎖️' }
-    return { name: 'Bronze', color: 'text-orange-600', icon: '🏅' }
+    if (spent >= 2000) return { name: 'Platinum', color: 'text-purple-600', icon: Crown }
+    if (spent >= 1000) return { name: 'Gold', color: 'text-yellow-600', icon: Star }
+    if (spent >= 500) return { name: 'Silver', color: 'text-gray-400', icon: Medal }
+    return { name: 'Bronze', color: 'text-orange-600', icon: Award }
   }
 
   // Calculate reward points
@@ -35,7 +34,7 @@ export default function LoyaltyDashboard({
           <div>
             <p className="text-sm opacity-90 mb-2">Your Current Tier</p>
             <div className="flex items-center gap-3">
-              <span className="text-4xl">{tierInfo.icon}</span>
+              <tierInfo.icon className="w-10 h-10" />
               <h2 className="text-3xl font-serif font-bold">{tierInfo.name} Member</h2>
             </div>
           </div>
@@ -120,7 +119,7 @@ export default function LoyaltyDashboard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {getTierBenefits(tierInfo.name).map((benefit, idx) => (
             <div key={idx} className="flex gap-3">
-              <div className="text-2xl mt-1">✓</div>
+              <Check className="w-5 h-5 mt-1 text-accent" />
               <div>
                 <p className="font-semibold text-sm">{benefit.title}</p>
                 <p className="text-xs text-muted-foreground">{benefit.description}</p>

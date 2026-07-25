@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
 
 const CAROUSEL_IMAGES = [
   {
@@ -74,7 +74,7 @@ export function HeroCarousel() {
             {/* Image Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-muted to-primary/10 flex items-center justify-center">
               <div className="text-center text-white">
-                <div className="text-6xl mb-8 animate-pulse">👟</div>
+                <ShoppingBag className="w-16 h-16 mb-8 animate-pulse text-white/80" />
                 <h3 className="text-4xl font-serif font-bold mb-3">
                   {image.title}
                 </h3>

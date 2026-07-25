@@ -1,5 +1,6 @@
 'use client'
 
+import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
 
@@ -11,13 +12,14 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to console for debugging
     console.error('Application error:', error)
   }, [error])
 
   return (
     <div className="container-max py-24 min-h-screen flex flex-col items-center justify-center text-center">
-      <div className="mb-8 text-8xl">⚠️</div>
+      <div className="mb-8">
+        <AlertTriangle className="w-24 h-24 text-destructive" />
+      </div>
       <h1 className="text-5xl font-serif font-bold mb-4">Oops! Something went wrong</h1>
       <p className="text-xl text-muted-foreground mb-2 max-w-md">
         We&apos;re sorry, but something unexpected happened. Our team has been notified.

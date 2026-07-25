@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronRight, AlertCircle } from 'lucide-react'
+import { ChevronRight, AlertCircle, Check, X } from 'lucide-react'
 
 export default function ReturnsPage() {
   return (
@@ -109,7 +109,7 @@ export default function ReturnsPage() {
         <h2 className="text-4xl font-serif font-bold mb-12">What Qualifies for Return?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
-            <h3 className="text-2xl font-serif font-bold mb-6 text-accent">✓ Returnable Items</h3>
+            <h3 className="text-2xl font-serif font-bold mb-6 text-accent flex items-center gap-2"><Check className="w-6 h-6" /> Returnable Items</h3>
             <ul className="space-y-3 text-muted-foreground">
               <li>• Unworn shoes with original packaging</li>
               <li>• All original materials and boxes included</li>
@@ -120,7 +120,7 @@ export default function ReturnsPage() {
             </ul>
           </div>
           <div>
-            <h3 className="text-2xl font-serif font-bold mb-6 text-destructive">✗ Non-Returnable Items</h3>
+            <h3 className="text-2xl font-serif font-bold mb-6 text-destructive flex items-center gap-2"><X className="w-6 h-6" /> Non-Returnable Items</h3>
             <ul className="space-y-3 text-muted-foreground">
               <li>• Worn or scuffed shoes</li>
               <li>• Missing original packaging</li>

@@ -89,10 +89,10 @@ export default function ShippingPage() {
               We ship throughout the United States. Standard shipping is free on orders over $100.
             </p>
             <ul className="space-y-2 text-sm">
-              <li>✓ Continental United States: 5-7 business days</li>
-              <li>✓ Alaska & Hawaii: 7-10 business days</li>
-              <li>✓ All orders include tracking</li>
-              <li>✓ Delivery signature may be required</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Continental United States: 5-7 business days</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Alaska & Hawaii: 7-10 business days</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> All orders include tracking</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Delivery signature may be required</li>
             </ul>
           </div>
           <div>
@@ -101,10 +101,10 @@ export default function ShippingPage() {
               We ship to over 100 countries worldwide. International rates vary by destination.
             </p>
             <ul className="space-y-2 text-sm">
-              <li>✓ Processing: 1-2 business days</li>
-              <li>✓ Delivery: 7-14 business days</li>
-              <li>✓ Customs handling included</li>
-              <li>✓ DHL Express available</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Processing: 1-2 business days</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Delivery: 7-14 business days</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Customs handling included</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> DHL Express available</li>
             </ul>
           </div>
         </div>
