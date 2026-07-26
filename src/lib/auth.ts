@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth'
+import { getServerSession, type NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
@@ -17,9 +17,9 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
-export const authOptions = {
-  adapter: PrismaAdapter(prisma) as any,
-  session: { strategy: 'jwt' as const, maxAge: 30 * 24 * 60 * 60 },
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
+  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
@@ -66,17 +66,17 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role ?? 'CUSTOMER'
+        token.role = user.role ?? 'CUSTOMER'
       }
       return token
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        ;(session.user as any).role = token.role as string
+        session.user.id = token.id
+        session.user.role = token.role
       }
       return session
     },
@@ -84,7 +84,5 @@ export const authOptions = {
 }
 
 export async function auth() {
-  return getServerSession(authOptions as any) as Promise<{
-    user: { id: string; name?: string | null; email: string; image?: string | null; role?: string }
-  } | null>
+  return getServerSession(authOptions)
 }

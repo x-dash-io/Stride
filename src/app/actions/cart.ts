@@ -72,7 +72,7 @@ export async function addToCart(formData: FormData) {
     return { error: 'Insufficient stock' }
   }
 
-  const sessionId = userId ? undefined : `guest-${Date.now()}`
+  const sessionId = userId ? undefined : crypto.randomUUID()
   const cart = await getOrCreateCart(userId, sessionId)
 
   const existingItem = await prisma.cartItem.findUnique({
@@ -123,7 +123,7 @@ export async function updateCartQuantity(formData: FormData) {
   }
 
   const { variantId, quantity } = parsed.data
-  const sessionId = userId ? undefined : `guest-session`
+  const sessionId = userId ? undefined : crypto.randomUUID()
   const cart = await getOrCreateCart(userId, sessionId)
 
   const cartItem = await prisma.cartItem.findUnique({
@@ -169,7 +169,7 @@ export async function removeFromCart(formData: FormData) {
   }
 
   const { variantId } = parsed.data
-  const sessionId = userId ? undefined : `guest-session`
+  const sessionId = userId ? undefined : crypto.randomUUID()
   const cart = await getOrCreateCart(userId, sessionId)
 
   await prisma.cartItem.deleteMany({
@@ -185,7 +185,7 @@ export async function removeFromCart(formData: FormData) {
 export async function clearCartAction() {
   const session = await auth()
   const userId = session?.user?.id
-  const sessionId = userId ? undefined : `guest-session`
+  const sessionId = userId ? undefined : crypto.randomUUID()
 
   const cart = await prisma.cart.findFirst({
     where: userId ? { userId } : { sessionId },
@@ -206,7 +206,7 @@ export async function clearCartAction() {
 export async function getCartAction() {
   const session = await auth()
   const userId = session?.user?.id
-  const sessionId = userId ? undefined : `guest-session`
+  const sessionId = userId ? undefined : crypto.randomUUID()
 
   const cart = await prisma.cart.findFirst({
     where: userId ? { userId } : { sessionId },

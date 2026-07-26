@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { getProducts, getCategories, getBrands } from '@/lib/queries'
 import { prisma } from '@/lib/prisma'
 import { ProductFilters } from '@/components/products/ProductFilters'
 import { ProductGrid } from '@/components/products/ProductGrid'
@@ -27,118 +28,6 @@ export async function generateMetadata({ searchParams }: ProductsPageProps): Pro
     title: `${category || brand || 'All'} Products | STRIDE`,
     description: `Shop ${category || brand || 'premium footwear'} from top brands. Free delivery on orders over KES 10,000.`,
   }
-}
-
-async function getProducts(params: {
-  category?: string
-  brand?: string
-  minPrice?: number
-  maxPrice?: number
-  sort?: string
-  page: number
-  perPage: number
-  query?: string
-}) {
-  const { category, brand, minPrice, maxPrice, sort, page, perPage, query } = params
-  const skip = (page - 1) * perPage
-
-  const where = {
-    status: 'ACTIVE' as const,
-    publishedAt: { not: null, lte: new Date() },
-    ...(category && { category: { slug: category } }),
-    ...(brand && { brand: { slug: brand } }),
-    ...(minPrice !== undefined && { basePrice: { gte: minPrice } }),
-    ...(maxPrice !== undefined && { basePrice: { lte: maxPrice } }),
-    ...(query && {
-      OR: [
-        { name: { contains: query, mode: 'insensitive' as const } },
-        { description: { contains: query, mode: 'insensitive' as const } },
-        { brand: { name: { contains: query, mode: 'insensitive' as const } } },
-      ],
-    }),
-  }
-
-  const orderBy = (() => {
-    switch (sort) {
-      case 'price-asc': return { basePrice: 'asc' as const }
-      case 'price-desc': return { basePrice: 'desc' as const }
-      case 'popular': return { soldCount: 'desc' as const }
-      case 'rating': return { ratingAvg: 'desc' as const }
-      default: return { createdAt: 'desc' as const }
-    }
-  })()
-
-  const [items, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take: perPage,
-      include: {
-        brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
-        category: { select: { id: true, name: true, slug: true } },
-        images: { where: { isPrimary: true }, take: 1 },
-        variants: {
-          where: { isActive: true },
-          include: { inventory: true },
-          orderBy: { sortOrder: 'asc' },
-        },
-      },
-    }),
-    prisma.product.count({ where }),
-  ])
-
-  const products = items.map(product => ({
-    ...product,
-    basePrice: Number(product.basePrice),
-    salePrice: product.salePrice ? Number(product.salePrice) : null,
-    costPrice: product.costPrice ? Number(product.costPrice) : null,
-    weightKg: product.weightKg ? Number(product.weightKg) : null,
-    ratingAvg: 0,
-    reviewCount: 0,
-    totalStock: 0,
-    soldCount: 0,
-    createdAt: product.createdAt.toISOString(),
-    updatedAt: product.updatedAt.toISOString(),
-    variants: product.variants.map(v => ({
-      ...v,
-      basePrice: Number(v.basePrice || 0),
-      salePrice: v.salePrice ? Number(v.salePrice) : null,
-      weightKg: v.weightKg ? Number(v.weightKg) : null,
-      availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
-      inventory: [],
-      images: [],
-    })),
-    primaryImage: product.images[0]?.url,
-    images: product.images.map(img => ({
-      id: img.id,
-      productId: product.id,
-      variantId: img.variantId || null,
-      url: img.url,
-      altText: img.altText || null,
-      width: img.width ?? null,
-      height: img.height ?? null,
-      isPrimary: img.isPrimary,
-      sortOrder: img.sortOrder,
-    })),
-  }))
-
-  return { items: products, total }
-}
-
-async function getCategories() {
-  return prisma.category.findMany({
-    where: { isActive: true, parentId: null },
-    include: { children: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } } },
-    orderBy: { sortOrder: 'asc' },
-  })
-}
-
-async function getBrands() {
-  return prisma.brand.findMany({
-    where: { isActive: true },
-    orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
-  })
 }
 
 async function getPriceRange() {

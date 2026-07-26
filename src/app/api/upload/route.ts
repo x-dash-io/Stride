@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { r2, R2_BUCKET, getSignedUploadUrl, generateProductKey, generateTempKey } from '@/lib/r2'
+import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
-  if (!session?.user || (session.user as any).role !== 'ADMIN') {
+  if (!session?.user?.role || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const { success: limitOk } = await rateLimit(apiRateLimit, `upload:${ip}`)
+  if (!limitOk) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
   if (!r2) {
@@ -55,8 +62,14 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const session = await auth()
-  if (!session?.user || (session.user as any).role !== 'ADMIN') {
+  if (!session?.user?.role || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const { success: limitOk } = await rateLimit(apiRateLimit, `upload:${ip}`)
+  if (!limitOk) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
   if (!r2) {

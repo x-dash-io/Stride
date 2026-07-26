@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { CartItem, Cart } from '@/types'
-import { formatPrice } from '@/lib/utils'
+import { addToCart, updateCartQuantity, removeFromCart, clearCartAction, getCartAction } from '@/app/actions/cart'
 
 interface CartContextType {
   cart: Cart | null
@@ -35,12 +35,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const refreshCart = async () => {
     try {
-      const res = await fetch('/api/cart')
-      if (res.ok) {
-        const data = await res.json()
-        if (data.items) {
-          setCart(data)
-        }
+      const data = await getCartAction()
+      if (data?.items) {
+        setCart(data as unknown as Cart)
       }
     } catch (error) {
       console.error('Failed to refresh cart:', error)
@@ -58,14 +55,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     formData.append('variantId', variantId)
     formData.append('quantity', String(quantity))
 
-    const res = await fetch('/api/cart', { method: 'POST', body: formData })
-    if (!res.ok) throw new Error('Failed to add item')
+    const result = await addToCart(formData)
+    if ('error' in result) throw new Error(result.error as string)
     await refreshCart()
   }
 
   const removeItem = async (variantId: string) => {
-    const res = await fetch(`/api/cart/${variantId}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Failed to remove item')
+    const formData = new FormData()
+    formData.append('variantId', variantId)
+
+    const result = await removeFromCart(formData)
+    if ('error' in result) throw new Error(result.error)
     await refreshCart()
   }
 
@@ -74,14 +74,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     formData.append('variantId', variantId)
     formData.append('quantity', String(quantity))
 
-    const res = await fetch('/api/cart', { method: 'PATCH', body: formData })
-    if (!res.ok) throw new Error('Failed to update quantity')
+    const result = await updateCartQuantity(formData)
+    if ('error' in result) throw new Error(result.error)
     await refreshCart()
   }
 
   const clearCart = async () => {
-    const res = await fetch('/api/cart', { method: 'DELETE' })
-    if (!res.ok) throw new Error('Failed to clear cart')
+    await clearCartAction()
     await refreshCart()
   }
 

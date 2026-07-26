@@ -221,6 +221,7 @@ model Product {
   @@index([categoryId])
   @@index([slug])
   @@index([status])
+  @@index([status, publishedAt, categoryId, brandId])
   @@index([basePrice, salePrice])
   @@index([gender])
   @@index([isFeatured, isNewArrival, isBestSeller, isTrending])
@@ -301,6 +302,7 @@ model Inventory {
 
   @@unique([variantId, warehouseId])
   @@index([variantId])
+  @@index([variantId, quantityOnHand])
   @@index([quantityOnHand])
 }
 
@@ -392,6 +394,7 @@ model Order {
   payments          PaymentTransaction[]
 
   @@index([userId])
+  @@index([userId, status, createdAt])
   @@index([orderNumber])
   @@index([status])
   @@index([paymentStatus])
