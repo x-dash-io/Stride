@@ -3,6 +3,9 @@ import { getProducts, getCategories, getBrands, getBanners } from '@/lib/queries
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { formatPrice } from '@/lib/utils'
 import { ArrowRight, ShoppingBag, Truck, Shield, RotateCcw, Headphones } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+export const dynamic = 'force-dynamic'
 
 const benefits = [
   { icon: Truck, title: 'Free Delivery', description: 'On orders over KES 10,000' },
@@ -18,7 +21,7 @@ export default async function HomePage() {
     getProducts({ bestSeller: true, limit: 8 }),
     getCategories(),
     getBrands(),
-    getBanners({ placement: 'hero', limit: 1 }),
+    getBanners('hero'),
   ])
 
   const banner = heroBanner[0]
@@ -98,8 +101,8 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {categories.filter(c => c.isActive && !c.parentId).map((category) => (
             <Link key={category.id} href={`/products?category=${category.slug}`} className="group">
-              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center text-4xl group-hover:bg-muted/80 transition-colors">
-                👟
+              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+                <ShoppingBag className="w-12 h-12 text-muted-foreground" />
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-serif font-semibold text-balance">{category.name}</h3>

@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { notFound, redirect } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
-import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard } from 'lucide-react'
+import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 
 const statusOrder = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED']
@@ -95,7 +95,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               {order.items.map((item) => (
                 <div key={item.id} className="flex gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    {item.variant.product.images[0]?.url ? <img src={item.variant.product.images[0].url} alt="" className="w-full h-full object-cover rounded-lg" /> : <span className="text-3xl">👟</span>}
+                    {item.variant.product.images[0]?.url ? <img src={item.variant.product.images[0].url} alt="" className="w-full h-full object-cover rounded-lg" /> : <ShoppingBag className="w-8 h-8 text-muted-foreground" />}
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{item.productName}</p>
@@ -119,7 +119,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(Number(order.subtotal))}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Tax (16%)</span><span>{formatPrice(Number(order.taxTotal))}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{Number(order.shippingTotal) === 0 ? 'Free' : formatPrice(Number(order.shippingTotal))}</span></div>
-              {order.discountTotal > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-{formatPrice(Number(order.discountTotal))}</span></div>}
+              {Number(order.discountTotal) > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-{formatPrice(Number(order.discountTotal))}</span></div>}
               <div className="border-t pt-3 flex justify-between text-lg font-semibold"><span>Total</span><span>{formatPrice(Number(order.grandTotal))}</span></div>
             </div>
           </section>

@@ -13,12 +13,23 @@ export async function submitShippingAddress(formData: FormData) {
   const parsed = shippingAddressSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
+  const { phone, city, country, label, firstName, lastName, addressLine1, state, addressLine2, postalCode } = parsed.data
+
   const address = await prisma.address.create({
     data: {
       userId: session.user.id,
-      ...parsed.data,
-      type: 'SHIPPING',
+      phone,
+      city,
+      country,
+      label,
+      firstName,
+      lastName,
+      addressLine1,
+      state,
+      addressLine2: addressLine2 || null,
+      postalCode,
       isDefault: true,
+      isShipping: true,
     },
   })
 
@@ -134,7 +145,7 @@ export async function processPayment(formData: FormData) {
         amount: order.grandTotal,
         currency: 'KES',
         status: 'PENDING',
-        gatewayResponse: stkResponse,
+        gatewayResponse: stkResponse as any,
       },
     })
 

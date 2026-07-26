@@ -10,13 +10,13 @@ async function recalculateCart(cartId: string) {
   })
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.totalPrice), 0)
-  const tax = subtotal * 0.16
-  const shipping = subtotal >= 10000 ? 0 : 500
-  const grandTotal = subtotal + tax + shipping
+  const taxTotal = subtotal * 0.16
+  const shippingTotal = subtotal >= 10000 ? 0 : 500
+  const grandTotal = subtotal + taxTotal + shippingTotal
 
   await prisma.cart.update({
     where: { id: cartId },
-    data: { subtotal, tax, shipping, grandTotal },
+    data: { subtotal, taxTotal, shippingTotal, grandTotal },
   })
 }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   const variant = await prisma.productVariant.findUnique({
     where: { id: variantId, isActive: true },
     include: {
-      product: { select: { id: true, status: true } },
+      product: { select: { id: true, status: true, basePrice: true } },
       inventory: true,
     },
   })

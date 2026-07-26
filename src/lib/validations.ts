@@ -1,13 +1,15 @@
 import { z } from 'zod'
 
 export const shippingAddressSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  label: z.string().default('Home'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   phone: z.string().regex(/^254[0-9]{9}$/, 'Invalid Kenyan phone number (format: 2547XXXXXXXX)'),
   addressLine1: z.string().min(5, 'Address must be at least 5 characters'),
   addressLine2: z.string().optional(),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'County/State is required'),
-  postalCode: z.string().optional(),
+  postalCode: z.string().min(2, 'Postal code is required'),
   country: z.string().default('KE'),
 })
 
@@ -35,11 +37,19 @@ export const loginSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
+export type LoginInput = z.infer<typeof loginSchema>
+
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 })
+
+export type RegisterInput = z.infer<typeof registerSchema>
 
 export const reviewSchema = z.object({
   productId: z.string().cuid(),
@@ -73,6 +83,8 @@ export const productCreateSchema = z.object({
   isTrending: z.boolean().default(false),
   status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).default('DRAFT'),
 })
+
+export type ProductCreateInput = z.infer<typeof productCreateSchema>
 
 export const variantCreateSchema = z.object({
   productId: z.string().cuid(),

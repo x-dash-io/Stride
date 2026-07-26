@@ -123,6 +123,5 @@ const MPESA_WHITELIST_IPS = [
 ]
 
 export function verifyMpesaCallbackIp(ip: string): boolean {
-  if (process.env.MPESA_SKIP_IP_VERIFICATION === 'true') return true
   return MPESA_WHITELIST_IPS.includes(ip)
 }

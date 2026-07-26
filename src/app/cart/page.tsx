@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice } from '@/lib/utils'
-import { ArrowLeft, Trash2, Plus, Minus, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Trash2, Plus, Minus, ChevronRight, ShoppingBag, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -18,10 +19,10 @@ export default function CartPage() {
     )
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 || !cart) {
     return (
       <div className="container-max py-24 min-h-screen flex flex-col items-center justify-center text-center">
-        <div className="mb-8 text-6xl">🛍️</div>
+        <ShoppingBag className="w-24 h-24 text-muted-foreground mb-8" />
         <h1 className="text-4xl font-serif font-bold mb-4">Your cart is empty</h1>
         <p className="text-muted-foreground mb-8 max-w-md">
           Explore our premium collection and add some beautiful shoes to your cart.
@@ -49,6 +50,8 @@ export default function CartPage() {
               const product = item.variant.product
               const price = item.unitPrice
 
+              if (!product) return null
+
               return (
                 <div
                   key={`${item.variantId}`}
@@ -64,7 +67,7 @@ export default function CartPage() {
                         sizes="96px"
                       />
                     ) : (
-                      <span className="text-4xl">👟</span>
+                      <Package className="w-12 h-12 text-muted-foreground" />
                     )}
                   </div>
 
@@ -139,15 +142,15 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax (16%)</span>
-                <span className="font-medium">{formatPrice(cart.tax)}</span>
+                <span className="font-medium">{formatPrice(cart.taxTotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="font-medium">
-                  {cart.shipping === 0 ? (
+                  {cart.shippingTotal === 0 ? (
                     <span className="text-green-600">Free</span>
                   ) : (
-                    formatPrice(cart.shipping)
+                    formatPrice(cart.shippingTotal)
                   )}
                 </span>
               </div>

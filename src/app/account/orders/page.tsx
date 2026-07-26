@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ArrowRight, Truck, Package, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 async function getUserOrders(userId: string, page = 1, perPage = 10) {
   const skip = (page - 1) * perPage
@@ -59,50 +60,52 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
       </div>
 
       {items.length > 0 ? (
-        <div className="space-y-4">
-          {items.map((order) => (
-            <Link key={order.id} href={`/account/orders/${order.id}`} className="block">
-              <div className="bg-card border border-border rounded-xl p-6 hover:bg-muted/50 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-muted rounded-lg">{getStatusIcon(order.status)}</div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-lg">Order #{order.orderNumber}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
+        <>
+          <div className="space-y-4">
+            {items.map((order) => (
+              <Link key={order.id} href={`/account/orders/${order.id}`} className="block">
+                <div className="bg-card border border-border rounded-xl p-6 hover:bg-muted/50 transition-colors">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-muted rounded-lg">{getStatusIcon(order.status)}</div>
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold text-lg">Order #{order.orderNumber}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {order.items.length} item{order.items.length !== 1 ? 's' : ''} • {formatPrice(Number(order.grandTotal))}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''} • {formatPrice(Number(order.grandTotal))}
-                      </p>
                     </div>
+                    <div className="text-right md:text-left">
+                      <p className="text-sm text-muted-foreground">Placed</p>
+                      <p className="font-medium">{new Date(order.createdAt).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground md:hidden" />
                   </div>
-                  <div className="text-right md:text-left">
-                    <p className="text-sm text-muted-foreground">Placed</p>
-                    <p className="font-medium">{new Date(order.createdAt).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground md:hidden" />
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
 
-        {totalPages > 1 && (
-          <nav className="flex items-center justify-center gap-2 mt-8" aria-label="Pagination">
-            <Link href={page > 1 ? `/account/orders?page=${page - 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === 1}>Previous</Link>
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              let pageNum: number
-              if (totalPages <= 5) pageNum = i + 1
-              else if (page <= 3) pageNum = i + 1
-              else if (page >= totalPages - 2) pageNum = totalPages - 4 + i
-              else pageNum = page - 2 + i
-              return (
-                <Link key={pageNum} href={`/account/orders?page=${pageNum}`} className={`px-4 py-2 rounded-md text-sm font-medium ${page === pageNum ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}>{pageNum}</Link>
-              )
-            })}
-            <Link href={page < totalPages ? `/account/orders?page=${page + 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === totalPages}>Next</Link>
-          </nav>
-        )}
+          {totalPages > 1 && (
+            <nav className="flex items-center justify-center gap-2 mt-8" aria-label="Pagination">
+              <Link href={page > 1 ? `/account/orders?page=${page - 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === 1}>Previous</Link>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum: number
+                if (totalPages <= 5) pageNum = i + 1
+                else if (page <= 3) pageNum = i + 1
+                else if (page >= totalPages - 2) pageNum = totalPages - 4 + i
+                else pageNum = page - 2 + i
+                return (
+                  <Link key={pageNum} href={`/account/orders?page=${pageNum}`} className={`px-4 py-2 rounded-md text-sm font-medium ${page === pageNum ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}>{pageNum}</Link>
+                )
+              })}
+              <Link href={page < totalPages ? `/account/orders?page=${page + 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === totalPages}>Next</Link>
+            </nav>
+          )}
+        </>
       ) : (
         <div className="text-center py-12">
           <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

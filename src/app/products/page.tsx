@@ -4,6 +4,8 @@ import { ProductFilters } from '@/components/products/ProductFilters'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { Pagination } from '@/components/ui/pagination'
 
+export const dynamic = 'force-dynamic'
+
 interface ProductsPageProps {
   searchParams: Promise<{
     category?: string
@@ -90,13 +92,35 @@ async function getProducts(params: {
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
+    costPrice: product.costPrice ? Number(product.costPrice) : null,
+    weightKg: product.weightKg ? Number(product.weightKg) : null,
+    ratingAvg: 0,
+    reviewCount: 0,
+    totalStock: 0,
+    soldCount: 0,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
     variants: product.variants.map(v => ({
       ...v,
       basePrice: Number(v.basePrice || 0),
       salePrice: v.salePrice ? Number(v.salePrice) : null,
+      weightKg: v.weightKg ? Number(v.weightKg) : null,
       availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
+      inventory: [],
+      images: [],
     })),
     primaryImage: product.images[0]?.url,
+    images: product.images.map(img => ({
+      id: img.id,
+      productId: product.id,
+      variantId: img.variantId || null,
+      url: img.url,
+      altText: img.altText || null,
+      width: img.width ?? null,
+      height: img.height ?? null,
+      isPrimary: img.isPrimary,
+      sortOrder: img.sortOrder,
+    })),
   }))
 
   return { items: products, total }

@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Link } from 'next/link'
-import { ShoppingBag, User, MapPin, Heart, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { ShoppingBag, User, MapPin, Heart, ArrowRight, Package } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'My Account | STRIDE',
@@ -19,7 +19,7 @@ async function getUserData(userId: string) {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 5,
-      include: { items: { include: { variant: { include: { product: true } } } } },
+      include: { items: { include: { variant: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } } } } } },
     }),
     prisma.wishlistItem.count({ where: { wishlist: { userId } } }),
     prisma.address.findMany({ where: { userId }, orderBy: { isDefault: 'desc' } }),
@@ -97,7 +97,7 @@ export default async function AccountPage() {
                             {order.items[0]?.variant?.product?.images[0]?.url ? (
                               <img src={order.items[0].variant.product.images[0].url} alt="" className="w-full h-full object-cover rounded-lg" />
                             ) : (
-                              <span className="text-3xl">👟</span>
+                              <Package className="w-8 h-8 text-muted-foreground" />
                             )}
                           </div>
                           <div>

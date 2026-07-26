@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       },
     }),
     prisma.product.count({ where }),
-  )
+  ])
 
   const products = items.map(p => ({
     ...p,

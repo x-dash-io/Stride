@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react'
+import { Star, Package } from 'lucide-react'
 import Link from 'next/link'
 import { Product } from '@/types'
 import { formatPrice } from '@/lib/utils'
@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {product.primaryImage ? (
           <img src={product.primaryImage} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl">👟</div>
+          <Package className="w-12 h-12 text-muted-foreground" />
         )}
 
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 p-4">

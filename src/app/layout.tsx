@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/providers/Providers'
 import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -52,12 +54,9 @@ export default function RootLayout({
         <Providers>
           <Header />
           <main className="flex-1">{children}</main>
-          <footer className="border-t bg-muted/30" role="contentinfo">
-            <div className="mx-auto max-w-7xl px-4 py-8 text-center text-sm text-muted-foreground">
-              <p>&copy; {new Date().getFullYear()} STRIDE. All rights reserved.</p>
-            </div>
-          </footer>
+          <Footer />
         </Providers>
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

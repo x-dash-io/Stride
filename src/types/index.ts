@@ -25,6 +25,7 @@ export interface Product {
   primaryImage?: string | null
   images: ProductImage[]
   variants: ProductVariant[]
+  reviews?: Review[]
   collections?: { collection: { id: string; name: string; slug: string } }[]
   createdAt: string
   updatedAt: string
@@ -64,6 +65,7 @@ export interface ProductVariant {
   images: ProductImage[]
   inventory: Inventory[]
   availableStock: number
+  product?: Product
 }
 
 export interface Inventory {

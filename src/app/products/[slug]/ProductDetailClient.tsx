@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
 import { useToast } from '@/providers/ToastProvider'
 import { formatPrice } from '@/lib/utils'
-import { ChevronLeft, Star, Heart, Share2, Check, Truck, RotateCcw, Shield, MapPin, Loader2 } from 'lucide-react'
+import { ChevronLeft, Star, Heart, Share2, Check, Truck, RotateCcw, Shield, MapPin, Loader2, Package, ThumbsUp } from 'lucide-react'
 import { Product, ProductVariant } from '@/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -53,10 +53,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
     setIsAdding(true)
     try {
-      await addItem({
-        variantId: selectedVariant.id,
-        quantity,
-      })
+      await addItem(selectedVariant.id, quantity)
       setAddedToCart(true)
       showToast('success', 'Added to cart')
       setTimeout(() => setAddedToCart(false), 2000)
@@ -99,7 +96,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-8xl">👟</div>
+                <Package className="w-24 h-24 text-muted-foreground" />
               )}
             </div>
             {product.images.length > 1 && (
@@ -217,9 +214,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 className={cn('w-full py-4 rounded font-semibold text-lg', addedToCart ? 'bg-green-600' : 'btn-primary')}
               >
                 {addedToCart ? (
-                  <> <Check className="w-5 h-5 mr-2" /> Added to Cart </ </>
+                  <> <Check className="w-5 h-5 mr-2" /> Added to Cart </>
                 ) : isAdding ? (
-                  <> <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Adding... </ </>
+                  <> <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Adding... </>
                 ) : !product.variants.some(v => v.availableStock > 0) ? (
                   'Out of Stock'
                 ) : (
@@ -285,13 +282,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
       <section className="container-max py-12 border-t border-border">
         <h2 className="text-3xl font-serif font-bold mb-8">Customer Reviews</h2>
-        {product.reviews.length > 0 ? (
+        {product.reviews && product.reviews.length > 0 ? (
           <div className="space-y-8">
             {product.reviews.map((review) => (
               <div key={review.id} className="border-b border-border pb-8 last:border-b-0">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="font-semibold">{review.user.name || 'Anonymous'}</p>
+                    <p className="font-semibold">{review.user?.name || 'Anonymous'}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
@@ -308,7 +305,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 {review.title && <h4 className="font-semibold mb-2">{review.title}</h4>}
                 <p className="text-muted-foreground text-sm mb-4">{review.body}</p>
                 <div className="flex items-center gap-4 text-sm">
-                  <button className="text-muted-foreground hover:text-foreground">👍 Helpful ({review.helpfulCount})</button>
+                  <button className="text-muted-foreground hover:text-foreground flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> Helpful ({review.helpfulCount})</button>
                 </div>
               </div>
             ))}

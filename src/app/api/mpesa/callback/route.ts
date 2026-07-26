@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyMpesaCallbackIp } from '@/lib/mpesa'
+import { paymentRateLimit, rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('remote-addr')
     || 'unknown'
+
+  const { success, remaining, reset } = await rateLimit(paymentRateLimit, clientIp)
+  if (!success) {
+    return NextResponse.json(
+      { ResultCode: 0, ResultDesc: 'Rate limited' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((reset - Date.now()) / 1000)) } }
+    )
+  }
 
   if (process.env.MPESA_ENVIRONMENT === 'production' && !verifyMpesaCallbackIp(clientIp)) {
     console.warn(`M-Pesa callback rejected from IP: ${clientIp}`)
@@ -48,7 +57,7 @@ export async function POST(request: NextRequest) {
           where: { id: payment.id },
           data: {
             status: 'SUCCESS',
-            gatewayResponse: { ...payment.gatewayResponse, callback: body },
+            gatewayResponse: payment.gatewayResponse ? { ...(payment.gatewayResponse as object), callback: body } : { callback: body },
           },
         })
 
@@ -85,32 +94,6 @@ export async function POST(request: NextRequest) {
             })
           }
         }
-
-        const pointsEarned = Math.floor(Number(payment.amount) / 100)
-        if (pointsEarned > 0 && payment.order.userId) {
-          const loyaltyAccount = await tx.loyaltyAccount.findUnique({
-            where: { userId: payment.order.userId },
-          })
-          if (loyaltyAccount) {
-            await tx.loyaltyAccount.update({
-              where: { id: loyaltyAccount.id },
-              data: {
-                pointsBalance: { increment: pointsEarned },
-                lifetimePoints: { increment: pointsEarned },
-              },
-            })
-            await tx.loyaltyTransaction.create({
-              data: {
-                accountId: loyaltyAccount.id,
-                points: pointsEarned,
-                balanceAfter: loyaltyAccount.pointsBalance + pointsEarned,
-                reason: 'PURCHASE',
-                referenceType: 'order',
-                referenceId: payment.orderId,
-              },
-            })
-          }
-        }
       })
 
       await prisma.cartItem.deleteMany({
@@ -125,7 +108,7 @@ export async function POST(request: NextRequest) {
       await prisma.$transaction(async (tx) => {
         await tx.paymentTransaction.update({
           where: { id: payment.id },
-          data: { status: 'FAILED', gatewayResponse: { ...payment.gatewayResponse, callback: body } },
+          data: { status: 'FAILED', gatewayResponse: payment.gatewayResponse ? { ...(payment.gatewayResponse as object), callback: body } : { callback: body } },
         })
 
         await tx.order.update({
@@ -148,7 +131,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
+    return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' }, { headers: { 'X-RateLimit-Remaining': String(remaining) } })
   } catch (error) {
     console.error('M-Pesa callback error:', error)
     return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
