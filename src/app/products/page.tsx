@@ -2,10 +2,12 @@ import { Metadata } from 'next'
 import { getProducts, getCategories, getBrands } from '@/lib/queries'
 import { prisma } from '@/lib/prisma'
 import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductSort } from '@/components/products/ProductSort'
+import { ClearFiltersButton } from '@/components/products/ClearFiltersButton'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { Pagination } from '@/components/ui/pagination'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -91,22 +93,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 Showing {((page - 1) * perPage) + 1}–{Math.min(page * perPage, productsData.total)} of {productsData.total} products
               </span>
             </div>
-            <select
-              defaultValue={params.sort || 'newest'}
-              onChange={(e) => {
-                const url = new URL(window.location.href)
-                url.searchParams.set('sort', e.target.value)
-                url.searchParams.delete('page')
-                window.location.href = url.toString()
-              }}
-              className="input-base text-sm w-auto"
-            >
-              <option value="newest">Newest</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="popular">Most Popular</option>
-              <option value="rating">Highest Rated</option>
-            </select>
+            <ProductSort currentSort={params.sort} />
           </div>
 
           {productsData.items.length > 0 ? (
@@ -124,14 +111,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           ) : (
             <div className="text-center py-12">
               <p className="text-lg text-muted-foreground mb-4">No products found matching your filters.</p>
-              <button
-                onClick={() => {
-                  window.location.href = '/products'
-                }}
-                className="btn-primary"
-              >
-                Clear Filters
-              </button>
+              <ClearFiltersButton />
             </div>
           )}
         </main>

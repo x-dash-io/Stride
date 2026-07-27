@@ -1,18 +1,10 @@
 import Link from 'next/link'
 import { getProducts, getCategories, getBrands, getBanners } from '@/lib/queries'
 import { ProductGrid } from '@/components/products/ProductGrid'
-import { formatPrice } from '@/lib/utils'
-import { ArrowRight, ShoppingBag, Truck, Shield, RotateCcw, Headphones } from 'lucide-react'
+import { HeroCarousel } from '@/components/hero-carousel'
 import { Button } from '@/components/ui/button'
-
-export const dynamic = 'force-dynamic'
-
-const benefits = [
-  { icon: Truck, title: 'Free Delivery', description: 'On orders over KES 10,000' },
-  { icon: Shield, title: 'Secure Payment', description: 'M-Pesa & Card payments' },
-  { icon: RotateCcw, title: 'Easy Returns', description: '30-day return policy' },
-  { icon: Headphones, title: 'Support', description: 'Mon-Fri 8am-6pm' },
-]
+import { ArrowRight, Truck } from 'lucide-react'
+import { NewsletterForm } from '@/components/layout/NewsletterForm'
 
 export default async function HomePage() {
   const [featuredProducts, newArrivals, bestSellers, categories, brands, heroBanner] = await Promise.all([
@@ -24,113 +16,162 @@ export default async function HomePage() {
     getBanners('hero'),
   ])
 
-  const banner = heroBanner[0]
-
   return (
     <div className="w-full">
-      <section className="relative min-h-[70vh] flex items-center justify-center bg-gradient-to-br from-background via-background to-muted overflow-hidden">
-        {banner && (
-          <div className="absolute inset-0 z-0">
-            <img src={banner.desktopImageUrl} alt={banner.title || 'Hero banner'} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40" />
-          </div>
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        {heroBanner.length > 0 ? (
+          <HeroCarousel banners={heroBanner} />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_40%_20%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
+            </div>
+            
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-1/2 -left-1/2 w-full h-full max-w-[600px] max-h-[600px] rounded-full bg-accent/5 blur-[150px] animate-pulse-slow" />
+              <div className="absolute -bottom-1/4 -right-1/4 w-full h-full max-w-[400px] max-h-[400px] rounded-full bg-primary/5 blur-[120px] animate-pulse-slow delay-1000" />
+            </div>
+            
+            <div className="container-max relative z-10 py-20 md:py-32 lg:py-40">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in-up">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
+                  New Collection Now Live
+                </div>
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-balance mb-6 leading-[1.1] animate-fade-in-up delay-100">
+                  Step Into
+                  <br />
+                  <span className="text-accent">Timeless Style</span>
+                </h1>
+                <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
+                  Discover footwear crafted for those who demand excellence. 
+                  Premium materials, impeccable construction, and timeless design 
+                  for every step of your journey.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
+                  <Button size="xl" asChild className="group relative overflow-hidden">
+                    <Link href="/products">
+                      Shop Collection
+                      <ArrowRight className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="xl" asChild>
+                    <Link href="/about">Our Story</Link>
+                  </Button>
+                </div>
+                
+                <div className="mt-16 animate-fade-in-up delay-400">
+                  <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-accent" />
+                      <span>Free Shipping Over KES 10,000</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-px h-6 bg-muted"></span>
+                      <span>30-Day Returns</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-px h-6 bg-muted"></span>
+                      <span>Secure Checkout</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce-slow">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/20 bg-background/80 backdrop-blur-sm">
+                <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+            </div>
+          </>
         )}
-        <div className="container-max relative z-10 py-20 md:py-32">
-          <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-widest text-accent mb-4">Discover Premium Footwear</p>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-balance mb-6 leading-tight">
-              Step Into Luxury
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg leading-relaxed">
-              Handcrafted shoes designed for those who demand excellence. Premium materials, impeccable construction, and timeless style.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/products" className="btn-primary text-center">
-                Shop Collection
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <Link href="/about" className="btn-secondary text-center">Learn More</Link>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <section className="container-max section-padding">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {benefits.map((benefit) => (
-            <div key={benefit.title} className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-accent flex items-center justify-center text-accent-foreground">
-                <benefit.icon className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-semibold">{benefit.title}</h3>
-                <p className="text-sm text-muted-foreground">{benefit.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="container-max section-padding">
-        <div className="mb-12">
-          <p className="text-sm uppercase tracking-widest text-accent mb-4">Curated Selection</p>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-balance">Bestsellers</h2>
+      <section className="container-max section-padding scroll-reveal">
+        <div className="mb-10">
+          <p className="eyebrow">Curated Selection</p>
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-balance mt-2">Bestsellers</h2>
         </div>
         <ProductGrid products={bestSellers.items} />
         <div className="text-center mt-8">
-          <Link href="/products?sort=popular" className="btn-secondary">View All Bestsellers</Link>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="/products?sort=popular">View All Bestsellers</Link>
+          </Button>
         </div>
       </section>
 
-      <section className="container-max section-padding bg-muted/20">
-        <div className="mb-12">
-          <p className="text-sm uppercase tracking-widest text-accent mb-4">What's Hot</p>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-balance">Trending Now</h2>
-        </div>
-        <ProductGrid products={newArrivals.items} />
-        <div className="text-center mt-8">
-          <Link href="/products?sort=newest" className="btn-secondary">View New Arrivals</Link>
+      <section className="bg-muted/30 scroll-reveal">
+        <div className="container-max section-padding">
+          <div className="mb-10">
+            <p className="eyebrow">New In</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-balance mt-2">New Arrivals</h2>
+          </div>
+          <ProductGrid products={newArrivals.items} />
+          <div className="text-center mt-8">
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/products?sort=newest">View All New Arrivals</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
-      <section className="container-max section-padding">
-        <div className="mb-12">
-          <p className="text-sm uppercase tracking-widest text-accent mb-4">Shop by Category</p>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-balance">Categories</h2>
+      <section className="container-max section-padding scroll-reveal">
+        <div className="mb-10">
+          <p className="eyebrow">Shop by Category</p>
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-balance mt-2">Categories</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {categories.filter(c => c.isActive && !c.parentId).map((category) => (
-            <Link key={category.id} href={`/products?category=${category.slug}`} className="group">
-              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                <ShoppingBag className="w-12 h-12 text-muted-foreground" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          {categories.filter(c => c.isActive && !c.parentId).slice(0, 10).map((category, i) => (
+            <Link
+              key={category.id}
+              href={`/products?category=${category.slug}`}
+              className={`group scroll-reveal-delay-${Math.min(i + 1, 5)}`}
+            >
+              <div className="aspect-square bg-muted/50 rounded-xl flex items-center justify-center group-hover:bg-muted/80 transition-colors overflow-hidden">
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Truck className="w-7 h-7 text-accent" />
+                  </div>
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-serif font-semibold text-balance">{category.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{category.children?.length || 0} subcategories</p>
+              <div className="p-3 md:p-4">
+                <h3 className="font-serif font-semibold text-balance text-base">{category.name}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{category.children?.length || 0} styles</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="container-max section-padding bg-primary text-primary-foreground rounded-lg p-12 md:p-16 text-center">
-        <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">Join Our Community</h2>
-        <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">Subscribe to get exclusive access to new collections, special discounts, and style tips from our experts.</p>
-        <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" action="/api/newsletter" method="POST">
-          <input type="email" name="email" placeholder="Enter your email" className="flex-1 px-4 py-3 rounded bg-primary-foreground text-primary placeholder-muted-foreground focus:outline-none" required />
-          <Button type="submit" variant="secondary" className="bg-primary-foreground text-primary hover:bg-opacity-90">Subscribe</Button>
-        </form>
+      <section className="container-max section-padding scroll-reveal">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 px-6 py-16 md:p-20 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.03%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <p className="text-xs uppercase tracking-[0.15em] text-accent/80 mb-4 animate-fade-in-up">Stay Connected</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-foreground mb-4 animate-fade-in-up delay-100">Join Our Community</h2>
+            <p className="text-primary-foreground/80 mb-8 text-lg animate-fade-in-up delay-200">Subscribe for exclusive access to new collections, special discounts, and style tips.</p>
+            <NewsletterForm />
+          </div>
+        </div>
       </section>
 
-      <section className="container-max section-padding">
-        <div className="mb-12">
-          <p className="text-sm uppercase tracking-widest text-accent mb-4">Trusted Brands</p>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-balance">Our Partners</h2>
+      <section className="container-max section-padding scroll-reveal">
+        <div className="mb-10">
+          <p className="eyebrow">Trusted Brands</p>
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-balance mt-2">Our Partners</h2>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60 hover:opacity-100 transition-opacity">
+        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60 hover:opacity-100 transition-opacity duration-500">
           {brands.filter(b => b.isActive).slice(0, 10).map((brand) => (
-            <div key={brand.id} className="flex items-center gap-2">
-              {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} className="h-8 w-auto" /> : <span className="font-medium">{brand.name}</span>}
+            <div key={brand.id} className="flex items-center gap-2 grayscale hover:grayscale-0 transition-all duration-300">
+              {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} className="h-8 w-auto" /> : <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{brand.name}</span>}
             </div>
           ))}
         </div>

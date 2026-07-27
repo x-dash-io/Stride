@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { addToCartSchema, updateCartSchema, removeFromCartSchema } from '@/lib/validations'
+import { calculateTax, calculateShipping, calculateGrandTotal } from '@/lib/pricing'
 
 async function recalculateCart(cartId: string) {
   const items = await prisma.cartItem.findMany({
@@ -12,9 +13,9 @@ async function recalculateCart(cartId: string) {
   })
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.totalPrice), 0)
-  const taxTotal = subtotal * 0.16
-  const shippingTotal = subtotal >= 10000 ? 0 : 500
-  const grandTotal = subtotal + taxTotal + shippingTotal
+  const taxTotal = calculateTax(subtotal)
+  const shippingTotal = calculateShipping(subtotal)
+  const grandTotal = calculateGrandTotal(subtotal, shippingTotal, taxTotal)
 
   await prisma.cart.update({
     where: { id: cartId },
@@ -23,17 +24,18 @@ async function recalculateCart(cartId: string) {
 }
 
 async function getOrCreateCart(userId?: string, sessionId?: string) {
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   if (userId) {
     let cart = await prisma.cart.findFirst({ where: { userId } })
     if (!cart) {
-      cart = await prisma.cart.create({ data: { userId } })
+      cart = await prisma.cart.create({ data: { userId, expiresAt } })
     }
     return cart
   }
   if (sessionId) {
     let cart = await prisma.cart.findFirst({ where: { sessionId } })
     if (!cart) {
-      cart = await prisma.cart.create({ data: { sessionId } })
+      cart = await prisma.cart.create({ data: { sessionId, expiresAt } })
     }
     return cart
   }
@@ -72,7 +74,8 @@ export async function addToCart(formData: FormData) {
     return { error: 'Insufficient stock' }
   }
 
-  const sessionId = userId ? undefined : crypto.randomUUID()
+  const clientSessionId = (formData.get('sessionId') as string) || undefined
+  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
   const cart = await getOrCreateCart(userId, sessionId)
 
   const existingItem = await prisma.cartItem.findUnique({
@@ -106,7 +109,7 @@ export async function addToCart(formData: FormData) {
   revalidatePath('/cart')
   revalidatePath('/products/[id]', 'page')
 
-  return { success: true }
+  return { success: true, sessionId: userId ? undefined : sessionId }
 }
 
 export async function updateCartQuantity(formData: FormData) {
@@ -123,7 +126,8 @@ export async function updateCartQuantity(formData: FormData) {
   }
 
   const { variantId, quantity } = parsed.data
-  const sessionId = userId ? undefined : crypto.randomUUID()
+  const clientSessionId = (formData.get('sessionId') as string) || undefined
+  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
   const cart = await getOrCreateCart(userId, sessionId)
 
   const cartItem = await prisma.cartItem.findUnique({
@@ -153,7 +157,7 @@ export async function updateCartQuantity(formData: FormData) {
   await recalculateCart(cart.id)
   revalidatePath('/cart')
 
-  return { success: true }
+  return { success: true, sessionId: userId ? undefined : sessionId }
 }
 
 export async function removeFromCart(formData: FormData) {
@@ -169,7 +173,8 @@ export async function removeFromCart(formData: FormData) {
   }
 
   const { variantId } = parsed.data
-  const sessionId = userId ? undefined : crypto.randomUUID()
+  const clientSessionId = (formData.get('sessionId') as string) || undefined
+  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
   const cart = await getOrCreateCart(userId, sessionId)
 
   await prisma.cartItem.deleteMany({
@@ -179,16 +184,16 @@ export async function removeFromCart(formData: FormData) {
   await recalculateCart(cart.id)
   revalidatePath('/cart')
 
-  return { success: true }
+  return { success: true, sessionId: userId ? undefined : sessionId }
 }
 
-export async function clearCartAction() {
+export async function clearCartAction(sessionId?: string) {
   const session = await auth()
   const userId = session?.user?.id
-  const sessionId = userId ? undefined : crypto.randomUUID()
+  const resolvedSessionId = userId ? undefined : sessionId
 
   const cart = await prisma.cart.findFirst({
-    where: userId ? { userId } : { sessionId },
+    where: userId ? { userId } : { sessionId: resolvedSessionId },
   })
 
   if (cart) {
@@ -203,13 +208,13 @@ export async function clearCartAction() {
   return { success: true }
 }
 
-export async function getCartAction() {
+export async function getCartAction(sessionId?: string) {
   const session = await auth()
   const userId = session?.user?.id
-  const sessionId = userId ? undefined : crypto.randomUUID()
+  const resolvedSessionId = userId ? undefined : sessionId
 
   const cart = await prisma.cart.findFirst({
-    where: userId ? { userId } : { sessionId },
+    where: userId ? { userId } : { sessionId: resolvedSessionId },
     include: {
       items: {
         include: {

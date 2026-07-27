@@ -1,13 +1,13 @@
 import Link from 'next/link'
-import { Facebook, Instagram, Twitter, Youtube, Mail, Truck, Shield, RotateCcw, Headphones } from 'lucide-react'
+import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react'
+import { NewsletterForm } from './NewsletterForm'
 
 const footerLinks = {
   shop: [
     { label: 'All Products', href: '/products' },
-    { label: 'New Arrivals', href: '/products?category=new-arrivals' },
-    { label: 'Best Sellers', href: '/products?category=best-sellers' },
-    { label: 'Brands', href: '/products' },
-    { label: 'Sale', href: '/products?onSale=true' },
+    { label: 'New Arrivals', href: '/products?sort=newest' },
+    { label: 'Best Sellers', href: '/products?sort=popular' },
+    { label: 'Sale', href: '/products?salePrice=gt:0' },
   ],
   support: [
     { label: 'Contact Us', href: '/contact' },
@@ -36,13 +36,6 @@ const socialLinks = [
   { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
   { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
   { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
-]
-
-const benefits = [
-  { icon: Truck, title: 'Free Delivery', description: 'On orders over KES 10,000' },
-  { icon: Shield, title: 'Secure Payment', description: 'M-Pesa & Card payments' },
-  { icon: RotateCcw, title: 'Easy Returns', description: '30-day return policy' },
-  { icon: Headphones, title: 'Support', description: 'Mon-Fri 8am-6pm' },
 ]
 
 export function Footer() {
@@ -126,38 +119,11 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-12 border-t pt-8">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {benefits.map((benefit) => (
-              <div key={benefit.title} className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <benefit.icon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">{benefit.title}</p>
-                  <p className="text-xs text-muted-foreground">{benefit.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} STRIDE. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
-            <Mail className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <label className="text-sm text-muted-foreground">
-              Subscribe to newsletter
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="ml-2 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Email address"
-              />
-            </label>
-          </div>
+          <NewsletterForm />
         </div>
       </div>
     </footer>

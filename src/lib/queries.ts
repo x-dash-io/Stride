@@ -249,6 +249,31 @@ export async function getOrderById(id: string, userId?: string) {
   })
 }
 
+export async function getWishlist(userId: string) {
+  const wishlist = await prisma.wishlist.findFirst({
+    where: { userId },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: {
+                include: {
+                  brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
+                  images: { where: { isPrimary: true }, take: 1 },
+                },
+              },
+              inventory: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+  })
+  return wishlist
+}
+
 export async function getOrderByNumber(orderNumber: string) {
   return prisma.order.findUnique({
     where: { orderNumber },

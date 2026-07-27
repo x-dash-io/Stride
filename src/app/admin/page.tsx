@@ -45,7 +45,7 @@ async function getStats() {
 
 export default async function AdminDashboardPage() {
   const session = await auth()
-  if (!session?.user || (session.user as any).role !== 'ADMIN') redirect('/')
+  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
 
   const stats = await getStats()
 

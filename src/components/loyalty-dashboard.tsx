@@ -1,6 +1,7 @@
 'use client'
 
 import { Gift, Zap, Award, TrendingUp, Crown, Star, Medal, Check } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 
 interface LoyaltyDashboardProps {
   userId: string
@@ -49,7 +50,7 @@ export default function LoyaltyDashboard({
             ></div>
           </div>
           <p className="text-sm">
-            ${nextTierThreshold - totalSpent} more to reach the next tier
+            {formatPrice(nextTierThreshold - totalSpent)} more to reach the next tier
           </p>
         </div>
       </div>
@@ -66,7 +67,7 @@ export default function LoyaltyDashboard({
             <Gift className="w-8 h-8 text-accent opacity-50" />
           </div>
           <p className="text-xs text-muted-foreground">
-            Earn 1 point for every $10 spent. Redeem for exclusive rewards!
+            Earn 1 point for every KES 1,000 spent. Redeem for exclusive rewards!
           </p>
         </div>
 
@@ -75,7 +76,7 @@ export default function LoyaltyDashboard({
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Total Spent</p>
-              <p className="text-3xl font-bold">${totalSpent.toFixed(2)}</p>
+              <p className="text-3xl font-bold">{formatPrice(totalSpent)}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-accent opacity-50" />
           </div>
@@ -146,21 +147,21 @@ export default function LoyaltyDashboard({
 function getTierBenefits(tier: string) {
   const allBenefits: Record<string, Array<{ title: string; description: string }>> = {
     Bronze: [
-      { title: 'Free Shipping', description: 'On orders over $200' },
-      { title: 'Earn Points', description: '1 point per $10 spent' },
+      { title: 'Free Shipping', description: 'On orders over KES 10,000' },
+      { title: 'Earn Points', description: '1 point per KES 1,000 spent' },
       { title: 'Birthday Bonus', description: '100 bonus points' },
       { title: 'Early Access', description: 'To new collections' },
     ],
     Silver: [
       { title: 'Free Shipping', description: 'On all orders' },
-      { title: 'Double Points', description: '2 points per $10 spent' },
+      { title: 'Double Points', description: '2 points per KES 1,000 spent' },
       { title: 'Birthday Bonus', description: '150 bonus points' },
       { title: 'VIP Access', description: 'To exclusive sales' },
       { title: '10% Discount', description: 'On select items' },
     ],
     Gold: [
       { title: 'Express Shipping', description: 'Free on all orders' },
-      { title: 'Triple Points', description: '3 points per $10 spent' },
+      { title: 'Triple Points', description: '3 points per KES 1,000 spent' },
       { title: 'Birthday Bonus', description: '200 bonus points' },
       { title: 'VIP Access', description: 'To exclusive sales' },
       { title: '15% Discount', description: 'On select items' },
@@ -168,7 +169,7 @@ function getTierBenefits(tier: string) {
     ],
     Platinum: [
       { title: 'White Glove Delivery', description: 'Free on all orders' },
-      { title: 'Quadruple Points', description: '4 points per $10 spent' },
+      { title: 'Quadruple Points', description: '4 points per KES 1,000 spent' },
       { title: 'Birthday Bonus', description: '500 bonus points' },
       { title: 'VIP Access', description: 'To exclusive sales' },
       { title: '20% Discount', description: 'On all items' },

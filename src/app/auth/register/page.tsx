@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,6 +14,10 @@ import { useToast } from '@/providers/ToastProvider'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || 
+                     searchParams.get('returnUrl') || 
+                     '/cart'
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
 
@@ -40,7 +44,7 @@ export default function RegisterPage() {
       }
 
       showToast('success', 'Account created successfully!')
-      router.push('/auth/login')
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
     } catch (error) {
       showToast('error', 'Something went wrong')
     } finally {

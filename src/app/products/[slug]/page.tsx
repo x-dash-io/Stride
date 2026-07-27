@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+
+export const revalidate = 3600
 import { ProductDetailClient } from './ProductDetailClient'
 import { formatPrice } from '@/lib/utils'
 

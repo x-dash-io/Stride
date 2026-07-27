@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 }
 
 async function getUserData(userId: string) {
-  const [user, orders, wishlistCount, addresses] = await Promise.all([
+  const [user, orders, wishlistCount, addresses, orderAgg] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true, image: true, phone: true, createdAt: true } }),
     prisma.order.findMany({
       where: { userId },
@@ -23,16 +23,24 @@ async function getUserData(userId: string) {
     }),
     prisma.wishlistItem.count({ where: { wishlist: { userId } } }),
     prisma.address.findMany({ where: { userId }, orderBy: { isDefault: 'desc' } }),
+    prisma.order.aggregate({
+      where: { userId, status: { not: 'CANCELLED' } },
+      _sum: { grandTotal: true },
+      _count: true,
+    }),
   ])
 
-  return { user, orders, wishlistCount, addresses }
+  const totalSpent = Number(orderAgg._sum.grandTotal || 0)
+  const ordersCount = orderAgg._count
+
+  return { user, orders, wishlistCount, addresses, totalSpent, ordersCount }
 }
 
 export default async function AccountPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/auth/login')
 
-  const { user, orders, wishlistCount, addresses } = await getUserData(session.user.id)
+  const { user, orders, wishlistCount, addresses, totalSpent, ordersCount } = await getUserData(session.user.id)
 
   return (
     <div className="container-max py-12 min-h-screen">

@@ -11,6 +11,9 @@ export const shippingAddressSchema = z.object({
   state: z.string().min(2, 'County/State is required'),
   postalCode: z.string().min(2, 'Postal code is required'),
   country: z.string().default('KE'),
+  isDefault: z.boolean().default(false),
+  isBilling: z.boolean().default(false),
+  isShipping: z.boolean().default(true),
 })
 
 export const paymentSchema = z.object({
@@ -82,6 +85,7 @@ export const productCreateSchema = z.object({
   isLimitedEdition: z.boolean().default(false),
   isTrending: z.boolean().default(false),
   status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).default('DRAFT'),
+  publishedAt: z.string().datetime().optional(),
 })
 
 export type ProductCreateInput = z.infer<typeof productCreateSchema>

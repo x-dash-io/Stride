@@ -220,7 +220,7 @@ export interface PaymentTransaction {
   amount: number
   currency: string
   status: string
-  gatewayResponse?: any
+  gatewayResponse?: Record<string, unknown>
   isRefund: boolean
   refundOf?: string | null
   createdAt: string
@@ -302,8 +302,8 @@ export interface Banner {
   placement: string
   isActive: boolean
   sortOrder: number
-  startsAt?: string | null
-  endsAt?: string | null
+  startsAt?: string | Date | null
+  endsAt?: string | Date | null
 }
 
 export interface CmsPage {

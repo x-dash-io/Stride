@@ -281,6 +281,7 @@ model ProductVariant {
   @@index([sku])
   @@index([productId, size, colour])
   @@index([productId, isActive])
+  @@index([productId, isActive, size, colour])
 }
 
 model Inventory {
@@ -332,7 +333,7 @@ model Cart {
   shippingTotal Decimal  @default(0) @db.Decimal(10, 2)
   grandTotal    Decimal  @default(0) @db.Decimal(10, 2)
   currency      String   @default("KES")
-  expiresAt     DateTime @default(now()) @db.Timestamptz(6)
+  expiresAt     DateTime @db.Timestamptz(6)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -394,6 +395,7 @@ model Order {
   payments          PaymentTransaction[]
 
   @@index([userId])
+  @@index([userId, createdAt])
   @@index([userId, status, createdAt])
   @@index([orderNumber])
   @@index([status])
@@ -570,6 +572,16 @@ model ProductCollection {
   collection    Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   @@id([productId, collectionId])
+}
+
+model NewsletterSubscription {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  subscribed Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([email])
 }
 
 model Banner {

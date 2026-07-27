@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { verifyCsrfToken } from '@/lib/csrf'
 
 export async function getUserOrders(page = 1, perPage = 10) {
   const session = await auth()
@@ -42,9 +43,11 @@ export async function getOrderDetails(orderId: string) {
   return order
 }
 
-export async function cancelOrder(orderId: string) {
+export async function cancelOrder(orderId: string, csrfToken?: string) {
   const session = await auth()
   if (!session?.user?.id) return { error: 'Unauthorized' }
+
+  if (!(await verifyCsrfToken(csrfToken ?? null))) return { error: 'Invalid CSRF token' }
 
   const order = await prisma.order.findFirst({
     where: { id: orderId, userId: session.user.id },

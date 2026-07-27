@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { createProtectedRoute } from '@/lib/api-protection'
 import { productCreateSchema } from '@/lib/validations'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+type RouteContext = {
+  session: { user: { id: string } }
+  ip: string
+}
 
+async function handleGetById(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> },
+  routeContext: RouteContext
+) {
   const { id } = await params
   const product = await prisma.product.findUnique({
     where: { id },
@@ -34,86 +35,64 @@ export async function GET(
     return NextResponse.json({ error: 'Product not found' }, { status: 404 })
   }
 
-  return NextResponse.json({
-    ...product,
-    basePrice: Number(product.basePrice),
-    salePrice: product.salePrice ? Number(product.salePrice) : null,
-    costPrice: product.costPrice ? Number(product.costPrice) : null,
-    variants: product.variants.map(v => ({
-      ...v,
-      basePrice: Number(v.basePrice || 0),
-      salePrice: v.salePrice ? Number(v.salePrice) : null,
-    })),
-  })
+  return NextResponse.json(product)
 }
 
-export async function PUT(
+async function handlePutById(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<Record<string, string>> },
+  routeContext: RouteContext
 ) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { id } = await params
+  const body = await request.json()
+  const parsed = productCreateSchema.partial().safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
   }
 
-  const { id } = await params
-
-  try {
-    const body = await request.json()
-    const parsed = productCreateSchema.partial().safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
-    }
-
-    const data = parsed.data
-    const updateData: any = { ...data }
-
-    if (data.slug) {
-      const existing = await prisma.product.findFirst({
-        where: { slug: data.slug, NOT: { id } },
-      })
-      if (existing) {
-        return NextResponse.json({ error: 'Slug already in use' }, { status: 400 })
-      }
-    }
-
-    if (data.status === 'ACTIVE') {
-      updateData.publishedAt = new Date()
-    }
-
-    if (data.basePrice !== undefined) updateData.basePrice = data.basePrice
-    if (data.salePrice !== undefined) updateData.salePrice = data.salePrice
-    if (data.costPrice !== undefined) updateData.costPrice = data.costPrice
-
-    const product = await prisma.product.update({
-      where: { id },
-      data: updateData,
+  if (parsed.data.slug) {
+    const existing = await prisma.product.findFirst({
+      where: { slug: parsed.data.slug, NOT: { id } },
     })
-
-    return NextResponse.json(product)
-  } catch (error) {
-    console.error('Update product error:', error)
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+    if (existing) {
+      return NextResponse.json({ error: 'Slug already in use' }, { status: 409 })
+    }
   }
+
+  const updateData = { ...parsed.data }
+  if (parsed.data.status === 'ACTIVE') {
+    updateData.publishedAt = new Date().toISOString()
+  }
+  if (parsed.data.basePrice !== undefined) updateData.basePrice = parsed.data.basePrice
+  if (parsed.data.salePrice !== undefined) updateData.salePrice = parsed.data.salePrice
+  if (parsed.data.costPrice !== undefined) updateData.costPrice = parsed.data.costPrice
+  if (parsed.data.weightKg !== undefined) updateData.weightKg = parsed.data.weightKg
+
+  const product = await prisma.product.update({
+    where: { id },
+    data: updateData,
+    include: {
+      brand: true,
+      category: true,
+      images: true,
+      variants: { include: { inventory: true, images: true } },
+    },
+  })
+
+  return NextResponse.json(product)
 }
 
-export async function DELETE(
+async function handleDeleteById(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<Record<string, string>> },
+  routeContext: RouteContext
 ) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const { id } = await params
-
-  try {
-    await prisma.product.delete({ where: { id } })
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Delete product error:', error)
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
-  }
+  await prisma.product.delete({ where: { id } })
+  return NextResponse.json({ success: true })
 }
+
+export const GET = createProtectedRoute(handleGetById, { requireAuth: true, requireAdmin: true, rateLimit: 'api' })
+export const PUT = createProtectedRoute(handlePutById, { requireAuth: true, requireAdmin: true, rateLimit: 'api', requireCsrf: true })
+export const DELETE = createProtectedRoute(handleDeleteById, { requireAuth: true, requireAdmin: true, rateLimit: 'api', requireCsrf: true })

@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { verifyMpesaCallbackIp } from '@/lib/mpesa'
 import { paymentRateLimit, rateLimit } from '@/lib/rate-limit'
 
+interface CallbackMetadataItem {
+  Name: string
+  Value?: string | number
+}
+
 export async function POST(request: NextRequest) {
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('remote-addr')
@@ -47,10 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (ResultCode === 0) {
-      const items = CallbackMetadata?.Item || []
-      const amount = items.find((i: any) => i.Name === 'Amount')?.Value
-      const mpesaReceiptNumber = items.find((i: any) => i.Name === 'MpesaReceiptNumber')?.Value
-      const phoneNumber = items.find((i: any) => i.Name === 'PhoneNumber')?.Value
+      const items = (CallbackMetadata?.Item || []) as CallbackMetadataItem[]
+      const amount = items.find((i) => i.Name === 'Amount')?.Value
+      const mpesaReceiptNumber = items.find((i) => i.Name === 'MpesaReceiptNumber')?.Value
+      const phoneNumber = items.find((i) => i.Name === 'PhoneNumber')?.Value
 
       await prisma.$transaction(async (tx) => {
         await tx.paymentTransaction.update({

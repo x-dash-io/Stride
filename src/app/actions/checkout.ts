@@ -2,9 +2,11 @@
 
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { shippingAddressSchema, paymentSchema } from '@/lib/validations'
 import { initiateStkPush } from '@/lib/mpesa'
+import { verifyCsrfToken } from '@/lib/csrf'
 
 export async function submitShippingAddress(formData: FormData) {
   const session = await auth()
@@ -39,6 +41,9 @@ export async function submitShippingAddress(formData: FormData) {
 export async function processPayment(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) return { error: 'Unauthorized' }
+
+  const csrfToken = formData.get('_csrf') as string | null
+  if (!(await verifyCsrfToken(csrfToken))) return { error: 'Invalid CSRF token' }
 
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: parsed.error.errors[0].message }
@@ -124,7 +129,7 @@ export async function processPayment(formData: FormData) {
 
     const stkResponse = await initiateStkPush({
       phoneNumber,
-      amount: Math.round(Number(order.grandTotal)),
+      amount: Math.round(Number(order.grandTotal) * 100),
       accountReference: order.orderNumber,
       transactionDesc: `Payment for order ${order.orderNumber}`,
     })
@@ -145,7 +150,7 @@ export async function processPayment(formData: FormData) {
         amount: order.grandTotal,
         currency: 'KES',
         status: 'PENDING',
-        gatewayResponse: stkResponse as any,
+        gatewayResponse: stkResponse as unknown as Prisma.InputJsonValue,
       },
     })
 

@@ -1,21 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { createProtectedRouteNoParams } from '@/lib/api-protection'
 import { productCreateSchema } from '@/lib/validations'
 
-export async function GET(request: NextRequest) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+type RouteContext = {
+  session: { user: { id: string; name?: string | null; email?: string | null; image?: string | null; role: string } }
+  ip: string
+}
 
+async function handleGet(
+  request: NextRequest,
+  routeContext: RouteContext
+) {
   const { searchParams } = new URL(request.url)
-  const page = Number(searchParams.get('page') || '1')
-  const perPage = Number(searchParams.get('perPage') || '20')
+  const page = Math.max(1, Number(searchParams.get('page') || '1'))
+  const perPage = Math.min(50, Number(searchParams.get('perPage') || '20'))
   const search = searchParams.get('search') || ''
-  const status = searchParams.get('status') || ''
-  const brandId = searchParams.get('brandId') || ''
-  const categoryId = searchParams.get('categoryId') || ''
+  const status = searchParams.get('status')
+  const categoryId = searchParams.get('categoryId')
+  const brandId = searchParams.get('brandId')
   const sort = searchParams.get('sort') || 'createdAt'
   const order = searchParams.get('order') || 'desc'
 
@@ -30,77 +33,73 @@ export async function GET(request: NextRequest) {
       ],
     }),
     ...(status && { status: status as any }),
-    ...(brandId && { brandId }),
     ...(categoryId && { categoryId }),
+    ...(brandId && { brandId }),
   }
 
-  const [items, total] = await Promise.all([
+  const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy: { [sort]: order },
       skip,
       take: perPage,
       include: {
-        brand: { select: { id: true, name: true, slug: true } },
+        brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
         category: { select: { id: true, name: true, slug: true } },
         images: { where: { isPrimary: true }, take: 1 },
         variants: {
+          where: { isActive: true },
           include: { inventory: true },
           orderBy: { sortOrder: 'asc' },
         },
-        _count: { select: { variants: true } },
       },
     }),
     prisma.product.count({ where }),
   ])
 
-  const products = items.map(p => ({
-    ...p,
-    basePrice: Number(p.basePrice),
-    salePrice: p.salePrice ? Number(p.salePrice) : null,
-    costPrice: p.costPrice ? Number(p.costPrice) : null,
-    totalStock: p.variants.reduce((sum, v) => sum + v.inventory.reduce((s, i) => s + i.quantityOnHand, 0), 0),
-  }))
-
-  return NextResponse.json({ items: products, total, page, perPage, totalPages: Math.ceil(total / perPage) })
+  return NextResponse.json({
+    items: products,
+    total,
+    page,
+    perPage,
+    totalPages: Math.ceil(total / perPage),
+  })
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+async function handlePost(
+  request: NextRequest,
+  routeContext: RouteContext
+) {
+  const body = await request.json()
+  const parsed = productCreateSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
   }
 
-  try {
-    const body = await request.json()
-    const parsed = productCreateSchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
-    }
-
-    const data = parsed.data
-    const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-
-    const existing = await prisma.product.findUnique({ where: { slug } })
-    if (existing) {
-      return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 400 })
-    }
-
-    const product = await prisma.product.create({
-      data: {
-        ...data,
-        slug,
-        basePrice: data.basePrice,
-        salePrice: data.salePrice,
-        costPrice: data.costPrice,
-        publishedAt: data.status === 'ACTIVE' ? new Date() : null,
-      },
-    })
-
-    return NextResponse.json(product, { status: 201 })
-  } catch (error) {
-    console.error('Create product error:', error)
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+  const existingSlug = await prisma.product.findUnique({ where: { slug: parsed.data.slug } })
+  if (existingSlug) {
+    return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 409 })
   }
+
+  const product = await prisma.product.create({
+    data: {
+      ...parsed.data,
+      basePrice: parsed.data.basePrice,
+      salePrice: parsed.data.salePrice,
+      costPrice: parsed.data.costPrice,
+      weightKg: parsed.data.weightKg,
+    },
+    include: {
+      brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
+      category: { select: { id: true, name: true, slug: true } },
+      images: true,
+      variants: { include: { inventory: true, images: true } },
+    },
+  })
+
+  return NextResponse.json(product, { status: 201 })
 }
+
+export const GET = createProtectedRouteNoParams(handleGet, { requireAuth: true, requireAdmin: true, rateLimit: 'api' })
+export const POST = createProtectedRouteNoParams(handlePost, { requireAuth: true, requireAdmin: true, rateLimit: 'api', requireCsrf: true })

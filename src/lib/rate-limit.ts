@@ -1,28 +1,35 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+function createRedis() {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) {
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('Redis not configured — rate limiting disabled')
+    }
+    return null
+  }
+  return new Redis({ url, token })
+}
 
-export const authRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
-  prefix: 'ratelimit:auth',
-})
+const redis = createRedis()
 
-export const apiRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, '1 m'),
-  prefix: 'ratelimit:api',
-})
+const noopLimiter = {
+  limit: async () => ({ success: true, remaining: 999, reset: Date.now() + 60000 }),
+} as unknown as Ratelimit
 
-export const paymentRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, '1 m'),
-  prefix: 'ratelimit:payment',
-})
+export const authRateLimit = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '1 m'), prefix: 'ratelimit:auth' })
+  : noopLimiter
+
+export const apiRateLimit = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(100, '1 m'), prefix: 'ratelimit:api' })
+  : noopLimiter
+
+export const paymentRateLimit = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 m'), prefix: 'ratelimit:payment' })
+  : noopLimiter
 
 export async function rateLimit(
   rateLimiter: Ratelimit,

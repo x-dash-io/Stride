@@ -1,4 +1,5 @@
-import { getServerSession, type NextAuthOptions } from 'next-auth'
+import NextAuth, { type NextAuthOptions } from 'next-auth'
+import { getServerSession } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
@@ -19,7 +20,7 @@ const registerSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
-  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
+  session: { strategy: 'jwt' as const, maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
@@ -75,13 +76,17 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
-        session.user.role = token.role
+        session.user.id = token.id as string
+        session.user.role = token.role as string
       }
       return session
     },
   },
 }
+
+const handler = NextAuth(authOptions)
+
+export const handlers = { GET: handler, POST: handler }
 
 export async function auth() {
   return getServerSession(authOptions)

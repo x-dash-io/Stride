@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
@@ -10,6 +10,7 @@ import { ChevronLeft, Star, Heart, Share2, Check, Truck, RotateCcw, Shield, MapP
 import { Product, ProductVariant } from '@/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 
 interface ProductDetailClientProps {
   product: Product
@@ -64,23 +65,30 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     }
   }
 
-  if (!selectedColor && availableColors.length > 0) {
-    setSelectedColor(availableColors[0])
-  }
-  if (!selectedSize && availableSizes.length > 0) {
-    setSelectedSize(availableSizes[0])
-  }
+  useEffect(() => {
+    const colors = [...new Set(product.variants.map(v => v.colour))]
+    if (colors.length > 0) setSelectedColor(colors[0])
+    const sizes = [...new Set(
+      product.variants
+        .filter(v => v.colour === colors[0] && v.availableStock > 0)
+        .map(v => v.size)
+    )].sort()
+    if (sizes.length > 0) setSelectedSize(sizes[0])
+  }, [product.variants])
 
   const currentImage = product.images[selectedImageIndex] || product.variants[0]?.images[0]
 
   return (
     <div className="min-h-screen">
-      <nav className="container-max py-4" aria-label="Breadcrumb">
-        <Link href="/products" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="w-4 h-4" />
-          Back to Products
-        </Link>
-      </nav>
+      <div className="container-max py-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Products', href: '/products' },
+            { label: product.brand.name, href: `/products?brand=${product.brand.id}` },
+            { label: product.name },
+          ]}
+        />
+      </div>
 
       <div className="container-max py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

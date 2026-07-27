@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { r2, R2_BUCKET, getSignedUploadUrl, generateProductKey, generateTempKey } from '@/lib/r2'
 import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
+import { validateFileSignature, validateFileSize } from '@/lib/file-validation'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -35,8 +36,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (!validateFileSize(file.size)) {
       return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
+    }
+
+    const buffer = await file.arrayBuffer()
+    if (!validateFileSignature(buffer, file.type)) {
+      return NextResponse.json({ error: 'Invalid file signature' }, { status: 400 })
     }
 
     let key: string

@@ -33,7 +33,7 @@ export async function uploadToR2(
   await r2.send(new PutObjectCommand({
     Bucket: R2_BUCKET,
     Key: key,
-    Body: body as any,
+    Body: body as Uint8Array | ReadableStream,
     ContentType: contentType,
   }))
 

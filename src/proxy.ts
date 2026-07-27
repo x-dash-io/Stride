@@ -1,40 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { jwtVerify } from 'jose'
-
-const JWT_SECRET = new TextEncoder().encode(process.env.AUTH_SECRET!)
-
-async function verifyAuth(request: NextRequest) {
-  const cookieHeader = request.headers.get('cookie') || ''
-  const cookies = cookieHeader.split('; ').reduce((acc, cookie) => {
-    const [key, value] = cookie.split('=')
-    acc[key] = value
-    return acc
-  }, {} as Record<string, string>)
-
-  const token = cookies['next-auth.session-token'] || cookies['__session']
-
-  if (!token) return null
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload
-  } catch {
-    return null
-  }
-}
+import { getToken } from 'next-auth/jwt'
 
 export default async function proxy(request: NextRequest) {
+  const token = await getToken({ req: request })
   const { nextUrl } = request
-  const session = await verifyAuth(request)
-  const isLoggedIn = !!session
+  const isLoggedIn = !!token
   const isOnAuth = nextUrl.pathname.startsWith('/auth')
   const isOnAccount = nextUrl.pathname.startsWith('/account')
   const isOnAdmin = nextUrl.pathname.startsWith('/admin')
   const isOnCheckout = nextUrl.pathname.startsWith('/cart/checkout')
-  const userRole = session?.role as string | undefined
+  const userRole = token?.role as string | undefined
 
   if (isOnAuth && isLoggedIn) {
-    return NextResponse.redirect(new URL('/account', nextUrl))
+    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/account'
+    return NextResponse.redirect(new URL(callbackUrl, nextUrl))
   }
 
   if ((isOnAccount || isOnCheckout) && !isLoggedIn) {
