@@ -54,6 +54,9 @@ Desktop.ini
 # Turbo
 .turbo
 
+# Foglamp scan (tokens are secrets)
+.foglamp/
+
 # Logs
 logs/
 *.log
