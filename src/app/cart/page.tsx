@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, Trash2, Plus, Minus, ChevronRight, ShoppingBag, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 
 export default function CartPage() {
   const { cart, items, removeItem, updateQuantity, isLoading } = useCart()
@@ -36,10 +37,9 @@ export default function CartPage() {
 
   return (
     <div className="container-max py-12 min-h-screen">
-      <Link href="/products" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" />
-        Continue Shopping
-      </Link>
+      <div className="mb-8">
+        <Breadcrumbs items={[{ label: 'Cart' }]} />
+      </div>
 
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-12">Your Cart</h1>
 

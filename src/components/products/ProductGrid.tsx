@@ -1,18 +1,20 @@
+import { memo } from 'react'
 import { Star, Package } from 'lucide-react'
 import Link from 'next/link'
 import { Product } from '@/types'
 import { formatPrice } from '@/lib/utils'
+import { ClearFiltersButton } from '@/components/products/ClearFiltersButton'
 
 interface ProductCardProps {
   product: Product
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   const price = product.salePrice ?? product.basePrice
   const originalPrice = product.salePrice ? product.basePrice : null
 
   return (
-    <Link href={`/products/${product.slug}`} className="product-card group block">
+    <Link href={`/products/${product.slug}`} className="group block bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all">
       <div className="aspect-square bg-muted relative overflow-hidden">
         {product.primaryImage ? (
           <img src={product.primaryImage} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
@@ -45,14 +47,14 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
     </Link>
   )
-}
+})
 
 export function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
       <div className="col-span-full text-center py-12">
         <p className="text-lg text-muted-foreground mb-4">No products found matching your filters.</p>
-        <button className="btn-primary">Clear Filters</button>
+        <ClearFiltersButton />
       </div>
     )
   }

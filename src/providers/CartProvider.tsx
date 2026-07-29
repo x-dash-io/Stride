@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, ReactNode } from 'react'
 import { CartItem, Cart } from '@/types'
 import { addToCart, updateCartQuantity, removeFromCart, clearCartAction, getCartAction } from '@/app/actions/cart'
 import { calculateTax, calculateShipping, calculateGrandTotal } from '@/lib/pricing'
@@ -25,6 +25,7 @@ function getInitialSessionId(): string {
   if (stored) return stored
   const newId = crypto.randomUUID()
   localStorage.setItem('cartSessionId', newId)
+  document.cookie = `cartSessionId=${newId};path=/;max-age=604800;samesite=lax`
   return newId
 }
 
@@ -44,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return { subtotal, tax, shipping, total, itemCount: items.reduce((sum, item) => sum + item.quantity, 0) }
   }
 
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     try {
       const data = await getCartAction(sessionId || undefined)
       if (data?.items) {
@@ -55,13 +56,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [sessionId])
 
   useEffect(() => {
     refreshCart()
-  }, [sessionId])
+  }, [refreshCart])
 
-  const addItem = async (variantId: string, quantity = 1) => {
+  const addItem = useCallback(async (variantId: string, quantity = 1) => {
     const formData = new FormData()
     formData.append('variantId', variantId)
     formData.append('quantity', String(quantity))
@@ -69,26 +70,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const result = await addToCart(formData)
     if ('error' in result) throw new Error(result.error as string)
-    if ('sessionId' in result && result.sessionId && !sessionId) {
+    if ('sessionId' in result && result.sessionId) {
       localStorage.setItem('cartSessionId', result.sessionId)
+      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
     }
     await refreshCart()
-  }
+  }, [sessionId, refreshCart])
 
-  const removeItem = async (variantId: string) => {
+  const removeItem = useCallback(async (variantId: string) => {
     const formData = new FormData()
     formData.append('variantId', variantId)
     if (sessionId) formData.append('sessionId', sessionId)
 
     const result = await removeFromCart(formData)
     if ('error' in result) throw new Error(result.error)
-    if ('sessionId' in result && result.sessionId && !sessionId) {
+    if ('sessionId' in result && result.sessionId) {
       localStorage.setItem('cartSessionId', result.sessionId)
+      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
     }
     await refreshCart()
-  }
+  }, [sessionId, refreshCart])
 
-  const updateQuantity = async (variantId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (variantId: string, quantity: number) => {
     const formData = new FormData()
     formData.append('variantId', variantId)
     formData.append('quantity', String(quantity))
@@ -96,33 +99,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const result = await updateCartQuantity(formData)
     if ('error' in result) throw new Error(result.error)
-    if ('sessionId' in result && result.sessionId && !sessionId) {
+    if ('sessionId' in result && result.sessionId) {
       localStorage.setItem('cartSessionId', result.sessionId)
+      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
     }
     await refreshCart()
-  }
+  }, [sessionId, refreshCart])
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     await clearCartAction(sessionId || undefined)
     await refreshCart()
-  }
+  }, [sessionId, refreshCart])
 
-  const totals = cart ? calculateTotals(cart) : { subtotal: 0, tax: 0, shipping: 0, total: 0, itemCount: 0 }
+  const totals = useMemo(
+    () => cart ? calculateTotals(cart) : { subtotal: 0, tax: 0, shipping: 0, total: 0, itemCount: 0 },
+    [cart]
+  )
+
+  const value = useMemo(() => ({
+    cart,
+    items: cart?.items || [],
+    isLoading,
+    refreshCart,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    ...totals,
+  }), [cart, isLoading, refreshCart, addItem, removeItem, updateQuantity, clearCart, totals])
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        items: cart?.items || [],
-        isLoading,
-        refreshCart,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        ...totals,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   )

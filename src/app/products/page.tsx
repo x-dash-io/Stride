@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { getProducts, getCategories, getBrands } from '@/lib/queries'
 import { prisma } from '@/lib/prisma'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductFilters } from '@/components/products/ProductFilters'
 import { ProductSort } from '@/components/products/ProductSort'
 import { ClearFiltersButton } from '@/components/products/ClearFiltersButton'
@@ -65,9 +66,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const priceRangeMin = params.minPrice ? Number(params.minPrice) : priceRange.min
   const priceRangeMax = params.maxPrice ? Number(params.maxPrice) : priceRange.max
 
+  const breadcrumbItems = params.category
+    ? [{ label: 'Products', href: '/products' }, { label: params.category.replace(/-/g, ' ') }]
+    : [{ label: 'Products' }]
+
   return (
     <div className="min-h-screen">
       <div className="container-max py-8 border-b border-border">
+        <Breadcrumbs items={breadcrumbItems} />
         <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">Our Collection</h1>
         <p className="text-muted-foreground">
           Discover {productsData.total} products from our premium selection

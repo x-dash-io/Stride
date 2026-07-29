@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { getProducts, getCategories, getBrands, getBanners } from '@/lib/queries'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { HeroCarousel } from '@/components/hero-carousel'
+import { HeroProductCarousel } from '@/components/hero/HeroProductCarousel'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Truck } from 'lucide-react'
+import { Truck } from 'lucide-react'
 import { NewsletterForm } from '@/components/layout/NewsletterForm'
 
 export default async function HomePage() {
@@ -16,6 +17,13 @@ export default async function HomePage() {
     getBanners('hero'),
   ])
 
+  const heroProducts =
+    featuredProducts.items.length > 0
+      ? featuredProducts.items.slice(0, 6)
+      : bestSellers.items.length > 0
+        ? bestSellers.items.slice(0, 6)
+        : newArrivals.items.slice(0, 6)
+
   return (
     <div className="w-full">
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -27,63 +35,15 @@ export default async function HomePage() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_40%_20%,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
             </div>
-            
+
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-1/2 -left-1/2 w-full h-full max-w-[600px] max-h-[600px] rounded-full bg-accent/5 blur-[150px] animate-pulse-slow" />
               <div className="absolute -bottom-1/4 -right-1/4 w-full h-full max-w-[400px] max-h-[400px] rounded-full bg-primary/5 blur-[120px] animate-pulse-slow delay-1000" />
             </div>
-            
-            <div className="container-max relative z-10 py-20 md:py-32 lg:py-40">
-              <div className="max-w-4xl mx-auto text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in-up">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                  </span>
-                  New Collection Now Live
-                </div>
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-balance mb-6 leading-[1.1] animate-fade-in-up delay-100">
-                  Step Into
-                  <br />
-                  <span className="text-accent">Timeless Style</span>
-                </h1>
-                <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
-                  Discover footwear crafted for those who demand excellence. 
-                  Premium materials, impeccable construction, and timeless design 
-                  for every step of your journey.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
-                  <Button size="xl" asChild className="group relative overflow-hidden">
-                    <Link href="/products">
-                      Shop Collection
-                      <ArrowRight className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="xl" asChild>
-                    <Link href="/about">Our Story</Link>
-                  </Button>
-                </div>
-                
-                <div className="mt-16 animate-fade-in-up delay-400">
-                  <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-accent" />
-                      <span>Free Shipping Over KES 10,000</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-px h-6 bg-muted"></span>
-                      <span>30-Day Returns</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-px h-6 bg-muted"></span>
-                      <span>Secure Checkout</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce-slow">
+
+            <HeroProductCarousel products={heroProducts} />
+
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce-slow hidden lg:block">
               <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/20 bg-background/80 backdrop-blur-sm">
                 <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
