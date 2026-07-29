@@ -1,0 +1,6 @@
+export { ProductImageGallery } from './ProductImageGallery'
+export { ProductInfo } from './ProductInfo'
+export { ProductOptions } from './ProductOptions'
+export { ProductActions } from './ProductActions'
+export { ProductShippingInfo } from './ProductShippingInfo'
+export { ProductReviews } from './ProductReviews'
