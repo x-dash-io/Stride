@@ -2,6 +2,7 @@
 
 import { Gift, Zap, Award, TrendingUp, Crown, Star, Medal, Check } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface LoyaltyDashboardProps {
   userId: string
@@ -136,9 +137,9 @@ export default function LoyaltyDashboard({
         <p className="text-muted-foreground mb-6">
           You have <span className="font-semibold text-accent">{rewardPoints} points</span> available to redeem for exclusive discounts and rewards.
         </p>
-        <button className="btn-primary">
+        <Button variant="default">
           View Rewards Store
-        </button>
+        </Button>
       </div>
     </div>
   )

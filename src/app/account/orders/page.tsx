@@ -91,7 +91,7 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
 
           {totalPages > 1 && (
             <nav className="flex items-center justify-center gap-2 mt-8" aria-label="Pagination">
-              <Link href={page > 1 ? `/account/orders?page=${page - 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === 1}>Previous</Link>
+              <Button variant="secondary" asChild className="disabled:opacity-50"><Link href={page > 1 ? `/account/orders?page=${page - 1}` : '#'} aria-disabled={page === 1}>Previous</Link></Button>
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                 let pageNum: number
                 if (totalPages <= 5) pageNum = i + 1
@@ -102,7 +102,7 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
                   <Link key={pageNum} href={`/account/orders?page=${pageNum}`} className={`px-4 py-2 rounded-md text-sm font-medium ${page === pageNum ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}>{pageNum}</Link>
                 )
               })}
-              <Link href={page < totalPages ? `/account/orders?page=${page + 1}` : '#'} className="btn-secondary disabled:opacity-50" aria-disabled={page === totalPages}>Next</Link>
+              <Button variant="secondary" asChild className="disabled:opacity-50"><Link href={page < totalPages ? `/account/orders?page=${page + 1}` : '#'} aria-disabled={page === totalPages}>Next</Link></Button>
             </nav>
           )}
         </>

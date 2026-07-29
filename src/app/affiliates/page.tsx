@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Affiliate Program | STRIDE',
@@ -49,7 +50,7 @@ export default function AffiliatesPage() {
         <div className="p-8 bg-accent rounded-lg text-center">
           <h2 className="text-2xl font-semibold mb-4">Ready to Start?</h2>
           <p className="text-muted-foreground mb-6">Join hundreds of affiliates earning with STRIDE.</p>
-          <button className="btn-primary">Sign Up as an Affiliate</button>
+          <Button variant="default">Sign Up as an Affiliate</Button>
         </div>
       </div>
     </div>

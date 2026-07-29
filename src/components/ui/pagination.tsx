@@ -31,13 +31,9 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams }: P
 
   return (
     <nav className="flex items-center justify-center gap-1 mt-8" aria-label="Pagination">
-      <Link
-        href={currentPage > 1 ? createPageUrl(currentPage - 1) : '#'}
-        className={cn('btn-secondary', currentPage === 1 && 'opacity-50 pointer-events-none')}
-        aria-label="Previous page"
-      >
-        Previous
-      </Link>
+      <Button variant="secondary" asChild className={cn(currentPage === 1 && 'opacity-50 pointer-events-none')}>
+        <Link href={currentPage > 1 ? createPageUrl(currentPage - 1) : '#'} aria-label="Previous page">Previous</Link>
+      </Button>
 
       {visiblePages.map((page, index) => {
         const prevPage = visiblePages[index - 1]
@@ -63,13 +59,9 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams }: P
         )
       })}
 
-      <Link
-        href={currentPage < totalPages ? createPageUrl(currentPage + 1) : '#'}
-        className={cn('btn-secondary', currentPage === totalPages && 'opacity-50 pointer-events-none')}
-        aria-label="Next page"
-      >
-        Next
-      </Link>
+      <Button variant="secondary" asChild className={cn(currentPage === totalPages && 'opacity-50 pointer-events-none')}>
+        <Link href={currentPage < totalPages ? createPageUrl(currentPage + 1) : '#'} aria-label="Next page">Next</Link>
+      </Button>
     </nav>
   )
 }

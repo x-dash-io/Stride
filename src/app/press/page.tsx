@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Press | STRIDE',
@@ -30,8 +31,8 @@ export default function PressPage() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Press Kit</h2>
           <div className="space-y-3">
-            <button className="btn-primary w-full sm:w-auto">Download Brand Assets (ZIP)</button>
-            <button className="btn-secondary w-full sm:w-auto ml-0 sm:ml-3 mt-3 sm:mt-0">Download Logo Package</button>
+            <Button variant="default" className="w-full sm:w-auto">Download Brand Assets (ZIP)</Button>
+            <Button variant="secondary" className="w-full sm:w-auto ml-0 sm:ml-3 mt-3 sm:mt-0">Download Logo Package</Button>
           </div>
         </section>
 

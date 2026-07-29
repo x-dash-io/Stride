@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight, AlertCircle, Check, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function ReturnsPage() {
   return (
@@ -189,9 +190,7 @@ export default function ReturnsPage() {
         <div className="bg-primary text-primary-foreground rounded-lg p-12 text-center">
           <h2 className="text-3xl font-serif font-bold mb-4">Need Help With a Return?</h2>
           <p className="text-lg opacity-90 mb-8">Our support team is ready to assist you with any questions.</p>
-          <Link href="/contact" className="btn-secondary bg-primary-foreground text-primary hover:bg-opacity-90">
-            Contact Support
-          </Link>
+          <Button variant="secondary" asChild><Link href="/contact" className="bg-primary-foreground text-primary hover:bg-opacity-90">Contact Support</Link></Button>
         </div>
       </section>
     </div>

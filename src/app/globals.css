@@ -292,30 +292,6 @@
     @apply max-w-5xl mx-auto px-4 md:px-6 lg:px-8;
   }
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:opacity-90 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-transparent border border-border text-foreground px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-
-  .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:opacity-90 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 text-foreground px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-
-  .input-base {
-    @apply w-full px-4 py-2.5 border border-border rounded-lg bg-card text-foreground placeholder-muted-foreground text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
-  }
-
-  .product-card {
-    @apply bg-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
-  }
-
   .section-padding {
     @apply py-16 md:py-24;
   }
@@ -402,6 +378,29 @@
 
   .float-animation {
     animation: float 6s ease-in-out infinite;
+  }
+
+  .hero-progress {
+    animation-name: hero-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes hero-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .float-animation,
+    .hero-progress,
+    .hero-bg,
+    .hero-content,
+    .hero-content-delay-1,
+    .hero-content-delay-2,
+    .hero-content-delay-3 {
+      animation: none !important;
+    }
   }
 
   .pulse-glow {

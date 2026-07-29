@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
   return (
@@ -12,12 +13,8 @@ export default function NotFound() {
         Sorry, we can&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
       </p>
       <div className="flex gap-4">
-        <Link href="/" className="btn-primary">
-          Go Home
-        </Link>
-        <Link href="/products" className="btn-secondary">
-          Browse Products
-        </Link>
+        <Button variant="default" asChild><Link href="/">Go Home</Link></Button>
+        <Button variant="secondary" asChild><Link href="/products">Browse Products</Link></Button>
       </div>
     </div>
   )

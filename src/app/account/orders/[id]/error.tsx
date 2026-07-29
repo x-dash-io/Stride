@@ -3,6 +3,7 @@
 import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function OrderDetailError({
   error,
@@ -28,8 +29,8 @@ export default function OrderDetailError({
         {error.message || 'Unknown error'}
       </p>
       <div className="flex gap-4">
-        <button onClick={reset} className="btn-primary">Try Again</button>
-        <Link href="/account/orders" className="btn-secondary">Back to Orders</Link>
+        <Button onClick={reset} variant="default">Try Again</Button>
+        <Button variant="secondary" asChild><Link href="/account/orders">Back to Orders</Link></Button>
       </div>
     </div>
   )

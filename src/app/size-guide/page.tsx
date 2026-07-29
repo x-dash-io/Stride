@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function SizeGuidePage() {
   return (
@@ -157,9 +158,7 @@ export default function SizeGuidePage() {
         <div className="bg-primary text-primary-foreground rounded-lg p-12 text-center">
           <h2 className="text-3xl font-serif font-bold mb-4">Ready to Find Your Perfect Fit?</h2>
           <p className="text-lg opacity-90 mb-8">Browse our collection and find the perfect shoes for you.</p>
-          <Link href="/products" className="btn-secondary bg-primary-foreground text-primary hover:bg-opacity-90">
-            Shop Now
-          </Link>
+          <Button variant="secondary" asChild><Link href="/products" className="bg-primary-foreground text-primary hover:bg-opacity-90">Shop Now</Link></Button>
         </div>
       </section>
     </div>

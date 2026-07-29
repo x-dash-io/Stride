@@ -1,12 +1,14 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+
 export function ClearFiltersButton() {
   return (
-    <button
+    <Button
+      variant="default"
       onClick={() => { window.location.href = '/products' }}
-      className="btn-primary"
     >
       Clear Filters
-    </button>
+    </Button>
   )
 }

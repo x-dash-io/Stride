@@ -18,7 +18,7 @@ export function ProductSort({ currentSort }: ProductSortProps) {
         params.delete('page')
         window.location.href = `/products?${params.toString()}`
       }}
-      className="input-base text-sm w-auto"
+      className="px-3 py-2 border border-border rounded-lg bg-card text-foreground text-sm w-auto focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
     >
       <option value="newest">Newest</option>
       <option value="price-asc">Price: Low to High</option>

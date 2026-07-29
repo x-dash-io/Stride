@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Award, Heart, Truck, Shield } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function AboutPage() {
   return (
@@ -204,9 +205,7 @@ export default function AboutPage() {
           <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
             Discover our commitment to excellence. Shop our collection and experience premium footwear like never before.
           </p>
-          <Link href="/products" className="btn-secondary bg-primary-foreground text-primary">
-            Explore Collection
-          </Link>
+          <Button variant="secondary" asChild><Link href="/products" className="bg-primary-foreground text-primary">Explore Collection</Link></Button>
         </div>
       </section>
     </div>

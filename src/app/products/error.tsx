@@ -3,6 +3,7 @@
 import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function ProductsError({
   error,
@@ -25,8 +26,8 @@ export default function ProductsError({
         We couldn&apos;t load the product catalog. Please try again.
       </p>
       <div className="flex gap-4">
-        <button onClick={reset} className="btn-primary">Try Again</button>
-        <Link href="/" className="btn-secondary">Go Home</Link>
+        <Button onClick={reset} variant="default">Try Again</Button>
+        <Button variant="secondary" asChild><Link href="/">Go Home</Link></Button>
       </div>
     </div>
   )

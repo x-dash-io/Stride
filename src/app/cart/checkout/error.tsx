@@ -3,6 +3,7 @@
 import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function CheckoutError({
   error,
@@ -26,8 +27,8 @@ export default function CheckoutError({
       </p>
 
       <div className="flex gap-4">
-        <button onClick={reset} className="btn-primary">Try Again</button>
-        <Link href="/cart" className="btn-secondary">Back to Cart</Link>
+        <Button onClick={reset} variant="default">Try Again</Button>
+        <Button variant="secondary" asChild><Link href="/cart">Back to Cart</Link></Button>
       </div>
     </div>
   )

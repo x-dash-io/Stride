@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Careers | STRIDE',
@@ -34,7 +35,7 @@ export default function CareersPage() {
               </div>
               <p className="text-sm text-muted-foreground mb-1">{role.location}</p>
               <p className="text-muted-foreground text-sm mt-2">{role.description}</p>
-              <button className="btn-primary mt-4 text-sm">Apply Now</button>
+              <Button variant="default" className="mt-4 text-sm">Apply Now</Button>
             </div>
           ))}
         </div>

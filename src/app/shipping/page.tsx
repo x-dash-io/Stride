@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight, Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function ShippingPage() {
   return (
@@ -169,9 +170,7 @@ export default function ShippingPage() {
         <div className="bg-primary text-primary-foreground rounded-lg p-12 text-center">
           <h2 className="text-3xl font-serif font-bold mb-4">Questions About Shipping?</h2>
           <p className="text-lg opacity-90 mb-8">Contact our support team anytime. We&apos;re here to help!</p>
-          <Link href="/contact" className="btn-secondary bg-primary-foreground text-primary hover:bg-opacity-90">
-            Contact Support
-          </Link>
+          <Button variant="secondary" asChild><Link href="/contact" className="bg-primary-foreground text-primary hover:bg-opacity-90">Contact Support</Link></Button>
         </div>
       </section>
     </div>

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Thank You | STRIDE Newsletter',
@@ -18,7 +19,7 @@ export default function NewsletterThankYouPage() {
         <p className="text-muted-foreground mb-8">
           Thank you for subscribing to the STRIDE newsletter. We will send you updates on new arrivals, exclusive offers, and style inspiration.
         </p>
-        <a href="/" className="btn-primary inline-block">Continue Shopping</a>
+        <Button variant="default" asChild><a href="/">Continue Shopping</a></Button>
       </div>
     </div>
   )
