@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { X, User, ShoppingBag, Heart } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 
 const shopItems = [
@@ -13,20 +12,15 @@ const shopItems = [
   { label: 'Categories', href: '/categories' },
 ]
 
-interface MobileMenuProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
-  if (!isOpen) return null
-
+export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { data: session } = useSession()
 
+  if (!isOpen) return null
+
   return (
-    <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} aria-hidden="true" />
+      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
           <Link href="/" className="font-serif font-bold text-xl" onClick={onClose}>STRIDE</Link>
           <button onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-accent transition-colors" aria-label="Close menu">
@@ -88,7 +82,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </Link>
               )}
               <button
-                onClick={() => { signOut({ callbackUrl: '/' }); onClose(); }}
+                onClick={() => { signOut({ callbackUrl: '/cart' }); onClose(); }}
                 className="w-full text-left px-3 py-2.5 text-base font-medium text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
               >
                 Sign Out
