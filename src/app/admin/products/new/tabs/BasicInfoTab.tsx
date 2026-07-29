@@ -42,12 +42,12 @@ export function BasicInfoTab() {
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input id="name" placeholder="e.g., Air Max 270" {...register('name')} />
-              {errors.name && <p className="text-sm text-destructive">{(errors.name.message as string) || 'Invalid'}</p>
+              {errors.name && <p className="text-sm text-destructive">{(errors.name.message as string) || 'Invalid'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="slug">Slug *</Label>
               <Input id="slug" placeholder="air-max-270" {...register('slug')} />
-              {errors.slug && <p className="text-sm text-destructive">{(errors.slug.message as string) || 'Invalid'}</p>
+              {errors.slug && <p className="text-sm text-destructive">{(errors.slug.message as string) || 'Invalid'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="brandId">Brand *</Label>
@@ -63,7 +63,7 @@ export function BasicInfoTab() {
                   <SelectItem value="african-footwear">African Footwear Co.</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.brandId && <p className="text-sm text-destructive">{(errors.brandId.message as string) || 'Invalid'}</p>
+              {errors.brandId && <p className="text-sm text-destructive">{(errors.brandId.message as string) || 'Invalid'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="categoryId">Category</Label>
@@ -96,7 +96,7 @@ export function BasicInfoTab() {
                 ))}
               </SelectContent>
             </Select>
-            {errors.gender && <p className="text-sm text-destructive">{(errors.gender.message as string) || 'Invalid'}</p>
+            {errors.gender && <p className="text-sm text-destructive">{(errors.gender.message as string) || 'Invalid'}</p>}
           </div>
 
           <div className="space-y-2">

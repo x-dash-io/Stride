@@ -47,8 +47,8 @@ export async function getProducts(params: {
     switch (sort) {
       case 'price-asc': return { basePrice: 'asc' }
       case 'price-desc': return { basePrice: 'desc' }
-      case 'popular': return { soldCount: 'desc' }
-      case 'rating': return { ratingAvg: 'desc' }
+      case 'popular': return { createdAt: 'desc' }
+      case 'rating': return { createdAt: 'desc' }
       default: return { createdAt: 'desc' }
     }
   })()

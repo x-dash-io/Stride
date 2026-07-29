@@ -8,15 +8,14 @@ export default async function proxy(request: NextRequest) {
   const isOnAuth = nextUrl.pathname.startsWith('/auth')
   const isOnAccount = nextUrl.pathname.startsWith('/account')
   const isOnAdmin = nextUrl.pathname.startsWith('/admin')
-  const isOnCheckout = nextUrl.pathname.startsWith('/cart/checkout')
   const userRole = token?.role as string | undefined
 
   if (isOnAuth && isLoggedIn) {
-    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/account'
+    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/cart'
     return NextResponse.redirect(new URL(callbackUrl, nextUrl))
   }
 
-  if ((isOnAccount || isOnCheckout) && !isLoggedIn) {
+  if (isOnAccount && !isLoggedIn) {
     const loginUrl = new URL('/auth/login', nextUrl)
     loginUrl.searchParams.set('callbackUrl', nextUrl.pathname)
     return NextResponse.redirect(loginUrl)

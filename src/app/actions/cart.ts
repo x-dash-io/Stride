@@ -1,46 +1,15 @@
 'use server'
 
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { addToCartSchema, updateCartSchema, removeFromCartSchema } from '@/lib/validations'
-import { calculateTax, calculateShipping, calculateGrandTotal } from '@/lib/pricing'
-
-async function recalculateCart(cartId: string) {
-  const items = await prisma.cartItem.findMany({
-    where: { cartId },
-    include: { variant: true },
-  })
-
-  const subtotal = items.reduce((sum, item) => sum + Number(item.totalPrice), 0)
-  const taxTotal = calculateTax(subtotal)
-  const shippingTotal = calculateShipping(subtotal)
-  const grandTotal = calculateGrandTotal(subtotal, shippingTotal, taxTotal)
-
-  await prisma.cart.update({
-    where: { id: cartId },
-    data: { subtotal, taxTotal, shippingTotal, grandTotal },
-  })
-}
-
-async function getOrCreateCart(userId?: string, sessionId?: string) {
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-  if (userId) {
-    let cart = await prisma.cart.findFirst({ where: { userId } })
-    if (!cart) {
-      cart = await prisma.cart.create({ data: { userId, expiresAt } })
-    }
-    return cart
-  }
-  if (sessionId) {
-    let cart = await prisma.cart.findFirst({ where: { sessionId } })
-    if (!cart) {
-      cart = await prisma.cart.create({ data: { sessionId, expiresAt } })
-    }
-    return cart
-  }
-  throw new Error('No userId or sessionId provided')
-}
+import {
+  addToCart as serviceAddToCart,
+  updateCartQuantity as serviceUpdateCartQuantity,
+  removeFromCart as serviceRemoveFromCart,
+  clearCart as serviceClearCart,
+  getCart as serviceGetCart,
+} from '@/lib/services/cart.service'
 
 export async function addToCart(formData: FormData) {
   const session = await auth()
@@ -50,66 +19,19 @@ export async function addToCart(formData: FormData) {
     variantId: formData.get('variantId'),
     quantity: Number(formData.get('quantity') ?? 1),
   })
-
-  if (!parsed.success) {
-    return { error: parsed.error.errors[0].message }
-  }
-
-  const { variantId, quantity } = parsed.data
-
-  const variant = await prisma.productVariant.findUnique({
-    where: { id: variantId, isActive: true },
-    include: {
-      product: { select: { id: true, status: true, basePrice: true } },
-      inventory: true,
-    },
-  })
-
-  if (!variant || variant.product.status !== 'ACTIVE') {
-    return { error: 'Product not available' }
-  }
-
-  const availableStock = variant.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0)
-  if (availableStock < quantity) {
-    return { error: 'Insufficient stock' }
-  }
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
 
   const clientSessionId = (formData.get('sessionId') as string) || undefined
   const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
-  const cart = await getOrCreateCart(userId, sessionId)
 
-  const existingItem = await prisma.cartItem.findUnique({
-    where: { cartId_variantId: { cartId: cart.id, variantId } },
-  })
+  const result = await serviceAddToCart(userId, sessionId, parsed.data.variantId, parsed.data.quantity)
 
-  const unitPrice = variant.salePrice ?? variant.basePrice ?? variant.product.basePrice
+  if (!result.ok) return { error: result.error }
 
-  if (existingItem) {
-    const newQuantity = existingItem.quantity + quantity
-    if (newQuantity > availableStock) {
-      return { error: 'Insufficient stock' }
-    }
-    await prisma.cartItem.update({
-      where: { id: existingItem.id },
-      data: { quantity: newQuantity, totalPrice: Number(unitPrice) * newQuantity },
-    })
-  } else {
-    await prisma.cartItem.create({
-      data: {
-        cartId: cart.id,
-        variantId,
-        quantity,
-        unitPrice: Number(unitPrice),
-        totalPrice: Number(unitPrice) * quantity,
-      },
-    })
-  }
-
-  await recalculateCart(cart.id)
   revalidatePath('/cart')
   revalidatePath('/products/[id]', 'page')
 
-  return { success: true, sessionId: userId ? undefined : sessionId }
+  return { success: true, sessionId: result.value?.sessionId }
 }
 
 export async function updateCartQuantity(formData: FormData) {
@@ -120,44 +42,18 @@ export async function updateCartQuantity(formData: FormData) {
     variantId: formData.get('variantId'),
     quantity: Number(formData.get('quantity')),
   })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  if (!parsed.success) {
-    return { error: parsed.error.errors[0].message }
-  }
-
-  const { variantId, quantity } = parsed.data
   const clientSessionId = (formData.get('sessionId') as string) || undefined
   const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
-  const cart = await getOrCreateCart(userId, sessionId)
 
-  const cartItem = await prisma.cartItem.findUnique({
-    where: { cartId_variantId: { cartId: cart.id, variantId } },
-    include: { variant: { include: { inventory: true } } },
-  })
+  const result = await serviceUpdateCartQuantity(userId, sessionId, parsed.data.variantId, parsed.data.quantity)
 
-  if (!cartItem) {
-    return { error: 'Item not in cart' }
-  }
+  if (!result.ok) return { error: result.error }
 
-  const availableStock = cartItem.variant.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0)
-  if (quantity > availableStock) {
-    return { error: 'Insufficient stock' }
-  }
-
-  const unitPrice = Number(cartItem.unitPrice)
-  if (quantity <= 0) {
-    await prisma.cartItem.delete({ where: { id: cartItem.id } })
-  } else {
-    await prisma.cartItem.update({
-      where: { id: cartItem.id },
-      data: { quantity, totalPrice: unitPrice * quantity },
-    })
-  }
-
-  await recalculateCart(cart.id)
   revalidatePath('/cart')
 
-  return { success: true, sessionId: userId ? undefined : sessionId }
+  return { success: true, sessionId: result.value?.sessionId }
 }
 
 export async function removeFromCart(formData: FormData) {
@@ -167,24 +63,18 @@ export async function removeFromCart(formData: FormData) {
   const parsed = removeFromCartSchema.safeParse({
     variantId: formData.get('variantId'),
   })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  if (!parsed.success) {
-    return { error: parsed.error.errors[0].message }
-  }
-
-  const { variantId } = parsed.data
   const clientSessionId = (formData.get('sessionId') as string) || undefined
   const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
-  const cart = await getOrCreateCart(userId, sessionId)
 
-  await prisma.cartItem.deleteMany({
-    where: { cartId: cart.id, variantId },
-  })
+  const result = await serviceRemoveFromCart(userId, sessionId, parsed.data.variantId)
 
-  await recalculateCart(cart.id)
+  if (!result.ok) return { error: result.error }
+
   revalidatePath('/cart')
 
-  return { success: true, sessionId: userId ? undefined : sessionId }
+  return { success: true, sessionId: result.value?.sessionId }
 }
 
 export async function clearCartAction(sessionId?: string) {
@@ -192,17 +82,7 @@ export async function clearCartAction(sessionId?: string) {
   const userId = session?.user?.id
   const resolvedSessionId = userId ? undefined : sessionId
 
-  const cart = await prisma.cart.findFirst({
-    where: userId ? { userId } : { sessionId: resolvedSessionId },
-  })
-
-  if (cart) {
-    await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
-    await prisma.cart.update({
-      where: { id: cart.id },
-      data: { subtotal: 0, taxTotal: 0, shippingTotal: 0, grandTotal: 0 },
-    })
-  }
+  await serviceClearCart(userId, resolvedSessionId)
 
   revalidatePath('/cart')
   return { success: true }
@@ -213,21 +93,5 @@ export async function getCartAction(sessionId?: string) {
   const userId = session?.user?.id
   const resolvedSessionId = userId ? undefined : sessionId
 
-  const cart = await prisma.cart.findFirst({
-    where: userId ? { userId } : { sessionId: resolvedSessionId },
-    include: {
-      items: {
-        include: {
-          variant: {
-            include: {
-              product: { include: { brand: true, images: { where: { isPrimary: true }, take: 1 } } },
-              inventory: true,
-            },
-          },
-        },
-      },
-    },
-  })
-
-  return cart
+  return serviceGetCart(userId, resolvedSessionId)
 }

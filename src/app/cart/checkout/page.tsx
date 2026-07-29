@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { Cart, CartItem, Product, ProductVariant } from '@/types'
@@ -78,9 +79,9 @@ function serializeCart(rawCart: RawCart): Cart {
   }
 }
 
-async function getCartData(userId: string) {
+async function getCartData(userId?: string, sessionId?: string) {
   const cart = await prisma.cart.findFirst({
-    where: { userId },
+    where: userId ? { userId } : { sessionId },
     include: cartInclude,
   })
   return cart ? serializeCart(cart) : null
@@ -94,14 +95,14 @@ async function getDefaultAddress(userId: string) {
 
 export default async function CheckoutPage() {
   const session = await auth()
+  const cookieStore = await cookies()
   
-  // Allow guest checkout - don't require authentication
   let cart = null
   let defaultAddress = null
   let userEmail = null
+  let isGuest = false
 
   if (session?.user?.id) {
-    // Authenticated user - get their cart and address
     const [userCart, userAddress] = await Promise.all([
       getCartData(session.user.id),
       getDefaultAddress(session.user.id),
@@ -110,10 +111,11 @@ export default async function CheckoutPage() {
     defaultAddress = userAddress
     userEmail = session.user.email
   } else {
-    // Guest checkout - would need sessionId-based cart
-    // For now, redirect to login with checkout context
-    // TODO: Implement proper guest checkout with sessionId
-    redirect('/auth/login?callbackUrl=/cart/checkout')
+    const sessionId = cookieStore.get('cartSessionId')?.value
+    if (sessionId) {
+      cart = await getCartData(undefined, sessionId)
+    }
+    isGuest = true
   }
 
   if (!cart || cart.items.length === 0) {
@@ -125,7 +127,7 @@ export default async function CheckoutPage() {
       cart={cart}
       defaultAddress={defaultAddress}
       userEmail={userEmail || ''}
-      isGuest={!session?.user?.id}
+      isGuest={isGuest}
     />
   )
 }

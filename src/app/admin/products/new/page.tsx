@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, Save } from 'lucide-react'
-import { ImageUpload } from '@/components/admin/ImageUpload'
 import { productCreateSchema, ProductCreateInput } from '@/lib/validations'
 import { useToast } from '@/providers/ToastProvider'
 import { BasicInfoTab, VariantsTab, ImagesTab, SeoTab } from './tabs'
@@ -18,14 +16,7 @@ export default function NewProductPage() {
   const { showToast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<ProductCreateInput>({
+  const methods = useForm<ProductCreateInput>({
     resolver: zodResolver(productCreateSchema),
     defaultValues: {
       gender: 'UNISEX',
@@ -76,8 +67,8 @@ export default function NewProductPage() {
         <p className="text-muted-foreground mt-1">Add a new product to the catalog</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <FormProvider {...{ register, control, handleSubmit, watch, setValue, formState: { errors } }}>
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
+        <FormProvider {...methods}>
           <Tabs defaultValue="basic" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
@@ -86,26 +77,10 @@ export default function NewProductPage() {
             <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
 
-          <BasicInfoTab
-            register={register}
-            control={control}
-            watch={watch}
-            setValue={setValue}
-            errors={errors}
-          />
-          <VariantsTab
-            control={control}
-            watch={watch}
-            setValue={setValue}
-            errors={errors}
-          />
-          <ImagesTab watch={watch} />
-          <SeoTab
-            register={register}
-            watch={watch}
-            setValue={setValue}
-            errors={errors}
-          />
+          <BasicInfoTab />
+          <VariantsTab />
+          <ImagesTab />
+          <SeoTab />
         </Tabs>
           </FormProvider>
 
