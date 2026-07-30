@@ -19,9 +19,9 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
       <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
           <h2 className="font-semibold text-base">Shopping Cart</h2>
-          <button onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-accent transition-colors" aria-label="Close cart">
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close cart">
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
           {items.length === 0 ? (

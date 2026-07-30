@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 import { X, User, ShoppingBag, Heart } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 
 const shopItems = [
@@ -23,9 +24,9 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
       <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
           <Link href="/" className="font-serif font-bold text-xl" onClick={onClose}>STRIDE</Link>
-          <button onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-accent transition-colors" aria-label="Close menu">
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-1" aria-label="Mobile navigation">
           {shopItems.map((item) => (
@@ -81,12 +82,13 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   Admin Dashboard
                 </Link>
               )}
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => { signOut({ callbackUrl: '/cart' }); onClose(); }}
-                className="w-full text-left px-3 py-2.5 text-base font-medium text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
+                className="w-full text-left px-3 py-2.5 text-base font-medium text-destructive hover:bg-destructive/10 justify-start"
               >
                 Sign Out
-              </button>
+              </Button>
             </div>
           ) : (
             <Link

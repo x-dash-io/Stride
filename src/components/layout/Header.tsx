@@ -194,12 +194,13 @@ export function Header() {
                         </Link>
                       )}
                       <div className="mt-1 pt-1 border-t border-border/50">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => { signOut({ callbackUrl: '/cart' }); setUserMenuOpen(false); }}
-                          className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
+                          className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 justify-start"
                         >
                           Sign Out
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </>
