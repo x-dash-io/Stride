@@ -130,7 +130,7 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
 
     const stkResponse = await initiateStkPush({
       phoneNumber: input.phoneNumber,
-      amount: Math.round(Number(order.grandTotal) * 100),
+      amount: Math.round(Number(order.grandTotal)),
       accountReference: order.orderNumber,
       transactionDesc: `Payment for order ${order.orderNumber}`,
     })

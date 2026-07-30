@@ -2,18 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChevronRight, Check, Loader2, Smartphone, Truck } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { shippingAddressSchema } from '@/lib/validations'
-import { formatPrice } from '@/lib/utils'
-import { Cart } from '@/types'
+import type { Cart } from '@/types'
 import { ShippingStep } from './steps/ShippingStep'
 import { PaymentStep } from './steps/PaymentStep'
 import { ConfirmationStep } from './steps/ConfirmationStep'
@@ -23,7 +15,7 @@ type Step = 'shipping' | 'payment' | 'confirmation'
 
 interface CheckoutClientProps {
   cart: Cart | null
-  defaultAddress: any | null
+  defaultAddress: { id: string } | null
   userEmail: string
   isGuest?: boolean
 }
