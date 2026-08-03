@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { ok, err, Result } from '@/lib/types/result'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 
 export interface ProductFilters {
   category?: string
@@ -32,8 +33,8 @@ export interface ProductListItem {
   name: string
   slug: string
   shortDescription: string | null
-  gender: string
-  status: string
+  gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
+  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
   isFeatured: boolean
   isNewArrival: boolean
   isBestSeller: boolean
@@ -44,17 +45,23 @@ export interface ProductListItem {
   costPrice: number | null
   currency: string
   weightKg: number | null
-  publishedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+  ratingAvg: number
+  reviewCount: number
+  totalStock: number
+  soldCount: number
+  primaryImage: string | null
   brand: { id: string; name: string; slug: string; logoUrl: string | null }
   category: { id: string; name: string; slug: string } | null
-  images: { url: string }[]
+  images: ProductImage[]
   variants: ProductVariantListItem[]
 }
 
 export interface ProductVariantListItem {
   id: string
+  productId: string
   sku: string
   size: string
   sizeUs: string | null
@@ -64,7 +71,7 @@ export interface ProductVariantListItem {
   colourHex: string | null
   colourSwatchUrl: string | null
   material: string | null
-  gender: string | null
+  gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX' | null
   basePrice: number | null
   salePrice: number | null
   weightKg: number | null
@@ -72,49 +79,20 @@ export interface ProductVariantListItem {
   isDefault: boolean
   sortOrder: number
   images: ProductImage[]
-  inventory: { quantityOnHand: number }[]
+  inventory: { id: string; variantId: string; warehouseId: string; quantityOnHand: number; quantityReserved: number; lowStockThreshold: number; reorderPoint: number | null; reorderQuantity: number | null; locationAisle: string | null; locationShelf: string | null }[]
   availableStock: number
 }
 
 export interface ProductImage {
   id: string
+  productId: string
+  variantId: string | null
   url: string
   altText: string | null
   width: number | null
   height: number | null
   isPrimary: boolean
   sortOrder: number
-}
-
-export interface ProductDetail {
-  id: string
-  name: string
-  slug: string
-  shortDescription: string | null
-  description: string | null
-  gender: string
-  status: string
-  isFeatured: boolean
-  isNewArrival: boolean
-  isBestSeller: boolean
-  isLimitedEdition: boolean
-  isTrending: boolean
-  basePrice: number
-  salePrice: number | null
-  costPrice: number | null
-  currency: string
-  weightKg: number | null
-  metaTitle: string | null
-  metaDescription: string | null
-  publishedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
-  brand: { id: string; name: string; slug: string; logoUrl: string | null }
-  category: { id: string; name: string; slug: string } | null
-  images: ProductImage[]
-  variants: ProductVariantDetail[]
-  reviews: ProductReview[]
-  collections: { collection: { id: string; name: string; slug: string } }[]
 }
 
 export interface ProductVariantDetail {
@@ -129,7 +107,7 @@ export interface ProductVariantDetail {
   colourHex: string | null
   colourSwatchUrl: string | null
   material: string | null
-  gender: string | null
+  gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX' | null
   basePrice: number | null
   salePrice: number | null
   weightKg: number | null
@@ -137,8 +115,44 @@ export interface ProductVariantDetail {
   isDefault: boolean
   sortOrder: number
   images: ProductImage[]
-  inventory: { quantityOnHand: number }[]
+  inventory: { id: string; variantId: string; warehouseId: string; quantityOnHand: number; quantityReserved: number; lowStockThreshold: number; reorderPoint: number | null; reorderQuantity: number | null; locationAisle: string | null; locationShelf: string | null }[]
   availableStock: number
+}
+
+export interface ProductDetail {
+  id: string
+  name: string
+  slug: string
+  shortDescription: string | null
+  description: string | null
+  gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
+  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
+  isFeatured: boolean
+  isNewArrival: boolean
+  isBestSeller: boolean
+  isLimitedEdition: boolean
+  isTrending: boolean
+  basePrice: number
+  salePrice: number | null
+  costPrice: number | null
+  currency: string
+  weightKg: number | null
+  ratingAvg: number
+  reviewCount: number
+  totalStock: number
+  soldCount: number
+  primaryImage: string | null
+  metaTitle: string | null
+  metaDescription: string | null
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+  brand: { id: string; name: string; slug: string; logoUrl: string | null }
+  category: { id: string; name: string; slug: string } | null
+  images: ProductImage[]
+  variants: ProductVariantDetail[]
+  reviews: ProductReview[]
+  collections: { collection: { id: string; name: string; slug: string } }[]
 }
 
 export interface ProductReview {
@@ -157,9 +171,29 @@ export interface ProductReview {
   sizeRating: number | null
   comfortRating: number | null
   qualityRating: number | null
-  images: { id: string; url: string; altText: string | null; sortOrder: number }[]
-  createdAt: Date
-  updatedAt: Date
+  images: { id: string; reviewId: string; url: string; altText: string | null; sortOrder: number }[]
+  createdAt: string
+  updatedAt: string
+}
+
+export async function getRatingAggregations(productIds: string[]): Promise<Map<string, { avg: number; count: number }>> {
+  if (productIds.length === 0) return new Map()
+
+  const aggregations = await prisma.review.groupBy({
+    by: ['productId'],
+    where: { productId: { in: productIds }, isApproved: true },
+    _avg: { rating: true },
+    _count: { rating: true },
+  })
+
+  const map = new Map<string, { avg: number; count: number }>()
+  for (const agg of aggregations) {
+    map.set(agg.productId, {
+      avg: Math.round((agg._avg.rating ?? 0) * 10) / 10,
+      count: agg._count.rating,
+    })
+  }
+  return map
 }
 
 export async function getProducts(params: ProductFilters): Promise<PaginatedProducts> {
@@ -231,11 +265,12 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
         updatedAt: true,
         brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
         category: { select: { id: true, name: true, slug: true } },
-        images: { where: { isPrimary: true }, take: 1, select: { url: true } },
+        images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true, variantId: true } },
         variants: {
           where: { isActive: true },
           select: {
             id: true,
+            productId: true,
             sku: true,
             size: true,
             sizeUs: true,
@@ -253,7 +288,7 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
             isDefault: true,
             sortOrder: true,
             images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true } },
-            inventory: { select: { quantityOnHand: true } },
+            inventory: { select: { id: true, variantId: true, warehouseId: true, quantityOnHand: true, quantityReserved: true, lowStockThreshold: true, reorderPoint: true, reorderQuantity: true, locationAisle: true, locationShelf: true } },
           },
           orderBy: { sortOrder: 'asc' },
         },
@@ -262,24 +297,50 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
     prisma.product.count({ where }),
   ])
 
-  const items = products.map((p) => ({
-    ...p,
-    basePrice: Number(p.basePrice),
-    salePrice: p.salePrice ? Number(p.salePrice) : null,
-    costPrice: p.costPrice ? Number(p.costPrice) : null,
-    weightKg: p.weightKg ? Number(p.weightKg) : null,
-    variants: p.variants.map((v) => ({
-      ...v,
-      basePrice: v.basePrice ? Number(v.basePrice) : null,
-      salePrice: v.salePrice ? Number(v.salePrice) : null,
-      weightKg: v.weightKg ? Number(v.weightKg) : null,
-      availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
-    })),
-    images: p.images.map((img) => ({ url: img.url })),
-    createdAt: p.createdAt,
-    updatedAt: p.updatedAt,
-    publishedAt: p.publishedAt,
-  }))
+  const productIds = products.map((p) => p.id)
+  const ratings = await getRatingAggregations(productIds)
+
+  const items = products.map((p) => {
+    const r = ratings.get(p.id)
+    return {
+      ...p,
+      basePrice: Number(p.basePrice),
+      salePrice: p.salePrice ? Number(p.salePrice) : null,
+      costPrice: p.costPrice ? Number(p.costPrice) : null,
+      weightKg: p.weightKg ? Number(p.weightKg) : null,
+      ratingAvg: r?.avg ?? 0,
+      reviewCount: r?.count ?? 0,
+      totalStock: p.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0),
+      soldCount: 0,
+      variants: p.variants.map((v) => ({
+        ...v,
+        basePrice: v.basePrice ? Number(v.basePrice) : null,
+        salePrice: v.salePrice ? Number(v.salePrice) : null,
+        weightKg: v.weightKg ? Number(v.weightKg) : null,
+        availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
+        images: (v.images || []).map((img) => ({
+          ...img,
+          productId: p.id,
+          variantId: v.id,
+          altText: img.altText ?? null,
+          width: img.width ?? null,
+          height: img.height ?? null,
+        })),
+      })),
+      primaryImage: p.images.find((img) => img.isPrimary)?.url ?? p.images[0]?.url ?? null,
+      images: p.images.map((img) => ({
+        ...img,
+        productId: p.id,
+        variantId: img.variantId ?? null,
+        altText: img.altText ?? null,
+        width: img.width ?? null,
+        height: img.height ?? null,
+      })),
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+      publishedAt: p.publishedAt?.toISOString() ?? null,
+    }
+  })
 
   return { items, total, page, perPage, totalPages: Math.ceil(total / perPage) }
 }
@@ -334,8 +395,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
           isActive: true,
           isDefault: true,
           sortOrder: true,
-          images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true } },
-          inventory: { select: { quantityOnHand: true } },
+          images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true, variantId: true } },
+          inventory: { select: { id: true, variantId: true, warehouseId: true, quantityOnHand: true, quantityReserved: true, lowStockThreshold: true, reorderPoint: true, reorderQuantity: true, locationAisle: true, locationShelf: true } },
         },
         orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }],
       },
@@ -351,18 +412,58 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 
   if (!product) return null
 
+  const rating = await getRatingAggregations([product.id])
+  const r = rating.get(product.id)
+  const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
+
   return {
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
     costPrice: product.costPrice ? Number(product.costPrice) : null,
     weightKg: product.weightKg ? Number(product.weightKg) : null,
+    ratingAvg: r?.avg ?? 0,
+    reviewCount: r?.count ?? 0,
+    totalStock: allVariantsStock,
+    soldCount: 0,
+    primaryImage: product.images.find((img) => img.isPrimary)?.url ?? product.images[0]?.url ?? null,
+    publishedAt: product.publishedAt?.toISOString() ?? null,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
+    images: (product.images || []).map((img) => ({
+      ...img,
+      productId: product.id,
+      variantId: img.variantId ?? null,
+      altText: img.altText ?? null,
+      width: img.width ?? null,
+      height: img.height ?? null,
+    })),
     variants: product.variants.map((v) => ({
       ...v,
       basePrice: v.basePrice ? Number(v.basePrice) : null,
       salePrice: v.salePrice ? Number(v.salePrice) : null,
       weightKg: v.weightKg ? Number(v.weightKg) : null,
       availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
+      images: (v.images || []).map((img) => ({
+        ...img,
+        productId: product.id,
+        variantId: v.id,
+        altText: img.altText ?? null,
+        width: img.width ?? null,
+        height: img.height ?? null,
+      })),
+    })),
+    reviews: (product.reviews || []).map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+      images: (r.images || []).map((ri) => ({
+        id: ri.id,
+        reviewId: r.id,
+        url: ri.url,
+        altText: ri.altText ?? null,
+        sortOrder: ri.sortOrder,
+      })),
     })),
   }
 }
@@ -417,8 +518,8 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
           isActive: true,
           isDefault: true,
           sortOrder: true,
-          images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true } },
-          inventory: { select: { quantityOnHand: true } },
+          images: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true, width: true, height: true, variantId: true } },
+          inventory: { select: { id: true, variantId: true, warehouseId: true, quantityOnHand: true, quantityReserved: true, lowStockThreshold: true, reorderPoint: true, reorderQuantity: true, locationAisle: true, locationShelf: true } },
         },
         orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }],
       },
@@ -434,18 +535,58 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
 
   if (!product) return null
 
+  const rating = await getRatingAggregations([product.id])
+  const r = rating.get(product.id)
+  const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
+
   return {
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
     costPrice: product.costPrice ? Number(product.costPrice) : null,
     weightKg: product.weightKg ? Number(product.weightKg) : null,
+    ratingAvg: r?.avg ?? 0,
+    reviewCount: r?.count ?? 0,
+    totalStock: allVariantsStock,
+    soldCount: 0,
+    primaryImage: product.images.find((img) => img.isPrimary)?.url ?? product.images[0]?.url ?? null,
+    publishedAt: product.publishedAt?.toISOString() ?? null,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
+    images: (product.images || []).map((img) => ({
+      ...img,
+      productId: product.id,
+      variantId: img.variantId ?? null,
+      altText: img.altText ?? null,
+      width: img.width ?? null,
+      height: img.height ?? null,
+    })),
     variants: product.variants.map((v) => ({
       ...v,
       basePrice: v.basePrice ? Number(v.basePrice) : null,
       salePrice: v.salePrice ? Number(v.salePrice) : null,
       weightKg: v.weightKg ? Number(v.weightKg) : null,
       availableStock: v.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0),
+      images: (v.images || []).map((img) => ({
+        ...img,
+        productId: product.id,
+        variantId: v.id,
+        altText: img.altText ?? null,
+        width: img.width ?? null,
+        height: img.height ?? null,
+      })),
+    })),
+    reviews: (product.reviews || []).map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+      images: (r.images || []).map((ri) => ({
+        id: ri.id,
+        reviewId: r.id,
+        url: ri.url,
+        altText: ri.altText ?? null,
+        sortOrder: ri.sortOrder,
+      })),
     })),
   }
 }

@@ -5,7 +5,9 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { Cart, CartItem, Product, ProductVariant } from '@/types'
-import { CheckoutClient } from './CheckoutClient'
+import { Suspense } from 'react'
+import { CheckoutContent } from './CheckoutContent'
+import { CheckoutFormSkeleton } from '@/components/skeleton-loader'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,10 +95,10 @@ async function getDefaultAddress(userId: string) {
   })
 }
 
-export default async function CheckoutPage() {
+async function CheckoutContentWrapper() {
   const session = await auth()
   const cookieStore = await cookies()
-  
+
   let cart = null
   let defaultAddress = null
   let userEmail = null
@@ -106,7 +108,7 @@ export default async function CheckoutPage() {
     const [userCart, userAddress] = await Promise.all([
       getCartData(session.user.id),
       getDefaultAddress(session.user.id),
-    ]);
+    ])
     cart = userCart
     defaultAddress = userAddress
     userEmail = session.user.email
@@ -123,11 +125,33 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <CheckoutClient
+    <CheckoutContent
       cart={cart}
       defaultAddress={defaultAddress}
       userEmail={userEmail || ''}
       isGuest={isGuest}
     />
+  )
+}
+
+export default async function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <div className="container-max py-12">
+          <div className="h-10 bg-muted rounded w-1/4 animate-pulse mb-8" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <CheckoutFormSkeleton />
+            <div className="space-y-4 animate-pulse">
+              <div className="h-6 bg-muted rounded w-1/3" />
+              <div className="h-24 bg-muted rounded" />
+              <div className="h-24 bg-muted rounded" />
+            </div>
+          </div>
+        </div>
+      </>
+    }>
+      <CheckoutContentWrapper />
+    </Suspense>
   )
 }

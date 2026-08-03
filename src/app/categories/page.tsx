@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Package } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'All Categories | STRIDE',
   description: 'Browse footwear categories at STRIDE.',

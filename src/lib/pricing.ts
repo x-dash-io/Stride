@@ -15,3 +15,19 @@ export function calculateShipping(subtotal: number, method: 'standard' | 'expres
 export function calculateGrandTotal(subtotal: number, shipping: number, tax: number): number {
   return subtotal + shipping + tax
 }
+
+export function calculateCartTotals(items: { unitPrice: number; quantity: number }[]): {
+  subtotal: number
+  taxTotal: number
+  shippingTotal: number
+  grandTotal: number
+  itemCount: number
+} {
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
+  const taxTotal = calculateTax(subtotal)
+  const shippingTotal = calculateShipping(subtotal)
+  const grandTotal = calculateGrandTotal(subtotal, shippingTotal, taxTotal)
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  return { subtotal, taxTotal, shippingTotal, grandTotal, itemCount }
+}

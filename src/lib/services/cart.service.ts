@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { addToCartSchema, updateCartSchema, removeFromCartSchema } from '@/lib/validations'
-import { calculateTax, calculateShipping, calculateGrandTotal } from '@/lib/pricing'
+import { calculateTax, calculateShipping, calculateGrandTotal, calculateCartTotals } from '@/lib/pricing'
 import { Result, ok, err } from '@/lib/types/result'
 
 export interface CartTotals {
@@ -82,17 +82,6 @@ async function getOrCreateCart(userId?: string, sessionId?: string) {
   }
 
   throw new Error('No userId or sessionId provided')
-}
-
-export function calculateCartTotals(cart: { items: CartItemWithDetails[] }): CartTotals {
-  const items = cart.items || []
-  const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0)
-  const taxTotal = calculateTax(subtotal)
-  const shippingTotal = calculateShipping(subtotal)
-  const grandTotal = calculateGrandTotal(subtotal, shippingTotal, taxTotal)
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
-
-  return { subtotal, taxTotal, shippingTotal, grandTotal, itemCount }
 }
 
 async function recalculateCart(cartId: string) {
@@ -273,9 +262,34 @@ export async function getCart(userId?: string, sessionId?: string): Promise<Cart
       items: {
         include: {
           variant: {
-            include: {
-              product: { include: { brand: true, images: { where: { isPrimary: true }, take: 1 } } },
-              inventory: true,
+            select: {
+              id: true,
+              sku: true,
+              size: true,
+              sizeUs: true,
+              sizeEu: true,
+              sizeUk: true,
+              colour: true,
+              colourHex: true,
+              colourSwatchUrl: true,
+              material: true,
+              gender: true,
+              basePrice: true,
+              salePrice: true,
+              weightKg: true,
+              isActive: true,
+              isDefault: true,
+              sortOrder: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
+                  images: { where: { isPrimary: true }, take: 1, select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true } },
+                },
+              },
+              inventory: { select: { id: true, quantityOnHand: true, quantityReserved: true, lowStockThreshold: true } },
             },
           },
         },

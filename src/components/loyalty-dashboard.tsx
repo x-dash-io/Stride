@@ -148,7 +148,6 @@ export default function LoyaltyDashboard({
 function getTierBenefits(tier: string) {
   const allBenefits: Record<string, Array<{ title: string; description: string }>> = {
     Bronze: [
-      { title: 'Free Shipping', description: 'On orders over KES 10,000' },
       { title: 'Earn Points', description: '1 point per KES 1,000 spent' },
       { title: 'Birthday Bonus', description: '100 bonus points' },
       { title: 'Early Access', description: 'To new collections' },

@@ -3,9 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  directUrl    = env("DIRECT_URL")
+  relationMode = "prisma"
 }
 
 enum UserRole {
@@ -304,6 +305,7 @@ model Inventory {
   @@unique([variantId, warehouseId])
   @@index([variantId])
   @@index([variantId, quantityOnHand])
+  @@index([variantId, quantityReserved])
   @@index([quantityOnHand])
 }
 
@@ -397,6 +399,7 @@ model Order {
   @@index([userId])
   @@index([userId, createdAt])
   @@index([userId, status, createdAt])
+  @@index([status, createdAt])
   @@index([orderNumber])
   @@index([status])
   @@index([paymentStatus])
@@ -492,6 +495,7 @@ model Review {
 
   @@unique([productId, userId, orderItemId])
   @@index([productId, isApproved])
+  @@index([productId, isApproved, createdAt])
   @@index([userId])
   @@index([rating])
   @@index([createdAt])

@@ -16,8 +16,13 @@ const csp = [
   "form-action 'self'",
 ].join('; ')
 
+import path from 'path'
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },

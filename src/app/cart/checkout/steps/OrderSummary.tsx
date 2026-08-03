@@ -42,11 +42,6 @@ export function OrderSummary({ cart }: OrderSummaryProps) {
                 {shipping === 0 ? 'Free' : formatPrice(shipping)}
               </span>
             </div>
-            {subtotal < 10000 && (
-              <p className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
-                Free shipping on orders over KES 10,000. You're {formatPrice(10000 - subtotal)} away!
-              </p>
-            )}
           </div>
 
           <div className="space-y-3 pt-4 border-t">

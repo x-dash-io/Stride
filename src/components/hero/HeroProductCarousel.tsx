@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Product } from '@/types'
@@ -21,19 +21,69 @@ export interface ShowcaseProduct {
 }
 
 const PLACEHOLDER_PRODUCTS: ShowcaseProduct[] = [
-  { id: 'p1', name: 'Aria Leather Oxford', category: 'Formal', brand: 'STRIDE Atelier', price: 8900, badge: 'Best Seller' },
-  { id: 'p2', name: 'Cirrus Runner', category: 'Athletic', brand: 'STRIDE Sport', price: 6200, badge: 'New' },
-  { id: 'p3', name: 'Marlow Chelsea Boot', category: 'Boots', brand: 'STRIDE Atelier', price: 11500 },
-  { id: 'p4', name: 'Sable Suede Loafer', category: 'Casual', brand: 'STRIDE Atelier', price: 7400, badge: 'Trending' },
+  {
+    id: 'p1',
+    name: 'Air Max 270',
+    category: 'Sneakers',
+    brand: 'Nike',
+    price: 15900,
+    originalPrice: 18500,
+    badge: 'Best Seller',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=80',
+    shortDescription: 'Iconic Air Max cushioning with modern breathable mesh style for all-day comfort.',
+  },
+  {
+    id: 'p2',
+    name: 'Ultraboost 22',
+    category: 'Sneakers',
+    brand: 'Adidas',
+    price: 18900,
+    originalPrice: 22000,
+    badge: 'New Arrival',
+    image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1200&q=80',
+    shortDescription: 'Responsive energy-return running shoes featuring adaptive Primeknit upper.',
+  },
+  {
+    id: 'p3',
+    name: 'Classic Leather Oxford',
+    category: 'Formal Shoes',
+    brand: 'STRIDE Atelier',
+    price: 13200,
+    originalPrice: 15500,
+    badge: 'Handcrafted',
+    image: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=1200&q=80',
+    shortDescription: 'Handcrafted from premium full-grain leather with timeless Goodyear welt construction.',
+  },
+  {
+    id: 'p4',
+    name: '574 Core Retro',
+    category: 'Sneakers',
+    brand: 'New Balance',
+    price: 11500,
+    originalPrice: 13500,
+    badge: 'Trending',
+    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
+    shortDescription: 'Quintessential retro silhouette featuring ENCAP midsole technology for maximum support.',
+  },
+  {
+    id: 'p5',
+    name: 'Nairobi Handcrafted Boot',
+    category: 'Boots',
+    brand: 'African Footwear Co.',
+    price: 12500,
+    badge: 'Limited Edition',
+    image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=1200&q=80',
+    shortDescription: 'Artisanal local leather boot crafted by Nairobi artisans with durable Vibram sole.',
+  },
 ]
 
-const AUTOPLAY_DELAY = 5000
+const AUTOPLAY_DELAY = 6000
 
 function productBadge(product: Product): string | undefined {
-  if (product.isNewArrival) return 'New'
+  if (product.isNewArrival) return 'New Arrival'
   if (product.isBestSeller) return 'Best Seller'
   if (product.isTrending) return 'Trending'
-  if (product.isLimitedEdition) return 'Limited'
+  if (product.isLimitedEdition) return 'Limited Edition'
   return undefined
 }
 
@@ -75,18 +125,20 @@ export function HeroProductCarousel({
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const count = products.length
-  const product = products[index] ?? products[0]
-  const hasRealProducts = Boolean(incomingProducts?.length)
+  const currentProduct = products[index] ?? products[0]
 
-  const goTo = useCallback((nextIndex: number, navDirection?: number) => {
-    const normalized = ((nextIndex % count) + count) % count
-    setDirection(navDirection ?? (normalized > index ? 1 : -1))
-    setIndex(normalized)
-    setAutoplay(false)
+  const goTo = useCallback(
+    (nextIndex: number, navDirection?: number) => {
+      const normalized = ((nextIndex % count) + count) % count
+      setDirection(navDirection ?? (normalized > index ? 1 : -1))
+      setIndex(normalized)
+      setAutoplay(false)
 
-    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
-    resumeTimerRef.current = setTimeout(() => setAutoplay(true), 10000)
-  }, [count, index])
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = setTimeout(() => setAutoplay(true), 10000)
+    },
+    [count, index]
+  )
 
   const goNext = useCallback(() => {
     goTo(index + 1, 1)
@@ -148,244 +200,281 @@ export function HeroProductCarousel({
     if (!prefersReducedMotion) setAutoplay(true)
   }
 
-  const primaryHref = product.slug ? `/products/${product.slug}` : '/products'
-  const transitionMs = prefersReducedMotion ? 0 : 700
+  const primaryHref = currentProduct.slug ? `/products/${currentProduct.slug}` : '/products'
+  const discountPercent =
+    currentProduct.originalPrice && currentProduct.originalPrice > currentProduct.price
+      ? Math.round((1 - currentProduct.price / currentProduct.originalPrice) * 100)
+      : null
 
   return (
     <div
       ref={carouselRef}
-      className="container-max relative z-10 w-full py-16 md:py-24 lg:py-0"
+      className="relative z-10 w-full min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-between py-10 md:py-16 overflow-hidden bg-background"
       role="region"
       aria-roledescription="carousel"
-      aria-label="Featured products"
+      aria-label="Featured luxury footwear"
       tabIndex={0}
       onMouseEnter={pause}
       onMouseLeave={resume}
       onFocus={pause}
       onBlur={resume}
     >
-      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10 xl:gap-16">
-        <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-6 animate-fade-in-up">
-            <span className="relative flex h-2 w-2">
-              {!prefersReducedMotion && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              )}
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            New Collection Now Live
+      {/* Subtle Background Lighting Mesh */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-radial from-accent/15 via-accent/5 to-transparent blur-[140px] opacity-75" />
+        <div className="absolute top-10 right-10 w-[350px] h-[350px] rounded-full bg-primary/5 blur-[100px]" />
+      </div>
+
+      <div className="container-max w-full my-auto">
+        <div className="grid items-center gap-12 lg:grid-cols-12">
+          
+          {/* Left Editorial Headline Section */}
+          <div className="lg:col-span-6 text-center lg:text-left z-20 flex flex-col justify-center">
+            
+            {/* Editorial Bold Main Title */}
+            <h1 className="mb-6 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold leading-[1.02] tracking-tight text-foreground text-balance">
+              Crafted For <br />
+              <span className="text-accent italic font-normal">Excellence</span>
+            </h1>
+
+            {/* Editorial Narrative Caption */}
+            <p className="mx-auto lg:mx-0 mb-8 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground">
+              Discover iconic footwear engineered with uncompromising artistry, premium materials, and modern ergonomic support.
+            </p>
+
+            {/* Clean Editorial CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <Button size="xl" asChild className="w-full sm:w-auto group relative overflow-hidden px-8 shadow-xl shadow-primary/10">
+                <Link href={primaryHref}>
+                  <span>Shop Collection</span>
+                  <ArrowRight className="ml-2.5 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+                </Link>
+              </Button>
+
+              <Button variant="outline" size="xl" asChild className="w-full sm:w-auto px-8 border-border/80 hover:bg-muted/50">
+                <Link href="/products">
+                  <span>Browse All Footwear</span>
+                </Link>
+              </Button>
+            </div>
           </div>
 
-          <h1 className="mb-6 text-5xl font-serif font-bold leading-[1.1] text-balance md:text-6xl lg:text-7xl animate-fade-in-up delay-100">
-            Step Into
-            <br />
-            <span className="text-accent">Timeless Style</span>
-          </h1>
-
-          <p className="mx-auto mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl lg:mx-0 animate-fade-in-up delay-200">
-            Discover footwear crafted for those who demand excellence. Premium
-            materials, impeccable construction, and timeless design for every
-            step of your journey.
-          </p>
-
-          <div
-            key={product.id}
-            className="mb-8 animate-fade-in-up delay-300"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <div className="inline-flex flex-col items-center gap-1 lg:items-start">
-              <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">
-                {product.brand ? `${product.brand} · ` : ''}
-                {product.category}
-                {product.badge ? ` · ${product.badge}` : ''}
-              </span>
-              <span className="text-2xl font-serif font-semibold">{product.name}</span>
-              {product.shortDescription && (
-                <span className="mt-1 max-w-md text-sm text-muted-foreground lg:text-base">
-                  {product.shortDescription}
-                </span>
-              )}
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-lg font-bold text-primary">{formatPrice(product.price)}</span>
-                {product.originalPrice != null && (
-                  <span className="text-sm text-muted-foreground line-through">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                )}
+          {/* Right Product Spotlight Stage */}
+          <div className="lg:col-span-6 relative flex flex-col items-center justify-center z-10 min-h-[420px] sm:min-h-[500px]">
+            
+            {/* Clean Frameless Floating Stage */}
+            <div className="relative w-full h-[380px] sm:h-[460px] flex items-center justify-center">
+              
+              {/* Product Background Glow Spotlight */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full bg-gradient-to-tr from-accent/20 via-accent/5 to-transparent blur-[70px]" />
               </div>
-            </div>
-          </div>
 
-          <div className="mb-10 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start animate-fade-in-up delay-400">
-            <Button size="xl" asChild className="group relative overflow-hidden">
-              <Link href={primaryHref}>
-                {hasRealProducts && product.slug ? 'View Details' : 'Shop Collection'}
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="xl" asChild>
-              <Link href="/products">Browse All</Link>
-            </Button>
-          </div>
+              {/* Shoe Frameless Product Display */}
+              {products.map((p, i) => {
+                const isActive = i === index
+                return (
+                  <div
+                    key={p.id}
+                    className={cn(
+                      'absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                      isActive
+                        ? 'opacity-100 scale-100 z-10 translate-y-0'
+                        : cn(
+                            'opacity-0 pointer-events-none scale-95 z-0',
+                            direction >= 0 ? 'translate-x-12' : '-translate-x-12'
+                          )
+                    )}
+                    aria-hidden={!isActive}
+                  >
+                    {p.image ? (
+                      <div className="relative flex flex-col items-center justify-center w-full h-full p-4">
+                        {/* High Resolution Floating Shoe Image */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className={cn(
+                            'max-h-[300px] sm:max-h-[380px] lg:max-h-[420px] max-w-[90%] object-contain no-outline select-none filter drop-shadow-[0_25px_35px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_30px_50px_rgba(0,0,0,0.7)]',
+                            !prefersReducedMotion && 'float-animation'
+                          )}
+                        />
 
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground lg:justify-start animate-fade-in-up delay-500">
-            <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-accent" />
-              <span>Free Shipping Over KES 10,000</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="h-4 w-px bg-muted" />
-              <span>30-Day Returns</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="h-4 w-px bg-muted" />
-              <span>Secure Checkout</span>
-            </div>
-          </div>
-        </div>
+                        {/* Ground Shadow */}
+                        <div
+                          className={cn(
+                            'w-[60%] sm:w-[50%] h-4 rounded-[100%] bg-black/20 dark:bg-black/60 blur-md transition-all duration-700 mt-2 pointer-events-none',
+                            !prefersReducedMotion && 'animate-pulse'
+                          )}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-64 w-64 rounded-full bg-muted/40 border border-border/40 backdrop-blur-md">
+                        <ShoppingBag className="h-20 w-20 text-muted-foreground/30" strokeWidth={1} />
+                        <span className="mt-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                          {p.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
 
-        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-          <div className="relative mx-auto flex h-[360px] w-full items-center justify-center md:h-[460px] lg:h-[560px]">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="h-2/3 w-2/3 rounded-full bg-accent/10 blur-[100px]" />
-            </div>
-            <div className="absolute right-1/4 top-1/4 h-16 w-16 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
-            <div className="absolute bottom-1/4 left-1/4 h-24 w-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
+              {/* Floating Product Spotlight Badge (Dedicated Card Overlay) */}
+              <div className="absolute bottom-2 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-xs z-30 p-4 rounded-2xl border border-border/60 bg-background/85 dark:bg-background/90 backdrop-blur-xl shadow-2xl transition-all duration-500">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-accent">
+                      {currentProduct.brand ?? 'STRIDE'} • {currentProduct.category}
+                    </span>
+                    {currentProduct.badge && (
+                      <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-accent/20">
+                        {currentProduct.badge}
+                      </span>
+                    )}
+                  </div>
 
-            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-2 sm:px-4">
+                  <h3 className="text-base font-serif font-bold text-foreground truncate">
+                    {currentProduct.name}
+                  </h3>
+
+                  <div className="flex items-baseline justify-between gap-2 border-t border-border/40 pt-2 mt-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm font-bold text-foreground">
+                        {formatPrice(currentProduct.price)}
+                      </span>
+                      {currentProduct.originalPrice && (
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatPrice(currentProduct.originalPrice)}
+                        </span>
+                      )}
+                      {discountPercent && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                          -{discountPercent}%
+                        </span>
+                      )}
+                    </div>
+
+                    <Link
+                      href={primaryHref}
+                      className="inline-flex items-center text-xs font-semibold text-accent hover:underline gap-1"
+                    >
+                      <span>View</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Left / Right Control Buttons */}
               {count > 1 && (
-                <>
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-20 flex items-center justify-between px-1 pointer-events-none">
                   <button
                     type="button"
                     onClick={goPrevious}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-md backdrop-blur-md transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95 focus-visible:outline-none"
                     aria-label="Previous product"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
-                  <span className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium tabular-nums text-muted-foreground backdrop-blur-sm">
-                    {String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
-                  </span>
+
                   <button
                     type="button"
                     onClick={goNext}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-md backdrop-blur-md transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95 focus-visible:outline-none"
                     aria-label="Next product"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
-                </>
+                </div>
               )}
             </div>
 
-            <div className="relative h-full w-full overflow-hidden rounded-[2rem] border border-border/40 bg-gradient-to-br from-muted/40 via-background/20 to-muted/20 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25)]">
-              {products.map((p, i) => (
-                <div
-                  key={p.id}
-                  className={cn(
-                    'absolute inset-0 flex items-center justify-center p-6 md:p-10',
-                    !prefersReducedMotion && 'transition-all ease-[cubic-bezier(0.16,1,0.3,1)]',
-                    i === index
-                      ? 'z-10 opacity-100 scale-100 translate-x-0'
-                      : cn(
-                          'pointer-events-none opacity-0 scale-[0.97]',
-                          direction >= 0 ? 'translate-x-6' : '-translate-x-6'
-                        )
-                  )}
-                  style={{ transitionDuration: `${transitionMs}ms` }}
-                  aria-hidden={i !== index}
-                >
-                  {p.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={p.image}
-                      alt={p.name}
-                      className={cn(
-                        'max-h-full max-w-full object-contain drop-shadow-[0_35px_60px_rgba(0,0,0,0.25)]',
-                        !prefersReducedMotion && 'float-animation'
-                      )}
-                    />
-                  ) : (
-                    <div
-                      className={cn(
-                        'relative flex h-4/5 w-4/5 items-center justify-center rounded-[2rem] border border-border/40 bg-gradient-to-br from-muted to-muted/40 shadow-2xl',
-                        !prefersReducedMotion && 'float-animation'
-                      )}
-                    >
-                      <ShoppingBag className="h-20 w-20 text-muted-foreground/30 md:h-28 md:w-28" strokeWidth={1} />
-                      {p.badge && (
-                        <span className="absolute right-4 top-4 rounded-full bg-accent px-3 py-1 text-xs font-medium uppercase tracking-wide text-accent-foreground shadow">
-                          {p.badge}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
+            {/* Interactive Thumbnail Selector & Counter */}
             {count > 1 && (
-              <div className="absolute -bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 lg:bottom-0">
-                {products.map((p, i) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => goTo(i)}
-                    className={cn(
-                      'group relative h-1.5 overflow-hidden rounded-full transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                      i === index
-                        ? 'w-10 bg-muted-foreground/20'
-                        : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                    )}
-                    aria-label={`Show ${p.name}`}
-                    aria-current={i === index ? 'true' : undefined}
-                  >
-                    {i === index && autoplay && !prefersReducedMotion && (
-                      <span
-                        key={`progress-${index}`}
-                        className="absolute inset-0 origin-left rounded-full bg-accent hero-progress"
-                        style={{ animationDuration: `${AUTOPLAY_DELAY}ms` }}
-                      />
-                    )}
-                    {i === index && (!autoplay || prefersReducedMotion) && (
-                      <span className="absolute inset-0 rounded-full bg-accent" />
-                    )}
-                  </button>
-                ))}
+              <div className="mt-4 w-full flex flex-col items-center gap-3 z-20">
+                {/* Thumbnails Row */}
+                <div className="flex items-center justify-center gap-2.5 max-w-full overflow-x-auto p-1 no-scrollbar">
+                  {products.map((p, i) => (
+                    <button
+                      key={`thumb-${p.id}`}
+                      type="button"
+                      onClick={() => goTo(i)}
+                      className={cn(
+                        'relative h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden border transition-all duration-300 focus-visible:outline-none flex-shrink-0 bg-muted/40 backdrop-blur-sm',
+                        i === index
+                          ? 'border-accent ring-2 ring-accent/40 scale-105 shadow-md shadow-accent/10'
+                          : 'border-border/60 opacity-60 hover:opacity-100 hover:border-border'
+                      )}
+                      aria-label={`Show ${p.name}`}
+                    >
+                      {p.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.image} alt={p.name} className="h-full w-full object-contain p-1 no-outline" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Progress Indicators & Count */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+                    {String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    {products.map((p, i) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => goTo(i)}
+                        className={cn(
+                          'relative h-1.5 rounded-full transition-all duration-500 overflow-hidden',
+                          i === index ? 'w-8 bg-muted' : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                        )}
+                        aria-label={`Go to item ${i + 1}`}
+                      >
+                        {i === index && autoplay && !prefersReducedMotion && (
+                          <span
+                            key={`progress-${index}`}
+                            className="absolute inset-0 origin-left rounded-full bg-accent hero-progress"
+                            style={{ animationDuration: `${AUTOPLAY_DELAY}ms` }}
+                          />
+                        )}
+                        {i === index && (!autoplay || prefersReducedMotion) && (
+                          <span className="absolute inset-0 rounded-full bg-accent" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             )}
+
           </div>
 
-          {count > 1 && (
-            <div className="mt-8 hidden items-center justify-center gap-3 lg:flex">
-              {products.map((p, i) => (
-                <button
-                  key={`thumb-${p.id}`}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  className={cn(
-                    'relative h-16 w-16 overflow-hidden rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    i === index
-                      ? 'border-accent ring-2 ring-accent/30 scale-105'
-                      : 'border-border/50 opacity-60 hover:opacity-100 hover:border-border'
-                  )}
-                  aria-label={`Show ${p.name}`}
-                >
-                  {p.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted/50">
-                      <ShoppingBag className="h-5 w-5 text-muted-foreground/40" strokeWidth={1.5} />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Subtle Bottom Trust Bar */}
+      <div className="w-full border-t border-border/40 pt-6 mt-8">
+        <div className="container-max flex flex-wrap items-center justify-center md:justify-between gap-6 text-xs text-muted-foreground font-medium">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-accent" />
+            <span>100% Authentic Footwear Guarantee</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 text-accent" />
+            <span>Hassle-Free 30-Day Returns</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }

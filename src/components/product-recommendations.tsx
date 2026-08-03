@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getProducts } from '@/lib/queries'
+import { getProducts } from '@/lib/services/product.service'
 import { ProductCard } from '@/components/products/ProductGrid'
 
 interface ProductRecommendationsProps {

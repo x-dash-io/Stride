@@ -131,7 +131,10 @@ async function main() {
         { size: '41', sizeEu: '41', sizeUs: '8', sizeUk: '7', colour: 'White/Red', colourHex: '#FFFFFF', sku: 'NK-AM270-WHT-41', quantity: 15 },
         { size: '42', sizeEu: '42', sizeUs: '9', sizeUk: '8', colour: 'White/Red', colourHex: '#FFFFFF', sku: 'NK-AM270-WHT-42', quantity: 8 },
       ],
-      images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800'],
+      images: [
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=80',
+        'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=1200&q=80',
+      ],
     },
     {
       name: 'Ultraboost 22',
@@ -155,7 +158,10 @@ async function main() {
         { size: '42', sizeEu: '42', sizeUs: '9', sizeUk: '8', colour: 'Core Black', colourHex: '#1A1A1A', sku: 'AD-UB22-BLK-42', quantity: 20 },
         { size: '43', sizeEu: '43', sizeUs: '10', sizeUk: '9', colour: 'Core Black', colourHex: '#1A1A1A', sku: 'AD-UB22-BLK-43', quantity: 14 },
       ],
-      images: ['https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800'],
+      images: [
+        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1200&q=80',
+        'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=1200&q=80',
+      ],
     },
     {
       name: 'Classic Leather Oxford',
@@ -168,7 +174,7 @@ async function main() {
       salePrice: 13200,
       costPrice: 7200,
       gender: GenderCategory.MEN,
-      isFeatured: false,
+      isFeatured: true,
       isBestSeller: true,
       isNewArrival: false,
       isTrending: false,
@@ -181,10 +187,13 @@ async function main() {
         { size: '41', sizeEu: '41', sizeUs: '8', sizeUk: '7', colour: 'Dark Brown', colourHex: '#3B2418', sku: 'PU-OXF-BRN-41', quantity: 5 },
         { size: '42', sizeEu: '42', sizeUs: '9', sizeUk: '8', colour: 'Dark Brown', colourHex: '#3B2418', sku: 'PU-OXF-BRN-42', quantity: 7 },
       ],
-      images: ['https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=800'],
+      images: [
+        'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=1200&q=80',
+        'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=1200&q=80',
+      ],
     },
     {
-      name: '574 Core',
+      name: '574 Core Retro',
       slug: '574-core',
       brand: brands[3],
       category: categories[0],
@@ -207,7 +216,10 @@ async function main() {
         { size: '40', sizeEu: '40', sizeUs: '7', sizeUk: '6', colour: 'Green/Grey', colourHex: '#4A5D4A', sku: 'NB-574-GRN-40', quantity: 10 },
         { size: '41', sizeEu: '41', sizeUs: '8', sizeUk: '7', colour: 'Green/Grey', colourHex: '#4A5D4A', sku: 'NB-574-GRN-41', quantity: 12 },
       ],
-      images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800'],
+      images: [
+        'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
+        'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=1200&q=80',
+      ],
     },
     {
       name: 'Nairobi Handcrafted Leather Boot',
@@ -233,7 +245,10 @@ async function main() {
         { size: '40', sizeEu: '40', sizeUs: '7', sizeUk: '6', colour: 'Dark Brown', colourHex: '#3B2418', sku: 'AF-BOOT-DBR-40', quantity: 3 },
         { size: '41', sizeEu: '41', sizeUs: '8', sizeUk: '7', colour: 'Dark Brown', colourHex: '#3B2418', sku: 'AF-BOOT-DBR-41', quantity: 5 },
       ],
-      images: ['https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=800'],
+      images: [
+        'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=1200&q=80',
+        'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1200&q=80',
+      ],
     },
   ]
 

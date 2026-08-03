@@ -4,6 +4,7 @@ import { ProductGrid } from '@/components/products/ProductGrid'
 import { Search as SearchIcon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Search | STRIDE',
@@ -73,41 +74,41 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="container-max section-padding">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold mb-4">Search</h1>
-          <form action="/search" method="GET" className="flex gap-2">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-12">
+          <h1 className="heading-page mb-6">Search</h1>
+          <form action="/search" method="GET" className="flex gap-3">
             <Input
               name="q"
               type="search"
-              placeholder="Search for products..."
+              placeholder="Search for products, brands, categories..."
               defaultValue={query}
-              className="flex-1"
+              className="flex-1 h-12 text-base"
               autoFocus
             />
-            <Button type="submit">
-              <SearchIcon className="w-4 h-4" />
+            <Button type="submit" size="lg" className="h-12 px-6">
+              <SearchIcon className="w-5 h-5" />
             </Button>
           </form>
         </div>
 
         {query.trim() && (
-          <p className="text-muted-foreground mb-6">
-            {serializedProducts.length} result{serializedProducts.length !== 1 ? 's' : ''} for "{query}"
+          <p className="body text-muted-foreground mb-8">
+            {serializedProducts.length} result{serializedProducts.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
           </p>
         )}
 
         {!query.trim() ? (
-          <div className="text-center py-16">
-            <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground">Enter a search term to find products</p>
+          <div className="text-center py-20">
+            <p className="heading-section text-muted-foreground/50 mb-4">Start typing to discover footwear</p>
+            <p className="body-large text-muted-foreground max-w-md mx-auto">Search by product name, brand, category, or style.</p>
           </div>
         ) : serializedProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground mb-4">No products found for "{query}"</p>
-            <Button variant="outline" asChild>
-              <a href="/products">Browse All Products</a>
+          <div className="text-center py-20">
+            <p className="heading-section text-muted-foreground/50 mb-4">No results for &ldquo;{query}&rdquo;</p>
+            <p className="body-large text-muted-foreground mb-8 max-w-md mx-auto">Try a different search term or browse our full collection.</p>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/products">Browse All Products</Link>
             </Button>
           </div>
         ) : (

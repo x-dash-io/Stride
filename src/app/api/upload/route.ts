@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { r2, R2_BUCKET, getSignedUploadUrl, generateProductKey, generateTempKey } from '@/lib/r2'
+import {
+  uploadToStorage,
+  getSignedUploadUrl,
+  deleteFromR2,
+  generateProductKey,
+  generateTempKey,
+  IS_REMOTE_STORAGE,
+} from '@/lib/r2'
 import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
 import { validateFileSignature, validateFileSize } from '@/lib/file-validation'
 
@@ -14,10 +21,6 @@ export async function POST(request: NextRequest) {
   const { success: limitOk } = await rateLimit(apiRateLimit, `upload:${ip}`)
   if (!limitOk) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-
-  if (!r2) {
-    return NextResponse.json({ error: 'R2 not configured' }, { status: 503 })
   }
 
   try {
@@ -53,16 +56,19 @@ export async function POST(request: NextRequest) {
       key = generateTempKey(file.name)
     }
 
-    const { uploadUrl, publicUrl } = await getSignedUploadUrl(key, file.type)
+    // Direct upload to storage or signed URL generation
+    const publicUrl = await uploadToStorage(key, Buffer.from(buffer), file.type)
+    const signedData = await getSignedUploadUrl(key, file.type)
 
     return NextResponse.json({
-      uploadUrl,
+      uploadUrl: signedData.uploadUrl,
       publicUrl,
       key,
+      isRemoteStorage: IS_REMOTE_STORAGE,
     })
   } catch (error) {
     console.error('Upload URL error:', error)
-    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })
   }
 }
 
@@ -78,10 +84,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
-  if (!r2) {
-    return NextResponse.json({ error: 'R2 not configured' }, { status: 503 })
-  }
-
   const { searchParams } = new URL(request.url)
   const key = searchParams.get('key')
 
@@ -90,11 +92,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    const { DeleteObjectCommand } = await import('@aws-sdk/client-s3')
-    await r2.send(new DeleteObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-    }))
+    await deleteFromR2(key)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete error:', error)

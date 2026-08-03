@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import { getProducts, getCategories, getBrands } from '@/lib/queries'
+import { Suspense } from 'react'
+import { getProducts, getCategories, getBrands } from '@/lib/services/product.service'
 import { prisma } from '@/lib/prisma'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductFilters } from '@/components/products/ProductFilters'
@@ -7,6 +8,7 @@ import { ProductSort } from '@/components/products/ProductSort'
 import { ClearFiltersButton } from '@/components/products/ClearFiltersButton'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { Pagination } from '@/components/ui/pagination'
+import { ProductGridSkeleton } from '@/components/skeleton-loader'
 
 export const revalidate = 3600
 
@@ -29,7 +31,7 @@ export async function generateMetadata({ searchParams }: ProductsPageProps): Pro
 
   return {
     title: `${category || brand || 'All'} Products | STRIDE`,
-    description: `Shop ${category || brand || 'premium footwear'} from top brands. Free delivery on orders over KES 10,000.`,
+    description: `Shop ${category || brand || 'premium footwear'} from top brands.`,
   }
 }
 
@@ -41,7 +43,7 @@ async function getPriceRange() {
   return { min: min._min.basePrice ? Number(min._min.basePrice) : 0, max: max._max.basePrice ? Number(max._max.basePrice) : 50000 }
 }
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+async function ProductsContent({ searchParams }: ProductsPageProps) {
   const params = await searchParams
   const page = Math.max(1, Number(params.page) || 1)
   const perPage = 24
@@ -72,16 +74,16 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   return (
     <div className="min-h-screen">
-      <div className="container-max py-8 border-b border-border">
+      <div className="container-max py-12 md:py-16 border-b border-border">
         <Breadcrumbs items={breadcrumbItems} />
-        <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">Our Collection</h1>
-        <p className="text-muted-foreground">
+        <h1 className="heading-page mt-4 mb-2">Our Collection</h1>
+        <p className="body-large text-muted-foreground">
           Discover {productsData.total} products from our premium selection
         </p>
       </div>
 
-      <div className="container-max py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="lg:col-span-1">
+      <div className="container-max py-12 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
+        <aside className="lg:col-span-1 sticky top-24 self-start">
           <ProductFilters
             categories={categories}
             brands={brands}
@@ -95,7 +97,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <main className="lg:col-span-3">
           <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
+              <span className="body text-muted-foreground">
                 Showing {((page - 1) * perPage) + 1}–{Math.min(page * perPage, productsData.total)} of {productsData.total} products
               </span>
             </div>
@@ -115,13 +117,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-muted-foreground mb-4">No products found matching your filters.</p>
+            <div className="text-center py-16">
+              <p className="body-large text-muted-foreground mb-4">No products found matching your filters.</p>
               <ClearFiltersButton />
             </div>
           )}
         </main>
       </div>
     </div>
+  )
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  return (
+    <Suspense fallback={<ProductGridSkeleton count={6} />}>
+      <ProductsContent searchParams={searchParams} />
+    </Suspense>
   )
 }

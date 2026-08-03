@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { registerSchema, RegisterInput } from '@/lib/validations'
 import { useToast } from '@/providers/ToastProvider'
 
@@ -16,8 +15,8 @@ export default function RegisterPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || 
-                     searchParams.get('returnUrl') || 
-                     '/cart'
+                       searchParams.get('returnUrl') || 
+                       '/cart'
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
 
@@ -53,78 +52,83 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="container-max py-12 min-h-screen flex items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-serif">Create Account</CardTitle>
-          <CardDescription>Join STRIDE for a premium shopping experience</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                {...register('name')}
-                disabled={isLoading}
-              />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-            </div>
+    <div className="container-max py-16 md:py-24 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-10">
+          <Link href="/" className="font-serif text-3xl font-bold tracking-tight inline-block mb-6">
+            STRIDE
+          </Link>
+          <h1 className="heading-page mb-2">Create Account</h1>
+          <p className="body-large text-muted-foreground">Join STRIDE for a premium shopping experience</p>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                {...register('email')}
-                disabled={isLoading}
-              />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="John Doe"
+              {...register('name')}
+              disabled={isLoading}
+              className="h-12 text-base"
+            />
+            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-                disabled={isLoading}
-              />
-              {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              {...register('email')}
+              disabled={isLoading}
+              className="h-12 text-base"
+            />
+            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                {...register('confirmPassword', {
-                  validate: (value) => value === password || 'Passwords do not match',
-                })}
-                disabled={isLoading}
-              />
-              {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+              {...register('password')}
+              disabled={isLoading}
+              className="h-12 text-base"
+            />
+            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+          </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create Account'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-primary hover:underline font-medium">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+              {...register('confirmPassword', {
+                validate: (value) => value === password || 'Passwords do not match',
+              })}
+              disabled={isLoading}
+              className="h-12 text-base"
+            />
+            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+          </div>
+
+          <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
+            {isLoading ? 'Creating account...' : 'Create Account'}
+          </Button>
+        </form>
+
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="text-primary hover:underline font-medium">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
