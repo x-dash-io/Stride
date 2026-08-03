@@ -60,3 +60,4 @@ Desktop.ini
 # Logs
 logs/
 *.log
+.opencodeignore
