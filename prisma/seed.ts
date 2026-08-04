@@ -184,8 +184,7 @@ async function main() {
   console.log('[SUCCESS] Warehouse created')
 
   // Create products with image URLs through local API proxy
-  // Use localhost:3000 since seed runs before the app starts
-  const IMAGE_BASE_URL = 'http://localhost:3000/api/images/'
+  const IMAGE_BASE_URL = '/api/images/'
   
   const productsData = [
     {
