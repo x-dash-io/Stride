@@ -1,7 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { 
+  Menu, 
+  X, 
+  LayoutDashboard, 
+  Package, 
+  ShoppingBag, 
+  Truck, 
+  Settings, 
+  CreditCard, 
+  AlertTriangle, 
+  ExternalLink 
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,17 +22,31 @@ import {
 import Link from 'next/link'
 import { SignOutButton } from './SignOutButton'
 
+// Map icon names to actual components
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Truck,
+  Settings,
+  CreditCard,
+  AlertTriangle,
+  ExternalLink,
+  Menu,
+  X,
+}
+
 interface MobileNavDrawerProps {
   storeName?: string | null
   navigationItems: Array<{
     href: string
     name: string
-    icon: any
+    icon: string
   }>
   suspendedNav?: Array<{
     href: string
     name: string
-    icon: any
+    icon: string
   }>
   isSuspended?: boolean
   isSuperAdmin?: boolean
@@ -30,11 +55,16 @@ interface MobileNavDrawerProps {
 export function MobileNavDrawer({ storeName, navigationItems, suspendedNav, isSuspended, isSuperAdmin }: MobileNavDrawerProps) {
   const [open, setOpen] = useState(false)
 
+  const renderIcon = (iconName: string) => {
+    const Icon = iconMap[iconName]
+    return Icon ? <Icon className="w-5 h-5" /> : null
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="lg:hidden">
-          <Menu className="w-5 h-5" />
+          {renderIcon('Menu')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-full max-w-sm h-full rounded-none border-0">
@@ -47,14 +77,13 @@ export function MobileNavDrawer({ storeName, navigationItems, suspendedNav, isSu
               </span>
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-              <X className="w-5 h-5" />
+              {renderIcon('X')}
             </Button>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navigationItems.map((item) => {
-              const Icon = item.icon
               return (
                 <Link
                   key={item.href}
@@ -62,7 +91,7 @@ export function MobileNavDrawer({ storeName, navigationItems, suspendedNav, isSu
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors"
                 >
-                  <Icon className="w-5 h-5" />
+                  {renderIcon(item.icon)}
                   <span className="tracking-tight">{item.name}</span>
                 </Link>
               )
@@ -71,14 +100,13 @@ export function MobileNavDrawer({ storeName, navigationItems, suspendedNav, isSu
             {isSuspended && !isSuperAdmin && suspendedNav?.length && suspendedNav
               .filter(item => item.href !== '/admin' && item.href !== '/admin/subscription')
               .map(item => {
-                const Icon = item.icon
                 return (
                   <span
                     key={item.href}
                     title="Unlock by clearing your subscription dues"
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-not-allowed opacity-40 text-muted-foreground select-none"
                   >
-                    <Icon className="w-5 h-5" />
+                    {renderIcon(item.icon)}
                     <span className="tracking-tight">{item.name}</span>
                   </span>
                 )
@@ -93,6 +121,7 @@ export function MobileNavDrawer({ storeName, navigationItems, suspendedNav, isSu
               className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               onClick={() => setOpen(false)}
             >
+              {renderIcon('ExternalLink')}
               View Storefront
             </Link>
             <SignOutButton />
