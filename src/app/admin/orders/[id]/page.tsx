@@ -138,10 +138,12 @@ export default async function AdminOrderDetailPage({
                 <span className="text-muted-foreground">Shipping</span>
                 <span>{formatPrice(Number(order.shippingTotal))}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tax</span>
-                <span>{formatPrice(Number(order.taxTotal))}</span>
-              </div>
+              {Number(order.taxTotal) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatPrice(Number(order.taxTotal))}</span>
+                </div>
+              )}
               {order.discountTotal && Number(order.discountTotal) > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>

@@ -5,6 +5,7 @@ import { Package, Truck, Shield, RotateCcw, Headphones, ArrowRight } from 'lucid
 import { Cart } from '@/types'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { TAX_RATE } from '@/lib/pricing'
 
 interface OrderSummaryProps {
   cart: Cart
@@ -13,7 +14,7 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ cart, shippingCost = 500 }: OrderSummaryProps) {
   const subtotal = cart.subtotal || 0
-  const tax = Math.round(subtotal * 0.16)
+  const tax = TAX_RATE > 0 ? Math.round(subtotal * TAX_RATE) : 0
   const shipping = subtotal >= 10000 ? 0 : shippingCost
   const total = subtotal + tax + shipping
 
@@ -30,10 +31,12 @@ export function OrderSummary({ cart, shippingCost = 500 }: OrderSummaryProps) {
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-medium">{formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax (16%)</span>
-              <span className="font-medium">{formatPrice(tax)}</span>
-            </div>
+            {TAX_RATE > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax ({TAX_RATE * 100}%)</span>
+                <span className="font-medium">{formatPrice(tax)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-2">
                 Shipping

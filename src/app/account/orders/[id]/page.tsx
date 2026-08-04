@@ -117,7 +117,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(Number(order.subtotal))}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Tax (16%)</span><span>{formatPrice(Number(order.taxTotal))}</span></div>
+              {Number(order.taxTotal) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatPrice(Number(order.taxTotal))}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{Number(order.shippingTotal) === 0 ? 'Free' : formatPrice(Number(order.shippingTotal))}</span></div>
               {Number(order.discountTotal) > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-{formatPrice(Number(order.discountTotal))}</span></div>}
               <div className="border-t pt-3 flex justify-between text-lg font-semibold"><span>Total</span><span>{formatPrice(Number(order.grandTotal))}</span></div>

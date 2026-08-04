@@ -138,10 +138,16 @@ export function CartContent() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">{formatPrice(cart.subtotal)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax (16%)</span>
-                <span className="font-medium">{formatPrice(cart.taxTotal)}</span>
-              </div>
+              {(() => {
+                const taxRate = Number(process.env.NEXT_PUBLIC_TAX_RATE || '0.16');
+                if (taxRate <= 0) return null;
+                return (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tax ({taxRate * 100}%)</span>
+                    <span className="font-medium">{formatPrice(cart.taxTotal)}</span>
+                  </div>
+                );
+              })()}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="font-medium">
