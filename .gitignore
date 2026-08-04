@@ -65,3 +65,5 @@ logs/
 # Temporary or local build assets
 graphify-out/
 seed-prod-img/
+.env.example
+
