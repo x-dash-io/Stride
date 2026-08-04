@@ -87,7 +87,7 @@ export default function TermsOfServicePage() {
           <div>
             <h2 className="text-3xl font-serif font-bold mb-4">8. Governing Law</h2>
             <p className="text-muted-foreground">
-              These terms and conditions are governed by and construed in accordance with the laws of California, and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
+              These terms and conditions are governed by and construed in accordance with the laws of Kenya, and you irrevocably submit to the exclusive jurisdiction of the courts in Nairobi, Kenya.
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function TermsOfServicePage() {
           <div>
             <h2 className="text-3xl font-serif font-bold mb-4">10. Contact Information</h2>
             <p className="text-muted-foreground">
-              If you have any questions about these Terms of Service, please contact us at legal@stride.com or call +1 (555) 123-4567.
+              If you have any questions about these Terms of Service, please contact us at hello@stride.co.ke or call +254 700 123 456.
             </p>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
 import { Plus, MapPin, Edit, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -74,16 +75,14 @@ export default async function AddressesPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
-          <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">No addresses saved</h2>
-          <p className="text-muted-foreground mb-6">Add an address to speed up checkout.</p>
-          <Button asChild>
-            <Link href="/account/addresses/new">
-              <Plus className="w-4 h-4 mr-2" /> Add Your First Address
-            </Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title="No addresses saved"
+          description="Add a default shipping address to speed up checkout on future orders."
+          action={{ label: 'Add Your First Address', href: '/account/addresses/new', icon: Plus }}
+          variant="card"
+          className="py-16"
+        />
       )}
     </div>
   )

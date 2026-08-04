@@ -61,3 +61,7 @@ Desktop.ini
 logs/
 *.log
 .opencodeignore
+
+# Temporary or local build assets
+graphify-out/
+seed-prod-img/

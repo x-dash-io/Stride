@@ -17,10 +17,6 @@ export interface Product {
   salePrice?: number | null
   costPrice?: number | null
   currency: string
-  ratingAvg: number
-  reviewCount: number
-  totalStock: number
-  soldCount: number
   weightKg?: number | null
   primaryImage?: string | null
   images: ProductImage[]
@@ -91,7 +87,6 @@ export interface Brand {
   websiteUrl?: string | null
   originCountry?: string | null
   isFeatured: boolean
-  isGlobalBrand: boolean
   isActive: boolean
   sortOrder: number
 }
@@ -339,9 +334,6 @@ export type PaymentStatus =
 
 export type PaymentMethod =
   | 'MPESA_STK_PUSH'
-  | 'MPESA_PAYBILL'
   | 'CASH_ON_DELIVERY'
 
 export type GenderCategory = 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
-
-export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'

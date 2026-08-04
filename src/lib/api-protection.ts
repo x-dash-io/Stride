@@ -70,6 +70,18 @@ export async function withProtection(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  if (requireAdmin && session?.user?.role === 'ADMIN') {
+    const pathname = new URL(request.url).pathname
+    const isBillingOrSettings = pathname.startsWith('/api/admin/billing')
+    if (!isBillingOrSettings) {
+      const { getBillingStatus } = await import('@/lib/services/billing.service')
+      const billing = await getBillingStatus()
+      if (billing.isSuspended) {
+        return NextResponse.json({ error: 'Subscription suspended. Please clear outstanding dues at /admin/billing' }, { status: 402 })
+      }
+    }
+  }
+
   if (requireCsrf) {
     const csrfToken = request.headers.get('x-csrf-token') || new URL(request.url).searchParams.get('_csrf')
     const valid = await verifyCsrfToken(csrfToken)

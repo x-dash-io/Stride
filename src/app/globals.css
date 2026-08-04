@@ -2,6 +2,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@layer theme, components, utilities;
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
@@ -51,8 +53,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', sans-serif;
+  --font-serif: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
 }
 
 :root {
@@ -129,42 +131,6 @@
   --sidebar-ring: #D4AF37;
 }
 
-/* Slate/Cool Theme */
-.slate {
-  color-scheme: light;
-  --background: #F0F4F8;
-  --foreground: #1E293B;
-  --card: #FFFFFF;
-  --card-foreground: #1E293B;
-  --popover: #FFFFFF;
-  --popover-foreground: #1E293B;
-  --primary: #334155;
-  --primary-foreground: #F0F4F8;
-  --secondary: #0EA5E9;
-  --secondary-foreground: #1E293B;
-  --muted: #E2E8F0;
-  --muted-foreground: #64748B;
-  --accent: #0EA5E9;
-  --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
-  --border: #E2E8F0;
-  --input: #FFFFFF;
-  --ring: #334155;
-  --chart-1: #0EA5E9;
-  --chart-2: #06B6D4;
-  --chart-3: #334155;
-  --chart-4: #3B82F6;
-  --chart-5: #1E40AF;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1E293B;
-  --sidebar-primary: #334155;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #0EA5E9;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #334155;
-}
-
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     color-scheme: dark;
@@ -211,6 +177,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scroll-snap-type: y mandatory;
   }
 
   /* Scrollbar Styling */
@@ -246,6 +213,10 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
     letter-spacing: -0.02em;
+  }
+
+  html {
+    position: relative;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -302,14 +273,42 @@
 
   /* Loading State Animation */
   @keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
 
   .shimmer-loading {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--muted);
+  }
+
+  .shimmer-loading::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.5) 60%,
+      rgba(255, 255, 255, 0)
+    );
     animation: shimmer 2s infinite;
-    background: linear-gradient(90deg, var(--muted) 0%, var(--muted-foreground) 50%, var(--muted) 100%);
-    background-size: 1000px 100%;
+    content: '';
+  }
+
+  .dark .shimmer-loading::after {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.03) 20%,
+      rgba(255, 255, 255, 0.08) 60%,
+      rgba(255, 255, 255, 0)
+    );
   }
 
   /* Scroll reveal animation */

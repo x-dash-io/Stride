@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import Link from 'next/link'
 import { ShoppingBag, User, MapPin, Heart, ArrowRight, Package } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
@@ -109,12 +110,13 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
                 ))}
               </div>
             ) : (
-              <div className="bg-card border border-border rounded-xl p-8 text-center">
-                <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
-                <p className="text-muted-foreground mb-4">When you place an order, it will appear here.</p>
-                <Link href="/products"><Button>Start Shopping</Button></Link>
-              </div>
+              <EmptyState
+                icon={ShoppingBag}
+                title="No orders yet"
+                description="When you place an order, it will appear here."
+                action={{ label: 'Start Shopping', href: '/products' }}
+                variant="card"
+              />
             )}
           </section>
 
@@ -141,11 +143,14 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 bg-card border border-border rounded-xl p-8 text-center">
-                  <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No addresses saved</h3>
-                  <p className="text-muted-foreground mb-4">Add an address to speed up checkout.</p>
-                  <Link href="/account/addresses"><Button>Add Address</Button></Link>
+                <div className="col-span-2">
+                  <EmptyState
+                    icon={MapPin}
+                    title="No addresses saved"
+                    description="Add an address to speed up checkout on your future orders."
+                    action={{ label: 'Add Address', href: '/account/addresses' }}
+                    variant="card"
+                  />
                 </div>
               )}
             </div>

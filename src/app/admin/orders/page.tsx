@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ShoppingBag, ArrowLeft, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { format } from 'date-fns'
 import { OrderStatus } from '@prisma/client'
 
@@ -134,26 +135,33 @@ export default async function AdminOrdersPage({
           </div>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
-          <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">No orders found</h2>
-          <p className="text-muted-foreground">
-            {currentStatus !== 'ALL'
-              ? `No orders with status "${currentStatus.toLowerCase()}"`
-              : 'No orders have been placed yet.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={ShoppingBag}
+          title="No orders found"
+          description={
+            currentStatus !== 'ALL'
+              ? `No orders currently match the "${currentStatus.toLowerCase()}" status.`
+              : 'No customer orders have been placed yet.'
+          }
+          variant="card"
+          className="py-16"
+        />
       )}
 
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-2 mt-8" aria-label="Pagination">
-          <Link
-            href={page > 1 ? `/admin/orders?${new URLSearchParams({ ...(currentStatus !== 'ALL' && { status: currentStatus }), page: String(page - 1) }).toString()}` : '#'}
-            className="px-4 py-2 rounded-md text-sm font-medium border border-input hover:bg-accent disabled:opacity-50"
-            aria-disabled={page === 1}
-          >
-            Previous
-          </Link>
+          {page > 1 ? (
+            <Link
+              href={`/admin/orders?${new URLSearchParams({ ...(currentStatus !== 'ALL' && { status: currentStatus }), page: String(page - 1) }).toString()}`}
+              className="px-4 py-2 rounded-md text-sm font-medium border border-input hover:bg-accent"
+            >
+              Previous
+            </Link>
+          ) : (
+            <span className="px-4 py-2 rounded-md text-sm font-medium border border-input opacity-50 cursor-not-allowed">
+              Previous
+            </span>
+          )}
           {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
             let pageNum: number
             if (totalPages <= 5) pageNum = i + 1
@@ -173,13 +181,18 @@ export default async function AdminOrdersPage({
               </Link>
             )
           })}
-          <Link
-            href={page < totalPages ? `/admin/orders?${new URLSearchParams({ ...(currentStatus !== 'ALL' && { status: currentStatus }), page: String(page + 1) }).toString()}` : '#'}
-            className="px-4 py-2 rounded-md text-sm font-medium border border-input hover:bg-accent disabled:opacity-50"
-            aria-disabled={page === totalPages}
-          >
-            Next
-          </Link>
+          {page < totalPages ? (
+            <Link
+              href={`/admin/orders?${new URLSearchParams({ ...(currentStatus !== 'ALL' && { status: currentStatus }), page: String(page + 1) }).toString()}`}
+              className="px-4 py-2 rounded-md text-sm font-medium border border-input hover:bg-accent"
+            >
+              Next
+            </Link>
+          ) : (
+            <span className="px-4 py-2 rounded-md text-sm font-medium border border-input opacity-50 cursor-not-allowed">
+              Next
+            </span>
+          )}
         </nav>
       )}
     </div>

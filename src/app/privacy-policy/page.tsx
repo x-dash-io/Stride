@@ -110,7 +110,7 @@ export default function PrivacyPolicyPage() {
           <div>
             <h2 className="text-3xl font-serif font-bold mb-4">8. Contact Us</h2>
             <p className="text-muted-foreground">
-              If you have any questions about this Privacy Policy, please contact us at privacy@stride.com or call +1 (555) 123-4567.
+              If you have any questions about this Privacy Policy, please contact us at hello@stride.co.ke or call +254 700 123 456.
             </p>
           </div>
         </div>

@@ -21,10 +21,6 @@ const LABEL_OPTIONS = [
 
 const COUNTRY_OPTIONS = [
   { value: 'KE', label: 'Kenya' },
-  { value: 'UG', label: 'Uganda' },
-  { value: 'TZ', label: 'Tanzania' },
-  { value: 'RW', label: 'Rwanda' },
-  { value: 'ET', label: 'Ethiopia' },
 ] as const
 
 export function AddressFields({
@@ -59,6 +55,7 @@ export function AddressFields({
             id="firstName"
             value={data.firstName}
             onChange={(e) => onFieldChange('firstName', e.target.value)}
+            placeholder="First Name"
             disabled={isLoading}
           />
           {errors.firstName && <p className="text-sm text-destructive">{errors.firstName}</p>}
@@ -69,6 +66,7 @@ export function AddressFields({
             id="lastName"
             value={data.lastName}
             onChange={(e) => onFieldChange('lastName', e.target.value)}
+            placeholder="Last Name"
             disabled={isLoading}
           />
           {errors.lastName && <p className="text-sm text-destructive">{errors.lastName}</p>}
@@ -76,13 +74,13 @@ export function AddressFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="phone">Phone Number (M-Pesa registered)</Label>
         <Input
           id="phone"
           type="tel"
           value={data.phone}
           onChange={(e) => onFieldChange('phone', e.target.value)}
-          placeholder="0712 345 678"
+          placeholder="0712 345 678 or 254712345678"
           disabled={isLoading}
         />
         {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
@@ -94,7 +92,7 @@ export function AddressFields({
           id="addressLine1"
           value={data.addressLine1}
           onChange={(e) => onFieldChange('addressLine1', e.target.value)}
-          placeholder="Street address, P.O. Box"
+          placeholder="Street address, Building, P.O. Box"
           disabled={isLoading}
         />
         {errors.addressLine1 && <p className="text-sm text-destructive">{errors.addressLine1}</p>}
@@ -106,28 +104,30 @@ export function AddressFields({
           id="addressLine2"
           value={data.addressLine2 || ''}
           onChange={(e) => onFieldChange('addressLine2', e.target.value)}
-          placeholder="Apartment, suite, unit"
+          placeholder="Apartment, House No., Suite, Floor"
           disabled={isLoading}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
+          <Label htmlFor="city">City / Town</Label>
           <Input
             id="city"
             value={data.city}
             onChange={(e) => onFieldChange('city', e.target.value)}
+            placeholder="e.g. Nairobi"
             disabled={isLoading}
           />
           {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="state">County / State</Label>
+          <Label htmlFor="state">County</Label>
           <Input
             id="state"
             value={data.state}
             onChange={(e) => onFieldChange('state', e.target.value)}
+            placeholder="e.g. Nairobi County"
             disabled={isLoading}
           />
           {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
@@ -138,6 +138,7 @@ export function AddressFields({
             id="postalCode"
             value={data.postalCode}
             onChange={(e) => onFieldChange('postalCode', e.target.value)}
+            placeholder="e.g. 00100"
             disabled={isLoading}
           />
           {errors.postalCode && <p className="text-sm text-destructive">{errors.postalCode}</p>}
@@ -146,18 +147,7 @@ export function AddressFields({
 
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
-        <Select value={data.country} onValueChange={(v) => onFieldChange('country', v)} disabled={isLoading}>
-          <SelectTrigger id="country">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {COUNTRY_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Input value="Kenya" readOnly className="bg-muted font-medium" />
       </div>
 
       <label className="flex items-center gap-2 text-sm cursor-pointer">

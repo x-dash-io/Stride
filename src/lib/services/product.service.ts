@@ -2,10 +2,14 @@ import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { ok, err, Result } from '@/lib/types/result'
 import { CACHE_TAGS } from '@/lib/cache-tags'
+import { getCache, setCache, generateCacheKey } from '@/lib/cache'
 
 export interface ProductFilters {
   category?: string
   brand?: string
+  gender?: string
+  size?: string
+  color?: string
   minPrice?: number
   maxPrice?: number
   sort?: string
@@ -198,18 +202,40 @@ export async function getRatingAggregations(productIds: string[]): Promise<Map<s
 
 export async function getProducts(params: ProductFilters): Promise<PaginatedProducts> {
   const {
-    category, brand, minPrice, maxPrice, sort,
+    category, brand, gender, size, color, minPrice, maxPrice, sort,
     page = 1, perPage = 24, query, featured, newArrival, bestSeller, trending, onSale, limit
   } = params
+
+  // Generate cache key
+  const cacheKey = generateCacheKey('products', JSON.stringify(params))
+  
+  // Try to get from cache
+  const cached = await getCache<PaginatedProducts>(cacheKey)
+  if (cached) {
+    return cached
+  }
 
   const skip = (page - 1) * perPage
   const take = limit ?? perPage
 
+  const categorySlug = category ? category.toLowerCase().trim() : undefined
+  const brandSlug = brand ? brand.toLowerCase().trim() : undefined
+
   const where: Prisma.ProductWhereInput = {
     status: 'ACTIVE',
     publishedAt: { not: null, lte: new Date() },
-    ...(category && { category: { slug: category } }),
-    ...(brand && { brand: { slug: brand } }),
+    ...(categorySlug && {
+      category: {
+        OR: [
+          { slug: { equals: categorySlug, mode: 'insensitive' } },
+          { parent: { slug: { equals: categorySlug, mode: 'insensitive' } } },
+        ],
+      },
+    }),
+    ...(brandSlug && { brand: { slug: { equals: brandSlug, mode: 'insensitive' } } }),
+    ...(gender && { gender: gender.toUpperCase() as 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX' }),
+    ...(size && { variants: { some: { size, isActive: true } } }),
+    ...(color && { variants: { some: { colour: { contains: color, mode: 'insensitive' }, isActive: true } } }),
     ...(minPrice !== undefined && { basePrice: { gte: minPrice } }),
     ...(maxPrice !== undefined && { basePrice: { lte: maxPrice } }),
     ...(featured && { isFeatured: true }),
@@ -220,20 +246,22 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
     ...(query && {
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
+        { shortDescription: { contains: query, mode: 'insensitive' } },
         { description: { contains: query, mode: 'insensitive' } },
         { brand: { name: { contains: query, mode: 'insensitive' } } },
+        { category: { name: { contains: query, mode: 'insensitive' } } },
       ],
     }),
   }
 
-  const orderBy: Prisma.ProductOrderByWithRelationInput = (() => {
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] = (() => {
     switch (sort) {
-      case 'price-asc': return { basePrice: 'asc' }
-      case 'price-desc': return { basePrice: 'desc' }
-      case 'popular': return { createdAt: 'desc' }
-      case 'rating': return { createdAt: 'desc' }
-      case 'newest': return { createdAt: 'desc' }
-      default: return { createdAt: 'desc' }
+      case 'price-asc': return [{ basePrice: 'asc' }]
+      case 'price-desc': return [{ basePrice: 'desc' }]
+      case 'popular': return [{ isTrending: 'desc' }, { isBestSeller: 'desc' }, { createdAt: 'desc' }]
+      case 'rating': return [{ isFeatured: 'desc' }, { createdAt: 'desc' }]
+      case 'newest': return [{ createdAt: 'desc' }]
+      default: return [{ createdAt: 'desc' }]
     }
   })()
 
@@ -300,8 +328,26 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
   const productIds = products.map((p) => p.id)
   const ratings = await getRatingAggregations(productIds)
 
+  // Calculate sold count from order items
+  const salesData = await prisma.orderItem.groupBy({
+    by: ['variantId'],
+    where: {
+      variant: { productId: { in: productIds } },
+      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+    },
+    _sum: { quantity: true },
+  })
+
+  const salesByVariant = new Map(
+    salesData.map((s) => [s.variantId, s._sum.quantity || 0])
+  )
+
   const items = products.map((p) => {
     const r = ratings.get(p.id)
+    const totalSold = p.variants.reduce(
+      (sum, v) => sum + (salesByVariant.get(v.id) || 0),
+      0
+    )
     return {
       ...p,
       basePrice: Number(p.basePrice),
@@ -311,7 +357,7 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
       ratingAvg: r?.avg ?? 0,
       reviewCount: r?.count ?? 0,
       totalStock: p.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0),
-      soldCount: 0,
+      soldCount: totalSold,
       variants: p.variants.map((v) => ({
         ...v,
         basePrice: v.basePrice ? Number(v.basePrice) : null,
@@ -342,10 +388,24 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
     }
   })
 
-  return { items, total, page, perPage, totalPages: Math.ceil(total / perPage) }
+  const result = { items, total, page, perPage, totalPages: Math.ceil(total / perPage) }
+  
+  // Cache the result for 5 minutes
+  await setCache(cacheKey, result, 300)
+  
+  return result
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
+  // Generate cache key
+  const cacheKey = generateCacheKey('product', slug)
+  
+  // Try to get from cache
+  const cached = await getCache<ProductDetail>(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   const product = await prisma.product.findUnique({
     where: { slug, status: 'ACTIVE', publishedAt: { not: null, lte: new Date() } },
     select: {
@@ -416,7 +476,19 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   const r = rating.get(product.id)
   const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
 
-  return {
+  // Calculate sold count from order items
+  const salesData = await prisma.orderItem.groupBy({
+    by: ['variantId'],
+    where: {
+      variantId: { in: product.variants.map(v => v.id) },
+      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+    },
+    _sum: { quantity: true },
+  })
+
+  const totalSold = salesData.reduce((sum, s) => sum + (s._sum.quantity || 0), 0)
+
+  const result = {
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
@@ -425,7 +497,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     ratingAvg: r?.avg ?? 0,
     reviewCount: r?.count ?? 0,
     totalStock: allVariantsStock,
-    soldCount: 0,
+    soldCount: totalSold,
     primaryImage: product.images.find((img) => img.isPrimary)?.url ?? product.images[0]?.url ?? null,
     publishedAt: product.publishedAt?.toISOString() ?? null,
     createdAt: product.createdAt.toISOString(),
@@ -466,6 +538,11 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       })),
     })),
   }
+  
+  // Cache the result for 10 minutes (product details change less frequently)
+  await setCache(cacheKey, result, 600)
+  
+  return result
 }
 
 export async function getProductById(id: string): Promise<ProductDetail | null> {
@@ -539,6 +616,18 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
   const r = rating.get(product.id)
   const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
 
+  // Calculate sold count from order items
+  const salesData = await prisma.orderItem.groupBy({
+    by: ['variantId'],
+    where: {
+      variantId: { in: product.variants.map(v => v.id) },
+      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+    },
+    _sum: { quantity: true },
+  })
+
+  const totalSold = salesData.reduce((sum, s) => sum + (s._sum.quantity || 0), 0)
+
   return {
     ...product,
     basePrice: Number(product.basePrice),
@@ -548,7 +637,7 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
     ratingAvg: r?.avg ?? 0,
     reviewCount: r?.count ?? 0,
     totalStock: allVariantsStock,
-    soldCount: 0,
+    soldCount: totalSold,
     primaryImage: product.images.find((img) => img.isPrimary)?.url ?? product.images[0]?.url ?? null,
     publishedAt: product.publishedAt?.toISOString() ?? null,
     createdAt: product.createdAt.toISOString(),
@@ -611,6 +700,44 @@ export async function getBrands() {
     where: { isActive: true },
     orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
   })
+}
+
+/**
+ * Returns distinct sizes and colours available across all active, published products.
+ * Used to populate the Size and Color filter facets.
+ */
+export async function getAvailableVariantFacets(): Promise<{
+  sizes: string[]
+  colors: Array<{ name: string; hex: string | null }>
+}> {
+  const variants = await prisma.productVariant.findMany({
+    where: {
+      isActive: true,
+      product: { status: 'ACTIVE', publishedAt: { not: null, lte: new Date() } },
+    },
+    select: { size: true, colour: true, colourHex: true },
+    distinct: ['size', 'colour'],
+    orderBy: { size: 'asc' },
+  })
+
+  // Deduplicate sizes (sorted by numeric EU size)
+  const sizeSet = new Map<string, number>()
+  for (const v of variants) {
+    const n = parseFloat(v.size)
+    if (!sizeSet.has(v.size)) sizeSet.set(v.size, isNaN(n) ? 999 : n)
+  }
+  const sizes = [...sizeSet.entries()]
+    .sort((a, b) => a[1] - b[1])
+    .map(([s]) => s)
+
+  // Deduplicate colors by name
+  const colorMap = new Map<string, string | null>()
+  for (const v of variants) {
+    if (!colorMap.has(v.colour)) colorMap.set(v.colour, v.colourHex)
+  }
+  const colors = [...colorMap.entries()].map(([name, hex]) => ({ name, hex }))
+
+  return { sizes, colors }
 }
 
 export async function getBrandBySlug(slug: string) {

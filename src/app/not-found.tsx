@@ -1,21 +1,15 @@
 import { Search } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default function NotFound() {
   return (
-    <div className="container-max py-24 min-h-screen flex flex-col items-center justify-center text-center">
-      <div className="mb-8">
-        <Search className="w-24 h-24 text-muted-foreground" />
-      </div>
-      <h1 className="text-5xl font-serif font-bold mb-4">Page Not Found</h1>
-      <p className="text-xl text-muted-foreground mb-8 max-w-md">
-        Sorry, we can&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
-      </p>
-      <div className="flex gap-4">
-        <Button variant="default" asChild><Link href="/">Go Home</Link></Button>
-        <Button variant="secondary" asChild><Link href="/products">Browse Products</Link></Button>
-      </div>
-    </div>
+    <EmptyState
+      icon={Search}
+      title="Page Not Found"
+      description="Sorry, we can't find the page you're looking for. It might have been moved or deleted."
+      action={{ label: 'Go Home', href: '/' }}
+      secondaryAction={{ label: 'Browse Products', href: '/products', variant: 'outline' }}
+      variant="full"
+    />
   )
 }

@@ -47,11 +47,70 @@ function generateTimestamp(): string {
   )
 }
 
-function formatPhoneNumber(phone: string): string {
-  let cleaned = phone.replace(/\D/g, '')
-  if (cleaned.startsWith('0')) cleaned = '254' + cleaned.slice(1)
-  if (!cleaned.startsWith('254')) cleaned = '254' + cleaned
-  return cleaned
+/**
+ * Validates and normalises a Kenyan mobile phone number to the E.164 format
+ * required by Safaricom's M-Pesa API (e.g. 254712345678).
+ *
+ * Accepted inputs: 07xxxxxxxx, 01xxxxxxxx, +2547xxxxxxxx, 2547xxxxxxxx
+ * Recognised prefixes (Safaricom 7xx, Airtel 7xx/1xx, Telkom 77x):
+ *   Safaricom: 070x, 071x, 072x, 074x, 075x, 076x, 079x, 0111, 0110, 0115
+ *   Airtel:    0730–0739, 0750–0756, 0780–0786, 0781, 0100, 0101, 0102
+ *   Telkom:    0770–0779
+ */
+export function formatPhoneNumber(phone: string): string {
+  // Strip all non-digit characters
+  let digits = phone.replace(/\D/g, '')
+
+  // Normalise leading 0 → 254
+  if (digits.startsWith('0') && digits.length === 10) {
+    digits = '254' + digits.slice(1)
+  }
+
+  // Normalise leading 254 or already-correct 12-digit number
+  if (!digits.startsWith('254')) {
+    digits = '254' + digits
+  }
+
+  // Must now be exactly 12 digits: 254 + 9-digit subscriber number
+  if (digits.length !== 12) {
+    throw new Error(
+      `Invalid Kenyan phone number: "${phone}". ` +
+      'Please use format 07XXXXXXXX or +2547XXXXXXXX.'
+    )
+  }
+
+  // Validate subscriber number prefix (digits 4–6, i.e. positions 3-5 of the 12-char string)
+  const prefix = digits.slice(3, 6) // e.g. '712'
+  const twoDigit = digits.slice(3, 5) // e.g. '71'
+
+  // Known valid prefixes (extend as Safaricom publishes new ranges)
+  const validPrefixes = new Set([
+    // Safaricom
+    '700', '701', '702', '703', '704', '705', '706', '707', '708', '709',
+    '710', '711', '712', '713', '714', '715', '716', '717', '718', '719',
+    '720', '721', '722', '723', '724', '725', '726', '727', '728', '729',
+    '740', '741', '742', '743', '744', '745', '746', '747', '748', '749',
+    '757', '758', '759',
+    '760', '761', '762', '763', '764', '765', '766', '767', '768', '769',
+    '790', '791', '792', '793', '794', '795', '796', '797', '798', '799',
+    '110', '111', '114', '115',
+    // Airtel Kenya
+    '730', '731', '732', '733', '734', '735', '736', '737', '738', '739',
+    '750', '751', '752', '753', '754', '755', '756',
+    '780', '781', '782', '783', '784', '785', '786',
+    '100', '101', '102',
+    // Telkom Kenya (T-Kash)
+    '770', '771', '772', '773', '774', '775', '776', '777', '778', '779',
+  ])
+
+  if (!validPrefixes.has(prefix)) {
+    throw new Error(
+      `Phone number "${phone}" does not match a recognised Kenyan mobile prefix (${prefix}). ` +
+      'Please use a valid Safaricom, Airtel, or Telkom number.'
+    )
+  }
+
+  return digits
 }
 
 export interface StkPushRequest {

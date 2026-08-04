@@ -101,13 +101,23 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      await prisma.cartItem.deleteMany({
-        where: { cart: { userId: payment.order.userId } },
-      })
-      await prisma.cart.updateMany({
-        where: { userId: payment.order.userId },
-        data: { subtotal: 0, taxTotal: 0, shippingTotal: 0, grandTotal: 0 },
-      })
+      // SAFETY: Only clear cart for authenticated users.
+      // Using userId: null in a Prisma `where` clause matches ALL rows with null userId,
+      // which would wipe every active guest cart on the platform.
+      // For guests, the cart is tied to a browser session and expires naturally.
+      if (payment.order.userId) {
+        const cart = await prisma.cart.findFirst({
+          where: { userId: payment.order.userId },
+          select: { id: true },
+        })
+        if (cart) {
+          await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
+          await prisma.cart.update({
+            where: { id: cart.id },
+            data: { subtotal: 0, taxTotal: 0, shippingTotal: 0, grandTotal: 0 },
+          })
+        }
+      }
 
     } else {
       await prisma.$transaction(async (tx) => {

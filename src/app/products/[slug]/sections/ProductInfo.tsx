@@ -1,6 +1,5 @@
 'use client'
 
-import { Star } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Product } from '@/types'
 
@@ -12,25 +11,27 @@ interface ProductInfoProps {
 }
 
 export function ProductInfo({ product, price, originalPrice, availableStock }: ProductInfoProps) {
+  const discountPercent = originalPrice && price && originalPrice > price
+    ? Math.round(((originalPrice - price) / originalPrice) * 100) 
+    : null
+
   return (
     <div>
       <p className="text-xs uppercase tracking-widest text-primary mb-2">{product.brand.name}</p>
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">{product.name}</h1>
 
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.ratingAvg) ? 'fill-primary text-primary' : 'text-muted'}`} />
-          ))}
-        </div>
-        <span className="text-sm text-muted-foreground">{product.ratingAvg.toFixed(1)} • {product.reviewCount} reviews</span>
-      </div>
-
       <div className="mb-8 pb-8 border-b border-border">
         <div className="flex items-baseline gap-3 mb-2">
           <span className="text-4xl font-bold text-primary">{formatPrice(price)}</span>
           {originalPrice && (
-            <span className="text-xl line-through text-muted-foreground">{formatPrice(originalPrice)}</span>
+            <>
+              <span className="text-xl line-through text-muted-foreground">{formatPrice(originalPrice)}</span>
+              {discountPercent && (
+                <span className="text-sm bg-destructive/10 text-destructive font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  Save {discountPercent}%
+                </span>
+              )}
+            </>
           )}
         </div>
         <p className="text-sm text-muted-foreground">

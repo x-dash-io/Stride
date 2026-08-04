@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { X, User, ShoppingBag, Heart } from 'lucide-react'
+import { X, User, ShoppingCart, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -34,7 +34,7 @@ export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
             className="flex items-center gap-3 px-3 py-2.5 text-base font-medium rounded-lg hover:bg-accent/50 transition-colors"
             onClick={onClose}
           >
-            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             My Orders
           </Link>
           <Link

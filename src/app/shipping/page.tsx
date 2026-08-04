@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, Check, Truck, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function ShippingPage() {
@@ -21,39 +21,36 @@ export default function ShippingPage() {
       {/* Header */}
       <section className="container-max pb-12">
         <h1 className="text-5xl md:text-6xl font-serif font-bold text-balance mb-6">
-          Shipping Information
+          Kenya Delivery Information
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl">
-          We ship worldwide with fast, reliable delivery. Learn about our shipping options and policies.
+          We deliver right to your doorstep anywhere in Kenya. Fast, reliable, and convenient.
         </p>
       </section>
 
       {/* Shipping Options */}
       <section className="container-max section-padding border-t border-border">
-        <h2 className="text-4xl font-serif font-bold mb-12">Shipping Options</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <h2 className="text-4xl font-serif font-bold mb-12">Delivery Options</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              name: 'Standard Shipping',
-              time: '5-7 Business Days',
-              cost: 'Free over $100',
-              basePrice: '$9.99',
-              features: ['USPS/UPS', 'Tracking included', 'Fully insured'],
-            },
-            {
-              name: 'Express Shipping',
-              time: '2-3 Business Days',
-              cost: '$19.99',
-              basePrice: '$19.99',
-              features: ['Priority delivery', 'Real-time tracking', 'Signature on delivery'],
+              name: 'Nairobi Standard',
+              time: '1-2 Business Days',
+              basePrice: 'KSh 300',
+              features: ['Rider door delivery', 'SMS dispatch updates', 'Pay via M-Pesa STK Push'],
               highlight: true,
             },
             {
-              name: 'Overnight Shipping',
-              time: '1 Business Day',
-              cost: '$49.99',
-              basePrice: '$49.99',
-              features: ['Overnight delivery', '24/7 support', 'Guaranteed delivery'],
+              name: 'Upcountry Kenya',
+              time: '2-3 Business Days',
+              basePrice: 'KSh 500',
+              features: ['Mombasa, Kisumu, Nakuru, Eldoret & all counties', 'Courier tracking provided', 'Direct delivery to your doorstep/town agent'],
+            },
+            {
+              name: 'Store Pickup',
+              time: 'Same Day Pickup',
+              basePrice: 'Free',
+              features: ['Pick up at Two Rivers Mall', 'Try on in-store', 'Instant fulfillment'],
             },
           ].map((option) => (
             <div
@@ -80,57 +77,33 @@ export default function ShippingPage() {
         </div>
       </section>
 
-      {/* Shipping Destinations */}
+      {/* Shipping Coverage */}
       <section className="container-max section-padding border-t border-border">
-        <h2 className="text-4xl font-serif font-bold mb-12">Shipping Destinations</h2>
+        <h2 className="text-4xl font-serif font-bold mb-12">Coverage Areas</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
-            <h3 className="text-2xl font-serif font-bold mb-6">Domestic Shipping</h3>
+            <h3 className="text-2xl font-serif font-bold mb-6 flex items-center gap-2">
+              <MapPin className="w-6 h-6 text-accent" /> Nairobi Metropolitan
+            </h3>
             <p className="text-muted-foreground mb-4">
-              We ship throughout the United States. Standard shipping is free on orders over $100.
+              We cover all areas within Nairobi and surrounding zones including Westlands, Kilimani, Karen, Lavington, Kasarani, Kiambu Road, Thika Road, and Ruiru.
             </p>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Continental United States: 5-7 business days</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Alaska & Hawaii: 7-10 business days</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> All orders include tracking</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Delivery signature may be required</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Same-day processing for orders placed before 12:00 PM</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Direct rider contact upon arrival</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-2xl font-serif font-bold mb-6">International Shipping</h3>
+            <h3 className="text-2xl font-serif font-bold mb-6 flex items-center gap-2">
+              <Truck className="w-6 h-6 text-accent" /> Rest of Kenya (Upcountry)
+            </h3>
             <p className="text-muted-foreground mb-4">
-              We ship to over 100 countries worldwide. International rates vary by destination.
+              We deliver across major cities and towns including Mombasa, Kisumu, Nakuru, Eldoret, Nyeri, Machakos, Meru, Malindi, Kakamega, and Naivasha.
             </p>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Processing: 1-2 business days</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Delivery: 7-14 business days</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Customs handling included</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> DHL Express available</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Reliable courier partners</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Safe & secure parcel handling</li>
             </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* Tracking */}
-      <section className="container-max section-padding border-t border-border">
-        <h2 className="text-4xl font-serif font-bold mb-12">Track Your Order</h2>
-        <div className="bg-muted/50 rounded-lg p-8">
-          <p className="text-lg mb-6">
-            Once your order ships, you&apos;ll receive a tracking number via email. You can also track your order from your account dashboard.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="font-semibold text-accent mb-2">Step 1: Order Confirmation</p>
-              <p className="text-sm text-muted-foreground">Receive confirmation email immediately</p>
-            </div>
-            <div>
-              <p className="font-semibold text-accent mb-2">Step 2: Processing</p>
-              <p className="text-sm text-muted-foreground">Your order is packed and prepared</p>
-            </div>
-            <div>
-              <p className="font-semibold text-accent mb-2">Step 3: Shipment</p>
-              <p className="text-sm text-muted-foreground">Receive tracking number and delivery details</p>
-            </div>
           </div>
         </div>
       </section>
@@ -141,20 +114,16 @@ export default function ShippingPage() {
         <div className="space-y-6">
           {[
             {
-              q: 'Do you ship internationally?',
-              a: 'Yes! We ship to over 100 countries. International shipping rates vary by destination.',
+              q: 'How do I pay for shipping?',
+              a: 'Shipping costs are added at checkout and paid seamlessly together with your order via M-Pesa STK Push.',
             },
             {
-              q: 'Is shipping free?',
-              a: 'Standard shipping is free on orders over $100. Otherwise, it starts at $9.99.',
+              q: 'Can I pick up my order in person?',
+              a: 'Yes! Select Store Pickup at checkout to pick up your order free of charge at our Two Rivers Mall location in Nairobi.',
             },
             {
-              q: 'Can I change my shipping address?',
-              a: 'Yes, as long as your order hasn\'t been shipped yet. Contact us within 2 hours of ordering.',
-            },
-            {
-              q: 'What if my package is lost?',
-              a: 'All our packages are fully insured. If your package is lost, we\'ll replace it or refund you.',
+              q: 'Can I change my delivery address?',
+              a: 'Yes, contact our team on +254 700 123 456 as soon as possible before dispatch.',
             },
           ].map((faq, idx) => (
             <div key={idx} className="border-b border-border pb-6 last:border-b-0">
@@ -168,8 +137,8 @@ export default function ShippingPage() {
       {/* CTA */}
       <section className="container-max section-padding border-t border-border">
         <div className="bg-primary text-primary-foreground rounded-lg p-12 text-center">
-          <h2 className="text-3xl font-serif font-bold mb-4">Questions About Shipping?</h2>
-          <p className="text-lg opacity-90 mb-8">Contact our support team anytime. We&apos;re here to help!</p>
+          <h2 className="text-3xl font-serif font-bold mb-4">Questions About Delivery?</h2>
+          <p className="text-lg opacity-90 mb-8">Contact our support team anytime on +254 700 123 456.</p>
           <Button variant="secondary" asChild><Link href="/contact" className="bg-primary-foreground text-primary hover:bg-opacity-90">Contact Support</Link></Button>
         </div>
       </section>

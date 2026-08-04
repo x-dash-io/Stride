@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RefreshCw, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ArrowRight, ShoppingBag, ShieldCheck, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Product } from '@/types'
@@ -20,62 +20,7 @@ export interface ShowcaseProduct {
   shortDescription?: string
 }
 
-const PLACEHOLDER_PRODUCTS: ShowcaseProduct[] = [
-  {
-    id: 'p1',
-    name: 'Air Max 270',
-    category: 'Sneakers',
-    brand: 'Nike',
-    price: 15900,
-    originalPrice: 18500,
-    badge: 'Best Seller',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&q=80',
-    shortDescription: 'Iconic Air Max cushioning with modern breathable mesh style for all-day comfort.',
-  },
-  {
-    id: 'p2',
-    name: 'Ultraboost 22',
-    category: 'Sneakers',
-    brand: 'Adidas',
-    price: 18900,
-    originalPrice: 22000,
-    badge: 'New Arrival',
-    image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1200&q=80',
-    shortDescription: 'Responsive energy-return running shoes featuring adaptive Primeknit upper.',
-  },
-  {
-    id: 'p3',
-    name: 'Classic Leather Oxford',
-    category: 'Formal Shoes',
-    brand: 'STRIDE Atelier',
-    price: 13200,
-    originalPrice: 15500,
-    badge: 'Handcrafted',
-    image: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=1200&q=80',
-    shortDescription: 'Handcrafted from premium full-grain leather with timeless Goodyear welt construction.',
-  },
-  {
-    id: 'p4',
-    name: '574 Core Retro',
-    category: 'Sneakers',
-    brand: 'New Balance',
-    price: 11500,
-    originalPrice: 13500,
-    badge: 'Trending',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&q=80',
-    shortDescription: 'Quintessential retro silhouette featuring ENCAP midsole technology for maximum support.',
-  },
-  {
-    id: 'p5',
-    name: 'Nairobi Handcrafted Boot',
-    category: 'Boots',
-    brand: 'African Footwear Co.',
-    price: 12500,
-    badge: 'Limited Edition',
-    image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=1200&q=80',
-    shortDescription: 'Artisanal local leather boot crafted by Nairobi artisans with durable Vibram sole.',
-  },
-]
+const PLACEHOLDER_PRODUCTS: ShowcaseProduct[] = []
 
 const AUTOPLAY_DELAY = 6000
 
@@ -116,6 +61,11 @@ export function HeroProductCarousel({
     }
     return PLACEHOLDER_PRODUCTS
   }, [incomingProducts])
+
+  // Don't render if no products available
+  if (products.length === 0) {
+    return null
+  }
 
   const [index, setIndex] = useState(0)
   const [autoplay, setAutoplay] = useState(true)
@@ -231,14 +181,21 @@ export function HeroProductCarousel({
           {/* Left Editorial Headline Section */}
           <div className="lg:col-span-6 text-center lg:text-left z-20 flex flex-col justify-center">
             
+            <div className="mb-4 inline-flex items-center gap-2 mx-auto lg:mx-0 justify-center">
+              <span className="h-px w-8 bg-accent"></span>
+              <span className="text-xs font-bold tracking-[0.2em] text-accent uppercase">
+                The New Standard
+              </span>
+            </div>
+
             {/* Editorial Bold Main Title */}
             <h1 className="mb-6 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold leading-[1.02] tracking-tight text-foreground text-balance">
               Crafted For <br />
-              <span className="text-accent italic font-normal">Excellence</span>
+              <span className="text-accent italic font-normal drop-shadow-sm">Excellence</span>
             </h1>
 
             {/* Editorial Narrative Caption */}
-            <p className="mx-auto lg:mx-0 mb-8 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground">
+            <p className="mx-auto lg:mx-0 mb-10 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground font-medium">
               Discover iconic footwear engineered with uncompromising artistry, premium materials, and modern ergonomic support.
             </p>
 
@@ -349,8 +306,8 @@ export function HeroProductCarousel({
                         </span>
                       )}
                       {discountPercent && (
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                          -{discountPercent}%
+                        <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                          Save {discountPercent}%
                         </span>
                       )}
                     </div>
@@ -466,11 +423,11 @@ export function HeroProductCarousel({
         <div className="container-max flex flex-wrap items-center justify-center md:justify-between gap-6 text-xs text-muted-foreground font-medium">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-accent" />
-            <span>100% Authentic Footwear Guarantee</span>
+            <span>100% Authentic Footwear</span>
           </div>
           <div className="flex items-center gap-2">
-            <RefreshCw className="h-4 w-4 text-accent" />
-            <span>Hassle-Free 30-Day Returns</span>
+            <Smartphone className="h-4 w-4 text-accent" />
+            <span>M-Pesa Instant Checkout</span>
           </div>
         </div>
       </div>

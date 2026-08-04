@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag, Truck, Smartphone } from 'lucide-react'
 import { Product } from '@/types'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,10 @@ const TRANSITION_DURATION = 800
 const AUTO_PLAY_DELAY = 6000
 
 export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
-  if (!products || products.length === 0) return null
+  // Filter out products without images
+  const productsWithImages = products.filter(p => p.images.some(img => img.url))
+  
+  if (!productsWithImages || productsWithImages.length === 0) return null
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlay, setIsAutoPlay] = useState(true)
@@ -37,24 +40,24 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
   }, [currentIndex, isTransitioning])
 
   const goToPrevious = useCallback(() => {
-    goTo(currentIndex === 0 ? products.length - 1 : currentIndex - 1)
-  }, [currentIndex, products.length, goTo])
+    goTo(currentIndex === 0 ? productsWithImages.length - 1 : currentIndex - 1)
+  }, [currentIndex, productsWithImages.length, goTo])
 
   const goToNext = useCallback(() => {
-    goTo((currentIndex + 1) % products.length)
-  }, [currentIndex, products.length, goTo])
+    goTo((currentIndex + 1) % productsWithImages.length)
+  }, [currentIndex, productsWithImages.length, goTo])
 
   // Auto-play
   useEffect(() => {
-    if (!isAutoPlay || products.length <= 1) return
+    if (!isAutoPlay || productsWithImages.length <= 1) return
     const interval = setInterval(() => {
       if (!isTransitioning) {
         setDirection(1)
-        setCurrentIndex((prev) => (prev + 1) % products.length)
+        setCurrentIndex((prev) => (prev + 1) % productsWithImages.length)
       }
     }, AUTO_PLAY_DELAY)
     return () => clearInterval(interval)
-  }, [isAutoPlay, products.length, isTransitioning])
+  }, [isAutoPlay, productsWithImages.length, isTransitioning])
 
   // Pause on hover
   useEffect(() => {
@@ -83,11 +86,11 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [goToPrevious, goToNext])
 
-  if (products.length === 0) return null
+  if (productsWithImages.length === 0) return null
 
-  const currentProduct = products[currentIndex]
-  const prevProduct = products[currentIndex === 0 ? products.length - 1 : currentIndex - 1]
-  const nextProduct = products[(currentIndex + 1) % products.length]
+  const currentProduct = productsWithImages[currentIndex]
+  const prevProduct = productsWithImages[currentIndex === 0 ? productsWithImages.length - 1 : currentIndex - 1]
+  const nextProduct = productsWithImages[(currentIndex + 1) % productsWithImages.length]
 
   return (
     <div
@@ -104,13 +107,15 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
 
       {/* Product Slides */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
-        {products.map((product, index) => {
+        {productsWithImages.map((product, index) => {
           const isActive = index === currentIndex
-          const isPrev = index === (currentIndex === 0 ? products.length - 1 : currentIndex - 1)
-          const isNext = index === (currentIndex + 1) % products.length
+          const isPrev = index === (currentIndex === 0 ? productsWithImages.length - 1 : currentIndex - 1)
+          const isNext = index === (currentIndex + 1) % productsWithImages.length
           const primaryImage = product.images[0]?.url
           const allImages = product.images.filter(img => img.url)
-          const displayImages = allImages.length > 0 ? allImages : [{ url: '/placeholder-product.jpg', alt: product.name }]
+          
+          // Skip products without images
+          if (allImages.length === 0) return null
           
           return (
             <div
@@ -132,7 +137,7 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
                   <div className="relative aspect-square max-h-[600px] w-full flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 rounded-3xl blur-[100px] opacity-50 float-animation" />
                     
-                    {displayImages.map((img, imgIndex) => (
+                    {allImages.map((img, imgIndex) => (
                       <div
                         key={img.url}
                         className={cn(
@@ -142,7 +147,7 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
                       >
                         <img
                           src={img.url}
-                          alt={(img as any).altText || product.name}
+                          alt={img.altText || product.name}
                           className="max-h-[600px] max-w-full object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.15)]"
                           loading={imgIndex === 0 ? 'eager' : 'lazy'}
                         />
@@ -150,9 +155,9 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
                     ))}
 
                     {/* Image thumbnails indicator */}
-                    {displayImages.length > 1 && (
+                    {allImages.length > 1 && (
                       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                        {displayImages.map((_, imgIndex) => (
+                        {allImages.map((_, imgIndex) => (
                           <button
                             key={imgIndex}
                             onClick={(e) => {
@@ -227,15 +232,14 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
                           </Button>
                         </div>
 
-                        {/* Trust indicators */}
                         <div className="mt-12 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 text-green-600">↩</span>
-                            <span>30-day returns</span>
+                            <Truck className="w-5 h-5 text-emerald-600" />
+                            <span>Fast Kenya Delivery</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 text-blue-600">🔒</span>
-                            <span>Secure checkout</span>
+                            <Smartphone className="w-5 h-5 text-emerald-600" />
+                            <span>M-Pesa STK Push</span>
                           </div>
                         </div>
                       </div>
@@ -248,7 +252,7 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
         })}
 
         {/* Navigation Controls */}
-        {products.length > 1 && (
+        {productsWithImages.length > 1 && (
           <>
             <button
               onClick={goToPrevious}
@@ -268,7 +272,7 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
             {/* Progress indicator */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2">
-                {products.map((_, index) => (
+                {productsWithImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => goTo(index)}
@@ -283,7 +287,7 @@ export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
               <div className="md:hidden flex items-center gap-2 text-white/70 text-sm font-medium">
                 <span>{currentProduct.name}</span>
                 <span className="text-white/40">/</span>
-                <span>{currentIndex + 1} / {products.length}</span>
+                <span>{currentIndex + 1} / {productsWithImages.length}</span>
               </div>
             </div>
           </>

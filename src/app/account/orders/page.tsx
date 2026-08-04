@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ArrowRight, Truck, Package, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 
 async function getUserOrders(userId: string, page = 1, perPage = 10) {
   const skip = (page - 1) * perPage
@@ -107,12 +108,14 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
           )}
         </>
       ) : (
-        <div className="text-center py-12">
-          <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">No orders yet</h2>
-          <p className="text-muted-foreground mb-6">You haven't placed any orders yet.</p>
-          <Link href="/products"><Button size="lg">Start Shopping</Button></Link>
-        </div>
+        <EmptyState
+          icon={Package}
+          title="No orders yet"
+          description="You haven't placed any orders yet. Discover our premium collection and start shopping."
+          action={{ label: 'Start Shopping', href: '/products' }}
+          variant="card"
+          className="py-16"
+        />
       )}
     </div>
   )

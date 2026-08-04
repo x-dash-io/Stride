@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext, useContext, useEffect, useState, useMemo, useCallback, ReactNode } from 'react'
 import { CartItem, Cart } from '@/types'
 import { addToCart, updateCartQuantity, removeFromCart, clearCartAction, getCartAction } from '@/app/actions/cart'
@@ -12,7 +14,11 @@ interface CartContextType {
   total: number
   itemCount: number
   isLoading: boolean
-  addItem: (variantId: string, quantity: number) => Promise<void>
+  isCartOpen: boolean
+  openCart: () => void
+  closeCart: () => void
+  toggleCart: () => void
+  addItem: (variantId: string, quantity?: number) => Promise<void>
   removeItem: (variantId: string) => Promise<void>
   updateQuantity: (variantId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
@@ -34,16 +40,27 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isCartOpen, setIsCartOpen] = useState(false)
   const [sessionId] = useState(getInitialSessionId)
 
-  const calculateTotals = (cartData: Cart) => {
+  const openCart = useCallback(() => setIsCartOpen(true), [])
+  const closeCart = useCallback(() => setIsCartOpen(false), [])
+  const toggleCart = useCallback(() => setIsCartOpen(prev => !prev), [])
+
+  const calculateTotals = useCallback((cartData: Cart) => {
     const items = cartData.items || []
-    const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0)
+    // Recalculate from items to ensure accuracy, don't rely on stored totals
+    const subtotal = items.reduce((sum, item) => {
+      const itemPrice = Number(item.unitPrice) || 0
+      const itemQty = Number(item.quantity) || 0
+      return sum + (itemPrice * itemQty)
+    }, 0)
     const tax = calculateTax(subtotal)
     const shipping = calculateShipping(subtotal)
     const total = calculateGrandTotal(subtotal, shipping, tax)
-    return { subtotal, tax, shipping, total, itemCount: items.reduce((sum, item) => sum + item.quantity, 0) }
-  }
+    const itemCount = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+    return { subtotal, tax, shipping, total, itemCount }
+  }, [])
 
   const refreshCart = useCallback(async () => {
     try {
@@ -68,28 +85,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
     formData.append('quantity', String(quantity))
     if (sessionId) formData.append('sessionId', sessionId)
 
-    const result = await addToCart(formData)
-    if ('error' in result) throw new Error(result.error as string)
-    if ('sessionId' in result && result.sessionId) {
-      localStorage.setItem('cartSessionId', result.sessionId)
-      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+    try {
+      const result = await addToCart(formData)
+      if ('error' in result) {
+        throw new Error(result.error as string)
+      }
+      if ('sessionId' in result && result.sessionId) {
+        localStorage.setItem('cartSessionId', result.sessionId)
+        document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+      }
+      // Fetch complete cart with accurate prices from server immediately
+      const data = await getCartAction(sessionId || undefined)
+      if (data?.items) {
+        setCart(data as unknown as Cart)
+      }
+    } catch (error) {
+      await refreshCart()
+      throw error
     }
-    await refreshCart()
-  }, [sessionId, refreshCart])
+  }, [sessionId])
 
   const removeItem = useCallback(async (variantId: string) => {
     const formData = new FormData()
     formData.append('variantId', variantId)
     if (sessionId) formData.append('sessionId', sessionId)
 
-    const result = await removeFromCart(formData)
-    if ('error' in result) throw new Error(result.error)
-    if ('sessionId' in result && result.sessionId) {
-      localStorage.setItem('cartSessionId', result.sessionId)
-      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+    try {
+      const result = await removeFromCart(formData)
+      if ('error' in result) {
+        throw new Error(result.error)
+      }
+      if ('sessionId' in result && result.sessionId) {
+        localStorage.setItem('cartSessionId', result.sessionId)
+        document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+      }
+      // Fetch complete cart with accurate totals from server
+      const data = await getCartAction(sessionId || undefined)
+      if (data?.items) {
+        setCart(data as unknown as Cart)
+      }
+    } catch (error) {
+      await refreshCart()
+      throw error
     }
-    await refreshCart()
-  }, [sessionId, refreshCart])
+  }, [sessionId])
 
   const updateQuantity = useCallback(async (variantId: string, quantity: number) => {
     const formData = new FormData()
@@ -97,13 +136,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     formData.append('quantity', String(quantity))
     if (sessionId) formData.append('sessionId', sessionId)
 
-    const result = await updateCartQuantity(formData)
-    if ('error' in result) throw new Error(result.error)
-    if ('sessionId' in result && result.sessionId) {
-      localStorage.setItem('cartSessionId', result.sessionId)
-      document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+    try {
+      const result = await updateCartQuantity(formData)
+      if ('error' in result) {
+        await refreshCart()
+        throw new Error(result.error)
+      }
+      if ('sessionId' in result && result.sessionId) {
+        localStorage.setItem('cartSessionId', result.sessionId)
+        document.cookie = `cartSessionId=${result.sessionId};path=/;max-age=604800;samesite=lax`
+      }
+      // Refresh immediately for accurate totals
+      await refreshCart()
+    } catch (error) {
+      await refreshCart()
+      throw error
     }
-    await refreshCart()
   }, [sessionId, refreshCart])
 
   const clearCart = useCallback(async () => {
@@ -113,20 +161,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const totals = useMemo(
     () => cart ? calculateTotals(cart) : { subtotal: 0, tax: 0, shipping: 0, total: 0, itemCount: 0 },
-    [cart]
+    [cart, calculateTotals]
   )
 
   const value = useMemo(() => ({
     cart,
     items: cart?.items || [],
     isLoading,
+    isCartOpen,
+    openCart,
+    closeCart,
+    toggleCart,
     refreshCart,
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
     ...totals,
-  }), [cart, isLoading, refreshCart, addItem, removeItem, updateQuantity, clearCart, totals])
+  }), [cart, isLoading, isCartOpen, openCart, closeCart, toggleCart, refreshCart, addItem, removeItem, updateQuantity, clearCart, totals])
 
   return (
     <CartContext.Provider value={value}>

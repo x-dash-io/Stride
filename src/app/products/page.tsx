@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
-import { getProducts, getCategories, getBrands } from '@/lib/services/product.service'
+import { getProducts, getCategories, getBrands, getAvailableVariantFacets } from '@/lib/services/product.service'
 import { prisma } from '@/lib/prisma'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductFilters } from '@/components/products/ProductFilters'
@@ -16,6 +16,9 @@ interface ProductsPageProps {
   searchParams: Promise<{
     category?: string
     brand?: string
+    gender?: string
+    size?: string
+    color?: string
     minPrice?: string
     maxPrice?: string
     sort?: string
@@ -48,10 +51,13 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
   const page = Math.max(1, Number(params.page) || 1)
   const perPage = 24
 
-  const [productsData, categories, brands, priceRange] = await Promise.all([
+  const [productsData, categories, brands, priceRange, facets] = await Promise.all([
     getProducts({
       category: params.category,
       brand: params.brand,
+      gender: params.gender,
+      size: params.size,
+      color: params.color,
       minPrice: params.minPrice ? Number(params.minPrice) : undefined,
       maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
       sort: params.sort,
@@ -62,6 +68,7 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
     getCategories(),
     getBrands(),
     getPriceRange(),
+    getAvailableVariantFacets(),
   ])
 
   const totalPages = Math.ceil(productsData.total / perPage)
@@ -87,8 +94,13 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
           <ProductFilters
             categories={categories}
             brands={brands}
+            availableSizes={facets.sizes}
+            availableColors={facets.colors}
             selectedCategory={params.category}
             selectedBrand={params.brand}
+            selectedGender={params.gender}
+            selectedSize={params.size}
+            selectedColor={params.color}
             priceRange={{ min: priceRangeMin, max: priceRangeMax }}
             fullPriceRange={priceRange}
           />

@@ -64,7 +64,7 @@ export function AddressForm({ initialData, addressId }: AddressFormProps) {
     if (!data.phone || data.phone.length < 6) newErrors.phone = 'Valid phone number is required'
     if (!data.addressLine1 || data.addressLine1.length < 5) newErrors.addressLine1 = 'Address must be at least 5 characters'
     if (!data.city || data.city.length < 2) newErrors.city = 'City is required'
-    if (!data.state || data.state.length < 2) newErrors.state = 'County/State is required'
+    if (!data.state || data.state.length < 2) newErrors.state = 'County is required'
     if (!data.postalCode || data.postalCode.length < 2) newErrors.postalCode = 'Postal code is required'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0

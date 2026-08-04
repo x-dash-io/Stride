@@ -10,6 +10,7 @@ import {
   clearCart as serviceClearCart,
   getCart as serviceGetCart,
 } from '@/lib/services/cart.service'
+import { invalidateCartCaches } from '@/lib/cache-invalidation'
 
 export async function addToCart(formData: FormData) {
   const session = await auth()
@@ -30,6 +31,9 @@ export async function addToCart(formData: FormData) {
 
   revalidatePath('/cart')
   revalidatePath('/products/[id]', 'page')
+  
+  // Invalidate cart cache
+  await invalidateCartCaches(userId || sessionId)
 
   return { success: true, sessionId: result.value?.sessionId }
 }
@@ -52,6 +56,9 @@ export async function updateCartQuantity(formData: FormData) {
   if (!result.ok) return { error: result.error }
 
   revalidatePath('/cart')
+  
+  // Invalidate cart cache
+  await invalidateCartCaches(userId || sessionId)
 
   return { success: true, sessionId: result.value?.sessionId }
 }
@@ -73,6 +80,9 @@ export async function removeFromCart(formData: FormData) {
   if (!result.ok) return { error: result.error }
 
   revalidatePath('/cart')
+  
+  // Invalidate cart cache
+  await invalidateCartCaches(userId || sessionId)
 
   return { success: true, sessionId: result.value?.sessionId }
 }
@@ -85,6 +95,10 @@ export async function clearCartAction(sessionId?: string) {
   await serviceClearCart(userId, resolvedSessionId)
 
   revalidatePath('/cart')
+  
+  // Invalidate cart cache
+  await invalidateCartCaches(userId || resolvedSessionId)
+
   return { success: true }
 }
 

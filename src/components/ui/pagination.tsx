@@ -17,7 +17,12 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams }: P
   if (totalPages <= 1) return null
 
   const createPageUrl = (page: number) => {
-    const params = new URLSearchParams(searchParams as Record<string, string>)
+    const params = new URLSearchParams()
+    Object.entries(searchParams || {}).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '' && val !== 'undefined') {
+        params.set(key, String(val))
+      }
+    })
     params.set('page', String(page))
     return `${baseUrl}?${params.toString()}`
   }

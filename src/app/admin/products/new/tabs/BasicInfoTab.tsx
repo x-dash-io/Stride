@@ -124,6 +124,7 @@ export function BasicInfoTab() {
       <Card>
         <CardHeader>
           <CardTitle>Pricing</CardTitle>
+          <CardDescription>Set competitive prices for your product</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
@@ -133,8 +134,10 @@ export function BasicInfoTab() {
               type="number"
               step="0.01"
               min="0"
+              placeholder="25000"
               {...register('basePrice', { valueAsNumber: true })}
             />
+            <p className="text-xs text-muted-foreground">Regular selling price</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="salePrice">Sale Price (KES)</Label>
@@ -143,8 +146,10 @@ export function BasicInfoTab() {
               type="number"
               step="0.01"
               min="0"
+              placeholder="22000"
               {...register('salePrice', { valueAsNumber: true })}
             />
+            <p className="text-xs text-muted-foreground">Discounted price (optional)</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="costPrice">Cost Price (KES)</Label>
@@ -153,8 +158,10 @@ export function BasicInfoTab() {
               type="number"
               step="0.01"
               min="0"
+              placeholder="15000"
               {...register('costPrice', { valueAsNumber: true })}
             />
+            <p className="text-xs text-muted-foreground">Internal cost (for margin calculation)</p>
           </div>
         </CardContent>
       </Card>

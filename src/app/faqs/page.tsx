@@ -7,28 +7,24 @@ export const metadata: Metadata = {
 
 const faqs = [
   { category: 'Orders', qa: [
-    { q: 'How do I place an order?', a: 'Browse our collection, select your preferred size and color, add to cart, and proceed to checkout. You can pay via M-Pesa or card.' },
-    { q: 'Can I modify or cancel my order?', a: 'You can cancel within 1 hour of placing the order. Contact us immediately for modifications.' },
-    { q: 'How do I track my order?', a: 'Once shipped, you will receive a tracking number via SMS and email.' },
+    { q: 'How do I place an order?', a: 'Browse our collection, select your preferred size and color, add to cart, and proceed to checkout. Payment is made seamlessly via M-Pesa STK Push.' },
+    { q: 'Can I modify or cancel my order?', a: 'Please contact our team on +254 700 123 456 immediately if you need to modify your order before dispatch.' },
+    { q: 'How do I track my order?', a: 'Once dispatched, you will receive order updates via SMS and email.' },
   ]},
-  { category: 'Shipping', qa: [
-    { q: 'How long does delivery take?', a: 'Nairobi: 1-2 business days. Other Kenyan cities: 2-4 business days. East Africa: 5-7 business days.' },
-    { q: 'How much does shipping cost?', a: 'Free for orders over KES 10,000. Standard shipping is KES 500, express is KES 750.' },
-    { q: 'Do you ship internationally?', a: 'Currently we ship within Kenya and select East African countries.' },
+  { category: 'Shipping & Delivery', qa: [
+    { q: 'How long does delivery take?', a: 'Nairobi Metropolitan: 1-2 business days. Upcountry Kenya: 2-3 business days. Store Pickup: Same day.' },
+    { q: 'How much does delivery cost?', a: 'Nairobi delivery is KSh 300. Upcountry delivery across Kenya is KSh 500. Store pickup at Two Rivers Mall is Free.' },
+    { q: 'Do you deliver across all of Kenya?', a: 'Yes! We deliver to all 47 counties in Kenya.' },
   ]},
-  { category: 'Returns', qa: [
-    { q: 'What is your return policy?', a: 'Free returns within 14 days of delivery. Items must be unworn with original tags.' },
-    { q: 'How do I initiate a return?', a: 'Visit your order history in your account and select "Return Item", or contact our support team.' },
-    { q: 'When will I get my refund?', a: 'Refunds are processed within 5-7 business days after we receive the returned item.' },
+  { category: 'Returns & Exchanges', qa: [
+    { q: 'What should I do if I need help with an order or size?', a: 'If you have any questions about fit or item condition, please contact our support team at hello@stride.co.ke or call +254 700 123 456.' },
   ]},
   { category: 'Sizing', qa: [
-    { q: 'How do I find my correct size?', a: 'Check our size guide page for detailed measurements. Each product page also has size-specific measurements.' },
-    { q: 'What if I order the wrong size?', a: 'You can exchange for a different size within 14 days. We offer free size exchanges.' },
+    { q: 'How do I find my correct size?', a: 'Check our size guide page for detailed measurements in EU/UK/US sizes. Each product page also lists available sizes.' },
   ]},
   { category: 'Payment', qa: [
-    { q: 'What payment methods do you accept?', a: 'We accept M-Pesa (Lipa Na M-Pesa), credit/debit cards, and bank transfers.' },
-    { q: 'Is M-Pesa payment secure?', a: 'Yes, all M-Pesa transactions are processed through Safaricom\'s secure Daraja API.' },
-    { q: 'Do you offer installment payments?', a: 'Not yet, but we are working on introducing Lipa Mdogo Mdogo soon.' },
+    { q: 'What payment methods do you accept?', a: 'We accept M-Pesa STK Push (Lipa na M-Pesa) prompt sent directly to your phone and Cash on Delivery.' },
+    { q: 'Is M-Pesa payment secure?', a: 'Yes, all M-Pesa transactions are processed securely through Safaricom\'s official Daraja API.' },
   ]},
 ]
 

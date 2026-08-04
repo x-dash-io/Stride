@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, Trash2, Plus, Minus, ChevronRight, ShoppingBag, Package } from 'lucide-react'
@@ -9,29 +8,25 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
+import { CartPageSkeleton } from '@/components/skeleton-loader'
+import { EmptyState } from '@/components/ui/empty-state'
+
 export function CartContent() {
   const { cart, items, removeItem, updateQuantity, isLoading } = useCart()
 
   if (isLoading) {
-    return (
-      <div className="container-max py-24 min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
+    return <CartPageSkeleton />
   }
 
   if (items.length === 0 || !cart) {
     return (
-      <div className="container-max py-24 min-h-screen flex flex-col items-center justify-center text-center">
-        <ShoppingBag className="w-24 h-24 text-muted-foreground mb-8" />
-        <h1 className="text-4xl font-serif font-bold mb-4">Your cart is empty</h1>
-        <p className="text-muted-foreground mb-8 max-w-md">
-          Explore our premium collection and add some beautiful shoes to your cart.
-        </p>
-        <Link href="/products">
-          <Button size="lg">Continue Shopping</Button>
-        </Link>
-      </div>
+      <EmptyState
+        icon={ShoppingBag}
+        title="Your Cart is Empty"
+        description="Explore our premium collection and discover high-crafted footwear to elevate your wardrobe."
+        action={{ label: 'Continue Shopping', href: '/products' }}
+        variant="full"
+      />
     )
   }
 
@@ -57,14 +52,13 @@ export function CartContent() {
                   key={`${item.variantId}`}
                   className="bg-card border border-border rounded-xl p-6 flex gap-6"
                 >
-                  <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center text-3xl flex-shrink-0 relative overflow-hidden">
+                  <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {product.images[0]?.url ? (
-                      <Image
+                      <img
                         src={product.images[0].url}
                         alt={product.name}
-                        fill
-                        className="object-cover"
-                        sizes="96px"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <Package className="w-12 h-12 text-muted-foreground" />
@@ -118,7 +112,11 @@ export function CartContent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeItem(item.variantId)}
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to remove this item from your cart?')) {
+                            removeItem(item.variantId)
+                          }
+                        }}
                         className="text-destructive hover:bg-destructive hover:text-white"
                       >
                         <Trash2 className="w-5 h-5" />

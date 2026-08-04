@@ -29,7 +29,7 @@ async function handleGet(
       OR: [
         { name: { contains: search, mode: 'insensitive' as const } },
         { slug: { contains: search, mode: 'insensitive' as const } },
-        { sku: { contains: search, mode: 'insensitive' as const } },
+        { variants: { some: { sku: { contains: search, mode: 'insensitive' as const } } } },
       ],
     }),
     ...(status && { status: status as any }),
@@ -82,13 +82,16 @@ async function handlePost(
     return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 409 })
   }
 
+  const { variants, ...productData } = parsed.data
+
   const product = await prisma.product.create({
     data: {
-      ...parsed.data,
+      ...productData,
       basePrice: parsed.data.basePrice,
       salePrice: parsed.data.salePrice,
       costPrice: parsed.data.costPrice,
       weightKg: parsed.data.weightKg,
+      publishedAt: parsed.data.status === 'ACTIVE' ? new Date() : null,
     },
     include: {
       brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
@@ -97,6 +100,33 @@ async function handlePost(
       variants: { include: { inventory: true, images: true } },
     },
   })
+
+  // Create variants if provided
+  if (variants && variants.length > 0) {
+    for (const variantData of variants) {
+      const { quantity, ...variantInfo } = variantData as any
+      
+      const variant = await prisma.productVariant.create({
+        data: {
+          ...variantInfo,
+          productId: product.id,
+          basePrice: variantInfo.basePrice || product.basePrice,
+          salePrice: variantInfo.salePrice || product.salePrice,
+        },
+      })
+
+      // Create inventory record
+      await prisma.inventory.create({
+        data: {
+          variantId: variant.id,
+          warehouseId: (await prisma.warehouse.findFirst({ where: { code: 'MAIN' } }))?.id || '',
+          quantityOnHand: quantity || 0,
+          quantityReserved: 0,
+          lowStockThreshold: 5,
+        },
+      })
+    }
+  }
 
   return NextResponse.json(product, { status: 201 })
 }

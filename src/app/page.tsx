@@ -3,7 +3,6 @@ import { getProducts, getCategories, getBrands, getBanners } from '@/lib/service
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { HeroProductCarousel } from '@/components/hero/HeroProductCarousel'
 import { Button } from '@/components/ui/button'
-import { NewsletterForm } from '@/components/layout/NewsletterForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,11 +25,11 @@ export default async function HomePage() {
 
   return (
     <div className="w-full">
-      <section className="relative min-h-[85vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden border-b border-border/40">
+      <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden border-b border-border/40">
         <HeroProductCarousel products={heroProducts} />
       </section>
 
-      <section className="container-max section-padding scroll-reveal">
+      <section className="container-max min-h-[100dvh] flex flex-col justify-center scroll-reveal py-20">
         <div className="mb-10">
           <p className="eyebrow">Curated Selection</p>
           <h2 className="heading-section mt-2">Bestsellers</h2>
@@ -43,8 +42,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-muted/30 scroll-reveal">
-        <div className="container-max section-padding">
+      <section className="bg-muted/30 scroll-reveal min-h-[100dvh] flex flex-col justify-center">
+        <div className="container-max py-20">
           <div className="mb-10">
             <p className="eyebrow">New In</p>
             <h2 className="heading-section mt-2">New Arrivals</h2>
@@ -58,7 +57,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container-max section-padding scroll-reveal">
+      <section className="container-max min-h-[100dvh] flex flex-col justify-center scroll-reveal py-20">
         <div className="mb-10">
           <p className="eyebrow">Shop by Category</p>
           <h2 className="heading-section mt-2">Categories</h2>
@@ -77,31 +76,6 @@ export default async function HomePage() {
                 </div>
               </div>
             </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="container-max section-padding scroll-reveal">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 px-6 py-12">
-          <div className="max-w-2xl text-center md:text-left">
-            <p className="eyebrow">Stay Connected</p>
-            <h2 className="heading-page mt-2 mb-4">Join Our Community</h2>
-            <p className="body-large text-muted-foreground mb-6">Subscribe for exclusive access to new collections, special discounts, and style tips.</p>
-            <NewsletterForm />
-          </div>
-        </div>
-      </section>
-
-      <section className="container-max section-padding scroll-reveal">
-        <div className="mb-10">
-          <p className="eyebrow">Trusted Brands</p>
-          <h2 className="heading-section mt-2">Our Partners</h2>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-12 md:gap-20 opacity-60">
-          {brands.filter(b => b.isActive).slice(0, 10).map((brand) => (
-            <div key={brand.id} className="flex items-center gap-2 grayscale transition-all duration-300">
-              {brand.logoUrl ? <img src={brand.logoUrl} alt={brand.name} className="h-8 w-auto" /> : <span className="text-sm font-medium text-muted-foreground">{brand.name}</span>}
-            </div>
           ))}
         </div>
       </section>

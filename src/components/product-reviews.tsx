@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { Star, ThumbsUp, MessageSquare } from 'lucide-react'
 import { Review } from '@/types'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +15,20 @@ interface ProductReviewsProps {
 }
 
 function ReviewCard({ review }: { review: Review }) {
+  const [helpfulCount, setHelpfulCount] = useState(review.helpfulCount)
+  const [hasVotedHelpful, setHasVotedHelpful] = useState(false)
+
+  const handleHelpful = async () => {
+    if (hasVotedHelpful) return
+    setHasVotedHelpful(true)
+    setHelpfulCount((prev) => prev + 1)
+    try {
+      await fetch(`/api/reviews/${review.id}/helpful`, { method: 'POST' })
+    } catch (err) {
+      console.error('Failed to vote helpful:', err)
+    }
+  }
+
   return (
     <div className="border-b border-border pb-6 last:border-b-0">
       <div className="flex items-start justify-between mb-2">
@@ -31,8 +46,8 @@ function ReviewCard({ review }: { review: Review }) {
               ))}
             </div>
             {review.isVerifiedPurchase && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                Verified
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium">
+                Verified Purchase
               </span>
             )}
           </div>
@@ -45,8 +60,16 @@ function ReviewCard({ review }: { review: Review }) {
       {review.title && <p className="font-semibold text-sm mb-1">{review.title}</p>}
       <p className="text-muted-foreground text-sm mb-3">{review.body}</p>
       <div className="flex items-center gap-4 text-sm">
-        <button className="text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ThumbsUp className="w-4 h-4" /> Helpful ({review.helpfulCount})
+        <button
+          onClick={handleHelpful}
+          disabled={hasVotedHelpful}
+          className={cn(
+            'text-muted-foreground hover:text-foreground flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border transition-colors text-xs font-medium',
+            hasVotedHelpful && 'text-primary border-primary bg-primary/5 cursor-default'
+          )}
+        >
+          <ThumbsUp className="w-3.5 h-3.5" />
+          {hasVotedHelpful ? 'Helpful' : 'Helpful'} ({helpfulCount})
         </button>
       </div>
     </div>
@@ -134,7 +157,7 @@ export default function ProductReviews({ productId, reviews }: ProductReviewsPro
             const pct = reviews.length ? (count / reviews.length) * 100 : 0
             return (
               <div key={star} className="flex items-center gap-2 text-sm">
-                <span className="w-8 text-right text-muted-foreground">{star}★</span>
+                <span className="w-10 flex items-center justify-end gap-0.5 text-muted-foreground">{star}<Star className="w-3 h-3 fill-current" /></span>
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
@@ -156,11 +179,13 @@ export default function ProductReviews({ productId, reviews }: ProductReviewsPro
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="font-semibold text-foreground mb-1">No reviews yet</p>
-          <p className="text-sm">Be the first to share your thoughts</p>
-        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title="No reviews yet"
+          description="Be the first to share your thoughts and experience with this product."
+          variant="card"
+          className="py-10"
+        />
       )}
 
       {/* Submit Form */}

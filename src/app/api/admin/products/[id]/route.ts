@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createProtectedRoute } from '@/lib/api-protection'
 import { productCreateSchema } from '@/lib/validations'
+import { z } from 'zod'
 
 type RouteContext = {
   session: { user: { id: string } }
@@ -45,7 +46,33 @@ async function handlePutById(
 ) {
   const { id } = await params
   const body = await request.json()
-  const parsed = productCreateSchema.partial().safeParse(body)
+  
+  // Use a simpler schema for updates that doesn't include variants
+  const updateSchema = z.object({
+    name: z.string().min(3).max(255).optional(),
+    slug: z.string().min(3).max(280).optional(),
+    brandId: z.string().cuid().optional(),
+    categoryId: z.string().cuid().optional(),
+    shortDescription: z.string().max(500).optional(),
+    description: z.string().optional(),
+    gender: z.enum(['MEN', 'WOMEN', 'KIDS', 'UNISEX']).optional(),
+    basePrice: z.number().positive().optional(),
+    salePrice: z.number().positive().optional(),
+    costPrice: z.number().positive().optional(),
+    currency: z.string().optional(),
+    weightKg: z.number().positive().optional(),
+    metaTitle: z.string().max(255).optional(),
+    metaDescription: z.string().optional(),
+    isFeatured: z.boolean().optional(),
+    isNewArrival: z.boolean().optional(),
+    isBestSeller: z.boolean().optional(),
+    isLimitedEdition: z.boolean().optional(),
+    isTrending: z.boolean().optional(),
+    status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).optional(),
+    publishedAt: z.string().datetime().optional(),
+  })
+
+  const parsed = updateSchema.safeParse(body)
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })

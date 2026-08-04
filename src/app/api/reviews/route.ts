@@ -30,22 +30,35 @@ async function handleCreateReview(
   }
 
   const existing = await prisma.review.findFirst({
-    where: { productId, userId: routeContext.session.user.id, orderItemId: null },
+    where: { productId, userId: routeContext.session.user.id },
   })
   if (existing) {
     return NextResponse.json({ error: 'You have already reviewed this product' }, { status: 409 })
   }
 
+  const userOrderItem = await prisma.orderItem.findFirst({
+    where: {
+      productId,
+      order: {
+        userId: routeContext.session.user.id,
+        status: { in: ['DELIVERED', 'SHIPPED', 'CONFIRMED'] },
+      },
+    },
+    select: { id: true },
+  })
+
   const review = await prisma.review.create({
     data: {
       productId,
       userId: routeContext.session.user.id,
+      orderItemId: userOrderItem?.id || null,
       rating,
       body: reviewBody.trim(),
       title,
       sizeRating,
       comfortRating,
       qualityRating,
+      isVerifiedPurchase: Boolean(userOrderItem),
       isApproved: false,
     },
     include: {
