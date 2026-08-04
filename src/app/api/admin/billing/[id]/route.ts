@@ -4,7 +4,7 @@ import { createProtectedRoute } from '@/lib/api-protection'
 import { z } from 'zod'
 
 type RouteContext = {
-  session: { user: { id: string } }
+  session: { user: { id: string; email?: string | null } }
   ip: string
 }
 
@@ -19,6 +19,13 @@ async function handlePutById(
   routeContext: RouteContext
 ) {
   try {
+    const superAdminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@stride.co.ke'
+    // Get the logged in user email from database if not directly in session or check session directly
+    const userEmail = routeContext.session.user.email
+    if (userEmail !== superAdminEmail) {
+      return NextResponse.json({ error: 'Unauthorized. Only the platform manager can verify payments.' }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const parsed = confirmPaymentSchema.safeParse(body)

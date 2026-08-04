@@ -35,9 +35,10 @@ interface BillingClientProps {
   }
   initialInvoices: Invoice[]
   userId: string
+  isSuperAdmin: boolean
 }
 
-export function BillingClient({ initialStatus, initialInvoices, userId }: BillingClientProps) {
+export function BillingClient({ initialStatus, initialInvoices, userId, isSuperAdmin }: BillingClientProps) {
   const router = useRouter()
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices)
   const [billingStatus, setBillingStatus] = useState(initialStatus)
@@ -277,54 +278,56 @@ export function BillingClient({ initialStatus, initialInvoices, userId }: Billin
       </div>
 
       {/* Developer / Manager Admin Action Box */}
-      <Card className="border border-primary/30 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <ShieldCheck className="w-5 h-5 text-primary" /> Manager Verification Console
-          </CardTitle>
-          <CardDescription>Use this panel to confirm and mark client invoices as paid or waived.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {selectedInvoiceId ? (
-            <form onSubmit={handleManagerUpdate} className="space-y-4 max-w-md border border-border p-4 rounded-lg bg-background">
-              <h3 className="font-semibold text-sm">Update Invoice Status</h3>
-              <div className="space-y-2">
-                <Label htmlFor="managerStatus">Set Status</Label>
-                <select
-                  id="managerStatus"
-                  value={managerStatus}
-                  onChange={(e: any) => setManagerStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                >
-                  <option value="PAID">PAID</option>
-                  <option value="UNPAID">UNPAID</option>
-                  <option value="OVERDUE">OVERDUE</option>
-                  <option value="WAIVED">WAIVED</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="managerNotes">Manager Notes / Transaction verification</Label>
-                <Input
-                  id="managerNotes"
-                  value={managerNotes}
-                  onChange={(e) => setManagerNotes(e.target.value)}
-                  placeholder="e.g. Confirmed payment reference"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isManagerSubmitting} size="sm">
-                  {isManagerSubmitting ? 'Saving...' : 'Save Status'}
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedInvoiceId(null)}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <p className="text-xs text-muted-foreground">Select an invoice below to update its status or confirm a reference code.</p>
-          )}
-        </CardContent>
-      </Card>
+      {isSuperAdmin && (
+        <Card className="border border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Manager Verification Console
+            </CardTitle>
+            <CardDescription>Use this panel to confirm and mark client invoices as paid or waived.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {selectedInvoiceId ? (
+              <form onSubmit={handleManagerUpdate} className="space-y-4 max-w-md border border-border p-4 rounded-lg bg-background">
+                <h3 className="font-semibold text-sm">Update Invoice Status</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="managerStatus">Set Status</Label>
+                  <select
+                    id="managerStatus"
+                    value={managerStatus}
+                    onChange={(e: any) => setManagerStatus(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  >
+                    <option value="PAID">PAID</option>
+                    <option value="UNPAID">UNPAID</option>
+                    <option value="OVERDUE">OVERDUE</option>
+                    <option value="WAIVED">WAIVED</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="managerNotes">Manager Notes / Transaction verification</Label>
+                  <Input
+                    id="managerNotes"
+                    value={managerNotes}
+                    onChange={(e) => setManagerNotes(e.target.value)}
+                    placeholder="e.g. Confirmed payment reference"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isManagerSubmitting} size="sm">
+                    {isManagerSubmitting ? 'Saving...' : 'Save Status'}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setSelectedInvoiceId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <p className="text-xs text-muted-foreground">Select an invoice below to update its status or confirm a reference code.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Invoice History */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -339,7 +342,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId }: Billin
               <th className="p-4 font-semibold text-sm">Status</th>
               <th className="p-4 font-semibold text-sm">Submitted Ref</th>
               <th className="p-4 font-semibold text-sm">Confirmed At</th>
-              <th className="p-4 font-semibold text-sm text-right">Action</th>
+              {isSuperAdmin && <th className="p-4 font-semibold text-sm text-right">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -369,20 +372,22 @@ export function BillingClient({ initialStatus, initialInvoices, userId }: Billin
                   <td className="p-4 text-sm text-muted-foreground">
                     {invoice.confirmedAt ? format(new Date(invoice.confirmedAt), 'MMM d, yyyy HH:mm') : '—'}
                   </td>
-                  <td className="p-4 text-right">
-                    <Button variant="outline" size="sm" onClick={() => {
-                      setSelectedInvoiceId(invoice.id)
-                      setManagerStatus(invoice.status)
-                      setManagerNotes(invoice.notes || '')
-                    }}>
-                      Manage
-                    </Button>
-                  </td>
+                  {isSuperAdmin && (
+                    <td className="p-4 text-right">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setSelectedInvoiceId(invoice.id)
+                        setManagerStatus(invoice.status)
+                        setManagerNotes(invoice.notes || '')
+                      }}>
+                        Manage
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                <td colSpan={isSuperAdmin ? 6 : 5} className="p-8 text-center text-muted-foreground">
                   No billing history found.
                 </td>
               </tr>
