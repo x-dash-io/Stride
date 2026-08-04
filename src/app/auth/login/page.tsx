@@ -17,9 +17,9 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || 
                        searchParams.get('returnUrl') || 
-                       '/cart'
+                       '/products'
   const errorParam = searchParams.get('error')
-  const { status } = useSession()
+  const { status, data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [justSignedIn, setJustSignedIn] = useState(false)
   const { showToast } = useToast()
@@ -30,11 +30,20 @@ function LoginForm() {
     }
   }, [errorParam, showToast])
 
+  // After sign-in, redirect based on role.
+  // Staff (ADMIN / SUPER_ADMIN) always go to the admin dashboard.
+  // Customers go to the callbackUrl (e.g. /cart if they were bounced from checkout) or /products.
   useEffect(() => {
-    if (justSignedIn && status === 'authenticated') {
-      router.push(callbackUrl)
+    if (justSignedIn && status === 'authenticated' && session?.user) {
+      const role = session.user.role
+      console.log('Login redirect - Role:', role, 'Redirecting to:', role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : callbackUrl)
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        router.replace('/admin')
+      } else {
+        router.replace(callbackUrl)
+      }
     }
-  }, [justSignedIn, status, callbackUrl, router])
+  }, [justSignedIn, status, callbackUrl, router, session])
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -56,7 +65,8 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        router.push(callbackUrl)
+        // Let the useEffect handle the redirect once the session updates with the user's role
+        setJustSignedIn(true)
         return
       }
 
@@ -125,7 +135,7 @@ function LoginForm() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full h-12 text-base" onClick={() => signIn('google', { callbackUrl })}>
+          <Button variant="outline" className="w-full h-12 text-base" onClick={() => signIn('google', { callbackUrl: `/auth/redirect?next=${encodeURIComponent(callbackUrl || '/products')}` })}>
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

@@ -1,9 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getClientIp } from '@/lib/utils'
+import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const ip = getClientIp(request)
+  const { success } = await rateLimit(apiRateLimit, `public:${ip}`)
+  if (!success) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   try {
     const zones = await prisma.shippingZone.findMany({
       where: { isActive: true },

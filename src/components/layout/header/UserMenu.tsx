@@ -45,7 +45,7 @@ export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
             <Heart className="h-4 w-4 text-muted-foreground" />
             Wishlist
           </Link>
-          {session.user.role === 'ADMIN' && (
+          {(session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') && (
             <Link
               href="/admin"
               className="block px-3 py-2.5 text-base font-medium rounded-lg hover:bg-accent/50 transition-colors"
@@ -57,7 +57,7 @@ export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           <div className="pt-4 border-t border-border/50">
             <Button
               variant="ghost"
-              onClick={() => { signOut({ callbackUrl: '/cart' }); onClose(); }}
+              onClick={() => { signOut({ callbackUrl: '/' }); onClose(); }}
               className="w-full text-left px-3 py-2.5 text-base font-medium text-destructive hover:bg-destructive/10 justify-start"
             >
               Sign Out

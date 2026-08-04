@@ -4,13 +4,14 @@ import { createProtectedRoute } from '@/lib/api-protection'
 import { z } from 'zod'
 
 type RouteContext = {
-  session: { user: { id: string; email?: string | null } }
+  session: { user: { id: string; email?: string | null; role: string } }
   ip: string
 }
 
 const confirmPaymentSchema = z.object({
   status: z.enum(['PAID', 'UNPAID', 'OVERDUE', 'WAIVED']),
   notes: z.string().optional().nullable(),
+  mpesaRef: z.string().optional().nullable(),
 })
 
 async function handlePutById(
@@ -19,11 +20,8 @@ async function handlePutById(
   routeContext: RouteContext
 ) {
   try {
-    const superAdminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@stride.co.ke'
-    // Get the logged in user email from database if not directly in session or check session directly
-    const userEmail = routeContext.session.user.email
-    if (userEmail !== superAdminEmail) {
-      return NextResponse.json({ error: 'Unauthorized. Only the platform manager can verify payments.' }, { status: 403 })
+    if (routeContext.session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden. Only Super Admin can verify payments.' }, { status: 403 })
     }
 
     const { id } = await params
@@ -32,6 +30,28 @@ async function handlePutById(
 
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
+    }
+
+    // Retrieve the existing ledger record to check matching reference
+    const ledger = await prisma.subscriptionLedger.findUnique({
+      where: { id },
+    })
+
+    if (!ledger) {
+      return NextResponse.json({ error: 'Ledger record not found.' }, { status: 404 })
+    }
+
+    if (parsed.data.status === 'PAID') {
+      if (!ledger.mpesaRef) {
+        return NextResponse.json({ error: 'No payment reference submitted by the store admin.' }, { status: 400 })
+      }
+
+      const requestRef = (parsed.data.mpesaRef || '').toUpperCase().trim()
+      const dbRef = ledger.mpesaRef.toUpperCase().trim()
+
+      if (!requestRef || requestRef !== dbRef) {
+        return NextResponse.json({ error: 'M-Pesa reference mismatch. The confirmed code must match the store\'s submission.' }, { status: 400 })
+      }
     }
 
     const updated = await prisma.subscriptionLedger.update({

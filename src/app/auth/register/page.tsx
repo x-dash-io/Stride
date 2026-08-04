@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || 
                        searchParams.get('returnUrl') || 
-                       '/cart'
+                       '/products'
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
 

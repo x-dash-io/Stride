@@ -11,7 +11,12 @@ export async function proxy(request: NextRequest) {
   const userRole = token?.role as string | undefined
 
   if (isOnAuth && isLoggedIn) {
-    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/cart'
+    // Staff always land on the admin dashboard — never on the storefront or cart
+    if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+      return NextResponse.redirect(new URL('/admin', nextUrl))
+    }
+    // Customers go back to where they were, or home
+    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/'
     return NextResponse.redirect(new URL(callbackUrl, nextUrl))
   }
 

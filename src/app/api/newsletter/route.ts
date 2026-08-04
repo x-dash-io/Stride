@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { getClientIp } from '@/lib/utils'
+import { authRateLimit, rateLimit } from '@/lib/rate-limit'
 
 const newsletterSchema = z.object({
   email: z.string().email('Invalid email address'),
 })
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request)
+  const { success, remaining, reset } = await rateLimit(authRateLimit, ip)
+
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((reset - Date.now()) / 1000)) } }
+    )
+  }
+
   try {
     const body = await request.json()
     const parsed = newsletterSchema.safeParse(body)

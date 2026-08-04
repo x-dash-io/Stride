@@ -1,15 +1,49 @@
 import { z } from 'zod'
+import { sanitizeInput, sanitizeEmail, sanitizeName, sanitizePhone, sanitizeText } from '@/lib/utils'
+
+// Sanitization transformers
+const sanitizedString = (minLength: number, maxLength: number) => 
+  z.string()
+    .min(minLength)
+    .max(maxLength)
+    .transform(val => sanitizeInput(val))
+
+const sanitizedEmail = z.string()
+  .email('Invalid email address')
+  .transform(val => sanitizeEmail(val))
+
+const sanitizedName = z.string()
+  .min(2, 'Name must be at least 2 characters')
+  .max(100, 'Name must be at most 100 characters')
+  .transform(val => sanitizeName(val))
+
+const sanitizedPhone = z.string()
+  .regex(/^254[0-9]{9}$/, 'Invalid Kenyan phone number (format: 2547XXXXXXXX)')
+  .transform(val => sanitizePhone(val))
+
+const sanitizedText = (minLength: number, maxLength: number) =>
+  z.string()
+    .min(minLength)
+    .max(maxLength)
+    .transform(val => sanitizeText(val))
+
+const sanitizedOptionalText = (maxLength: number) =>
+  z.string()
+    .max(maxLength)
+    .optional()
+    .nullable()
+    .transform(val => val ? sanitizeText(val) : val)
 
 export const shippingAddressSchema = z.object({
   label: z.string().default('Home'),
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  phone: z.string().regex(/^254[0-9]{9}$/, 'Invalid Kenyan phone number (format: 2547XXXXXXXX)'),
-  addressLine1: z.string().min(5, 'Address must be at least 5 characters'),
-  addressLine2: z.string().optional(),
-  city: z.string().min(2, 'City is required'),
-  state: z.string().min(2, 'County is required'),
-  postalCode: z.string().min(2, 'Postal code is required'),
+  firstName: sanitizedName,
+  lastName: sanitizedName,
+  phone: sanitizedPhone,
+  addressLine1: sanitizedText(5, 255),
+  addressLine2: sanitizedOptionalText(255),
+  city: sanitizedString(2, 100),
+  state: sanitizedString(2, 100),
+  postalCode: sanitizedString(2, 20),
   country: z.string().default('KE'),
   isDefault: z.boolean().default(false),
   isBilling: z.boolean().default(false),
@@ -18,7 +52,7 @@ export const shippingAddressSchema = z.object({
 
 export const paymentSchema = z.object({
   paymentMethod: z.enum(['MPESA_STK_PUSH', 'CASH_ON_DELIVERY']),
-  phoneNumber: z.string().regex(/^254[0-9]{9}$/, 'Invalid Kenyan phone number').optional(),
+  phoneNumber: sanitizedPhone.optional(),
 })
 
 export const addToCartSchema = z.object({
@@ -36,17 +70,17 @@ export const removeFromCartSchema = z.object({
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: sanitizedEmail,
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  name: sanitizedName,
+  email: sanitizedEmail,
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128),
+  confirmPassword: z.string().min(8, 'Password must be at least 8 characters').max(128),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
@@ -56,8 +90,8 @@ export type RegisterInput = z.infer<typeof registerSchema>
 
 export const reviewSchema = z.object({
   productId: z.string().cuid(),
-  title: z.string().min(5).max(255).optional(),
-  body: z.string().min(10, 'Review must be at least 10 characters'),
+  title: sanitizedOptionalText(255),
+  body: sanitizedText(10, 5000),
   rating: z.number().int().min(1).max(5),
   sizeRating: z.number().int().min(1).max(5).optional(),
   comfortRating: z.number().int().min(1).max(5).optional(),
@@ -65,20 +99,20 @@ export const reviewSchema = z.object({
 })
 
 export const productCreateSchema = z.object({
-  name: z.string().min(3).max(255),
-  slug: z.string().min(3).max(280),
+  name: sanitizedString(3, 255),
+  slug: sanitizedString(3, 280),
   brandId: z.string().cuid(),
   categoryId: z.string().cuid().optional(),
-  shortDescription: z.string().max(500).optional(),
-  description: z.string().optional(),
+  shortDescription: sanitizedOptionalText(500),
+  description: sanitizedOptionalText(10000),
   gender: z.enum(['MEN', 'WOMEN', 'KIDS', 'UNISEX']),
   basePrice: z.number().positive(),
   salePrice: z.number().positive().optional(),
   costPrice: z.number().positive().optional(),
   currency: z.string().default('KES'),
   weightKg: z.number().positive().optional(),
-  metaTitle: z.string().max(255).optional(),
-  metaDescription: z.string().optional(),
+  metaTitle: sanitizedOptionalText(255),
+  metaDescription: sanitizedOptionalText(500),
   isFeatured: z.boolean().default(false),
   isNewArrival: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
@@ -87,12 +121,12 @@ export const productCreateSchema = z.object({
   status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).default('DRAFT'),
   publishedAt: z.string().datetime().optional(),
   variants: z.array(z.object({
-    sku: z.string().min(3).max(100),
-    size: z.string().min(1).max(50),
-    sizeEu: z.string().max(20).optional(),
-    sizeUs: z.string().max(20).optional(),
-    sizeUk: z.string().max(20).optional(),
-    colour: z.string().min(1).max(100),
+    sku: sanitizedString(3, 100),
+    size: sanitizedString(1, 50),
+    sizeEu: sanitizedOptionalText(20),
+    sizeUs: sanitizedOptionalText(20),
+    sizeUk: sanitizedOptionalText(20),
+    colour: sanitizedString(1, 100),
     colourHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
     basePrice: z.number().positive().optional(),
     salePrice: z.number().positive().optional(),
@@ -107,15 +141,15 @@ export type ProductCreateInput = z.infer<typeof productCreateSchema>
 
 export const variantCreateSchema = z.object({
   productId: z.string().cuid(),
-  sku: z.string().min(3).max(100),
-  size: z.string().min(1).max(50),
-  sizeUs: z.string().max(20).optional(),
-  sizeEu: z.string().max(20).optional(),
-  sizeUk: z.string().max(20).optional(),
-  colour: z.string().min(1).max(100),
+  sku: sanitizedString(3, 100),
+  size: sanitizedString(1, 50),
+  sizeUs: sanitizedOptionalText(20),
+  sizeEu: sanitizedOptionalText(20),
+  sizeUk: sanitizedOptionalText(20),
+  colour: sanitizedString(1, 100),
   colourHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   colourSwatchUrl: z.string().url().optional(),
-  material: z.string().max(100).optional(),
+  material: sanitizedOptionalText(100),
   gender: z.enum(['MEN', 'WOMEN', 'KIDS', 'UNISEX']).optional(),
   basePrice: z.number().positive().optional(),
   salePrice: z.number().positive().optional(),
@@ -126,9 +160,9 @@ export const variantCreateSchema = z.object({
 })
 
 export const bannerCreateSchema = z.object({
-  title: z.string().max(200).optional(),
-  subtitle: z.string().max(300).optional(),
-  ctaText: z.string().max(100).optional(),
+  title: sanitizedOptionalText(200),
+  subtitle: sanitizedOptionalText(300),
+  ctaText: sanitizedOptionalText(100),
   ctaUrl: z.string().url().optional(),
   desktopImageUrl: z.string().url(),
   mobileImageUrl: z.string().url().optional(),
@@ -142,8 +176,8 @@ export const bannerCreateSchema = z.object({
 })
 
 export const shippingZoneSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  description: z.string().optional().nullable(),
+  name: sanitizedString(2, 255),
+  description: sanitizedOptionalText(500),
   counties: z.array(z.string()).default([]),
   baseCost: z.number().nonnegative('Cost must be positive or zero'),
   isActive: z.boolean().default(true),
@@ -151,18 +185,18 @@ export const shippingZoneSchema = z.object({
 })
 
 export const storeSettingsSchema = z.object({
-  storeName: z.string().min(2, 'Store name is required'),
-  storeTagline: z.string().optional().nullable(),
+  storeName: sanitizedString(2, 255),
+  storeTagline: sanitizedOptionalText(500),
   logoUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
   faviconUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color').or(z.string().length(0)).optional().nullable(),
   contactEmail: z.string().email('Invalid email address').or(z.string().length(0)).optional().nullable(),
-  contactPhone: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
+  contactPhone: sanitizedOptionalText(50),
+  address: sanitizedOptionalText(500),
   instagramUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
   facebookUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
   tiktokUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
   twitterUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
-  metaTitle: z.string().max(255).optional().nullable(),
-  metaDescription: z.string().optional().nullable(),
+  metaTitle: sanitizedOptionalText(255),
+  metaDescription: sanitizedOptionalText(500),
 })

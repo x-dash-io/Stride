@@ -40,10 +40,11 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
-        scrolled
+        mounted && scrolled
           ? 'bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm'
           : 'bg-background/80 backdrop-blur-sm border-b border-transparent'
       )}
+      suppressHydrationWarning
     >
       <div className="container-max">
         <div className="flex h-16 items-center justify-between gap-3 sm:gap-6">

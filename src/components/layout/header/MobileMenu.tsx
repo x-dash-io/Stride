@@ -61,7 +61,7 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               >
                 Wishlist
               </Link>
-              {session.user.role === 'ADMIN' && (
+              {(session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') && (
                 <Link
                   href="/admin"
                   className="block px-3 py-4 text-base font-medium leading-relaxed rounded-lg hover:bg-accent/50 transition-colors"
@@ -72,7 +72,7 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               )}
               <Button
                 variant="ghost"
-                onClick={() => { signOut({ callbackUrl: '/cart' }); onClose(); }}
+                onClick={() => { signOut({ callbackUrl: '/' }); onClose(); }}
                 className="w-full text-left px-3 py-4 text-base font-medium text-destructive hover:bg-destructive/10 justify-start"
               >
                 Sign Out

@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { verifyCsrfToken } from '@/lib/csrf'
 import { apiRateLimit, authRateLimit, paymentRateLimit, rateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
+import { getClientIp } from '@/lib/utils'
 
 export type RateLimitType = 'api' | 'auth' | 'payment'
 
@@ -41,7 +42,7 @@ export async function withProtection(
 ): Promise<NextResponse> {
   const { requireAuth = true, requireAdmin = false, rateLimit: rateLimitType = 'api', requireCsrf = false } = options
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('remote-addr') || 'unknown'
+  const ip = getClientIp(request)
 
   const limiter = rateLimitType === 'auth' ? authRateLimit : rateLimitType === 'payment' ? paymentRateLimit : apiRateLimit
   const { success, remaining, reset } = await rateLimit(limiter, ip)

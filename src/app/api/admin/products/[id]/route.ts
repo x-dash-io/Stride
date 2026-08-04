@@ -116,7 +116,30 @@ async function handleDeleteById(
   routeContext: RouteContext
 ) {
   const { id } = await params
-  await prisma.product.delete({ where: { id } })
+  
+  // Check if product exists
+  const product = await prisma.product.findUnique({ where: { id } })
+  if (!product) {
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+  }
+
+  // Check for active orders
+  const activeOrders = await prisma.order.findFirst({
+    where: {
+      items: { some: { productId: id } },
+      status: { notIn: ['CANCELLED', 'DELIVERED', 'REFUNDED'] }
+    }
+  })
+  if (activeOrders) {
+    return NextResponse.json({ error: 'Cannot delete product with active orders' }, { status: 400 })
+  }
+
+  // Use soft delete by setting status to DISCONTINUED
+  await prisma.product.update({
+    where: { id },
+    data: { status: 'DISCONTINUED' }
+  })
+  
   return NextResponse.json({ success: true })
 }
 

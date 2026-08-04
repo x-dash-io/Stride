@@ -19,8 +19,16 @@ async function handleGet(
   const status = searchParams.get('status')
   const categoryId = searchParams.get('categoryId')
   const brandId = searchParams.get('brandId')
-  const sort = searchParams.get('sort') || 'createdAt'
-  const order = searchParams.get('order') || 'desc'
+  
+  // Validate sort and order parameters to prevent injection
+  const allowedSortFields = ['createdAt', 'updatedAt', 'name', 'basePrice', 'status']
+  const allowedOrders = ['asc', 'desc']
+  const sort = allowedSortFields.includes(searchParams.get('sort') || '') 
+    ? searchParams.get('sort') 
+    : 'createdAt'
+  const order = allowedOrders.includes(searchParams.get('order') || '') 
+    ? searchParams.get('order') 
+    : 'desc'
 
   const skip = (page - 1) * perPage
 

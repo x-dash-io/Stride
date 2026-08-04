@@ -1,4 +1,4 @@
-import { Ratelimit } from '@upstash/ratelimit'
+import { Ratelimit, Duration } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
 function createRedis() {
@@ -31,10 +31,25 @@ export const paymentRateLimit = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 m'), prefix: 'ratelimit:payment' })
   : noopLimiter
 
+export interface RateLimitConfig {
+  limit?: number
+  window?: Duration
+}
+
 export async function rateLimit(
   rateLimiter: Ratelimit,
-  identifier: string
+  identifier: string,
+  config?: RateLimitConfig
 ): Promise<{ success: boolean; remaining: number; reset: number }> {
+  if (config?.limit && config?.window && redis) {
+    const customLimiter = new Ratelimit({ 
+      redis, 
+      limiter: Ratelimit.slidingWindow(config.limit, config.window), 
+      prefix: 'ratelimit:custom' 
+    })
+    const { success, remaining, reset } = await customLimiter.limit(identifier)
+    return { success, remaining, reset }
+  }
   const { success, remaining, reset } = await rateLimiter.limit(identifier)
   return { success, remaining, reset }
 }
