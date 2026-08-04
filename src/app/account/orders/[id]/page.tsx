@@ -1,9 +1,10 @@
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { notFound, redirect } from 'next/navigation'
+export const dynamic = 'force-dynamic'
+import { notFound } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
+import { requireCustomer } from '@/lib/authz'
 
 const statusOrder = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED']
 
@@ -29,13 +30,7 @@ async function getOrder(id: string, userId: string) {
 }
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/orders')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account/orders' })
 
   const { id } = await params
   const order = await getOrder(id, session.user.id)

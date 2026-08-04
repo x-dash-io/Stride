@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { getWishlist } from '@/lib/queries'
 import { removeFromWishlist } from '@/app/actions/wishlist'
 import WishlistClient from './WishlistClient'
+import { requireCustomer } from '@/lib/authz'
 
 export const metadata: Metadata = {
   title: 'My Wishlist | STRIDE',
@@ -16,13 +17,7 @@ export const metadata: Metadata = {
 }
 
 export default async function WishlistPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/wishlist')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account/wishlist' })
 
   const wishlist = await getWishlist(session.user.id)
 

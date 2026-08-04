@@ -1,11 +1,11 @@
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ArrowRight, Truck, Package, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { requireCustomer } from '@/lib/authz'
 
 async function getUserOrders(userId: string, page = 1, perPage = 10) {
   const skip = (page - 1) * perPage
@@ -23,13 +23,7 @@ async function getUserOrders(userId: string, page = 1, perPage = 10) {
 }
 
 export default async function AccountOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/orders')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account/orders' })
 
   const params = await searchParams
   const page = Math.max(1, Number(params.page) || 1)

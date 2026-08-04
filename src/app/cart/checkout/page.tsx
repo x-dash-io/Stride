@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -8,6 +7,7 @@ import { Cart, CartItem, Product, ProductVariant } from '@/types'
 import { Suspense } from 'react'
 import { CheckoutContent } from './CheckoutContent'
 import { CheckoutFormSkeleton } from '@/components/skeleton-loader'
+import { requireCustomer } from '@/lib/authz'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,19 +92,14 @@ async function getDefaultAddress(userId: string) {
 }
 
 async function CheckoutContentWrapper() {
-  const session = await auth()
   const cookieStore = await cookies()
 
-  // Admins and Super Admins are staff — they should not be placing orders.
-  // Redirect them back to the admin dashboard.
-  if (session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') {
-    redirect('/admin?blocked=checkout')
-  }
-
-  // Redirect unauthenticated users to login with proper callbackUrl
-  if (!session?.user?.id) {
-    redirect('/auth/login?callbackUrl=/cart/checkout')
-  }
+  // Staff are not customers — they must not place orders, so redirect to the
+  // admin dashboard. Guests are sent to login with the checkout callbackUrl.
+  const session = await requireCustomer({
+    callbackUrl: '/cart/checkout',
+    staffRedirectTo: '/admin?blocked=checkout',
+  })
 
   let cart = null
   let defaultAddress = null

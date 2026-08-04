@@ -1,22 +1,13 @@
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
-import { formatPrice } from '@/lib/utils'
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { Plus, MapPin, Edit, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { requireCustomer } from '@/lib/authz'
 
 export default async function AddressesPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/addresses')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account/addresses' })
 
   const addresses = await prisma.address.findMany({
     where: { userId: session.user.id },

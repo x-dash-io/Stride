@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { uploadToR2, generateProductKey } from '@/lib/r2'
 import { revalidatePath } from 'next/cache'
 import { validateFileSignature, validateFileSize } from '@/lib/file-validation'
+import { isStaffRole } from '@/lib/roles'
 
 export async function uploadProductImages(
   productId: string,
@@ -12,7 +13,7 @@ export async function uploadProductImages(
   files: File[]
 ): Promise<{ urls: string[]; error?: string }> {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user || !isStaffRole(session.user.role)) {
     return { urls: [], error: 'Unauthorized' }
   }
 
@@ -61,7 +62,7 @@ export async function uploadProductImages(
 
 export async function deleteProductImage(imageId: string): Promise<{ success: boolean; error?: string }> {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user || !isStaffRole(session.user.role)) {
     return { success: false, error: 'Unauthorized' }
   }
 
@@ -89,7 +90,7 @@ export async function reorderProductImages(
   imageIds: string[]
 ): Promise<{ success: boolean; error?: string }> {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user || !isStaffRole(session.user.role)) {
     return { success: false, error: 'Unauthorized' }
   }
 
@@ -115,7 +116,7 @@ export async function setPrimaryImage(
   productId: string
 ): Promise<{ success: boolean; error?: string }> {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user || !isStaffRole(session.user.role)) {
     return { success: false, error: 'Unauthorized' }
   }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createProtectedRoute } from '@/lib/api-protection'
 import { z } from 'zod'
+import { SUPER_ADMIN_ROLE } from '@/lib/roles'
 
 type RouteContext = {
   session: { user: { id: string; email?: string | null; role: string } }
@@ -20,7 +21,7 @@ async function handlePutById(
   routeContext: RouteContext
 ) {
   try {
-    if (routeContext.session.user.role !== 'SUPER_ADMIN') {
+    if (routeContext.session.user.role !== SUPER_ADMIN_ROLE) {
       return NextResponse.json({ error: 'Forbidden. Only Super Admin can verify payments.' }, { status: 403 })
     }
 

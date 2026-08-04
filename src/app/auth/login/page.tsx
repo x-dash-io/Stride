@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loginSchema, LoginInput } from '@/lib/validations'
 import { useToast } from '@/providers/ToastProvider'
+import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 function LoginForm() {
   const router = useRouter()
@@ -37,10 +38,10 @@ function LoginForm() {
     if (status === 'authenticated' && session?.user) {
       const role = session.user.role
       const hasCallbackUrl = searchParams.get('callbackUrl') || searchParams.get('returnUrl')
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      if (isStaffRole(role)) {
         router.replace(hasCallbackUrl || '/admin')
       } else {
-        router.replace(hasCallbackUrl || '/products')
+        router.replace(hasCallbackUrl || getRoleHome(role))
       }
     }
   }, [status, session, router, searchParams])
@@ -51,8 +52,7 @@ function LoginForm() {
   useEffect(() => {
     if (justSignedIn && status === 'authenticated' && session?.user) {
       const role = session.user.role
-      console.log('Login redirect - Role:', role, 'Redirecting to:', role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : callbackUrl)
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      if (isStaffRole(role)) {
         router.replace('/admin')
       } else {
         router.replace(callbackUrl)

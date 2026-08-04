@@ -1,13 +1,13 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { Users, Package, ShoppingBag, DollarSign, Plus, ArrowRight, CreditCard, Clock, Activity, Landmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { getBillingStatus } from '@/lib/services/billing.service'
+import { requireStaff } from '@/lib/authz'
+import { SUPER_ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,12 +44,9 @@ async function getStats() {
 }
 
 export default async function AdminDashboardPage() {
-  const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-    redirect('/')
-  }
+  const session = await requireStaff()
 
-  const isSuperAdmin = session.user.role === 'SUPER_ADMIN'
+  const isSuperAdmin = session.user.role === SUPER_ADMIN_ROLE
 
   if (isSuperAdmin) {
     // Fetch SaaS Platform Manager Stats

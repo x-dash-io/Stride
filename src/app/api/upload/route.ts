@@ -10,10 +10,11 @@ import {
 } from '@/lib/r2'
 import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
 import { validateFileSignature, validateFileSize } from '@/lib/file-validation'
+import { isStaffRole } from '@/lib/roles'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
-  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user?.role || !isStaffRole(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const session = await auth()
-  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user?.role || !isStaffRole(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

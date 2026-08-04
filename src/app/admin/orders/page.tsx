@@ -1,7 +1,5 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ShoppingBag, ArrowLeft, Eye } from 'lucide-react'
@@ -9,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { format } from 'date-fns'
 import { OrderStatus } from '@prisma/client'
+import { requireStaff } from '@/lib/authz'
+import { ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,8 +36,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<{ status?: string; page?: string }>
 }) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
+  const session = await requireStaff({ roles: [ADMIN_ROLE] })
 
   const params = await searchParams
   const currentStatus = params.status || 'ALL'

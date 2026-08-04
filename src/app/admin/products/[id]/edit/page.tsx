@@ -1,10 +1,11 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { requireStaff } from '@/lib/authz'
+import { ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +18,7 @@ export default async function AdminProductEditPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
+  await requireStaff({ roles: [ADMIN_ROLE] })
 
   const { id } = await params
 

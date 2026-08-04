@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 import { X, User, ShoppingCart, Heart, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { isStaffRole } from '@/lib/roles'
 
 export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { data: session } = useSession()
 
   if (!isOpen || !session) return null
 
-  const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN'
+  const isAdmin = isStaffRole(session.user.role)
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="User menu">

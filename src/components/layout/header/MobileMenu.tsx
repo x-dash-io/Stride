@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/theme-switcher'
+import { isStaffRole } from '@/lib/roles'
 
 const shopItems = [
   { label: 'Shop', href: '/products' },
@@ -61,7 +62,7 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               >
                 Wishlist
               </Link>
-              {(session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') && (
+              {isStaffRole(session.user.role) && (
                 <Link
                   href="/admin"
                   className="block px-3 py-4 text-base font-medium leading-relaxed rounded-lg hover:bg-accent/50 transition-colors"

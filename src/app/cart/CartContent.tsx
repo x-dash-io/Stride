@@ -21,6 +21,7 @@ import {
 
 import { CartPageSkeleton } from '@/components/skeleton-loader'
 import { EmptyState } from '@/components/ui/empty-state'
+import { isStaffRole } from '@/lib/roles'
 
 export function CartContent() {
   const { cart, items, removeItem, updateQuantity, clearCart, isLoading } = useCart()
@@ -29,7 +30,7 @@ export function CartContent() {
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
 
-  const isStaff = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN'
+  const isStaff = isStaffRole(session?.user?.role)
 
   const handleClearCart = async () => {
     setIsClearing(true)

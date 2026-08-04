@@ -1,9 +1,9 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { AddressForm } from '@/components/forms/AddressForm'
+import { requireCustomer } from '@/lib/authz'
 
 export const metadata: Metadata = {
   title: 'Add Address | STRIDE',
@@ -11,13 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function NewAddressPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/addresses')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account/addresses' })
 
   return (
     <div className="container-max py-12 min-h-screen">

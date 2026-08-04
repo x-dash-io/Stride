@@ -1,9 +1,9 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getBillingStatus } from '@/lib/services/billing.service'
 import { SubscriptionClient } from './SubscriptionClient'
+import { requireStaff } from '@/lib/authz'
+import { ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,8 +12,7 @@ export const metadata: Metadata = {
 }
 
 export default async function SubscriptionPage() {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
+  const session = await requireStaff({ roles: [ADMIN_ROLE] })
 
   const billingData = await getBillingStatus()
   

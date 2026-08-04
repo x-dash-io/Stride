@@ -1,32 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 export async function proxy(request: NextRequest) {
   const token = await getToken({ req: request })
   const { nextUrl } = request
-  const isLoggedIn = !!token
+
+  // ── Authentication: is this an identified user? ──────────────────────────
+  const isAuthenticated = !!token
+
+  // ── Authorization: what is this user allowed to access? ──────────────────
+  const userRole = token?.role as string | undefined
+  const isStaff = isStaffRole(userRole)
+
   const isOnAuth = nextUrl.pathname.startsWith('/auth')
   const isOnAccount = nextUrl.pathname.startsWith('/account')
   const isOnAdmin = nextUrl.pathname.startsWith('/admin')
-  const userRole = token?.role as string | undefined
 
-  if (isOnAuth && isLoggedIn) {
-    // Staff always land on the admin dashboard — never on the storefront or cart
-    if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+  // Authenticated users have no business on the auth pages —
+  // send them to their role home (role-based redirect).
+  if (isOnAuth && isAuthenticated) {
+    if (isStaff) {
       return NextResponse.redirect(new URL('/admin', nextUrl))
     }
-    // Customers go back to where they were, or to products page
-    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/products'
+    // Customers go back to where they were, or to their role home
+    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || getRoleHome(userRole)
     return NextResponse.redirect(new URL(callbackUrl, nextUrl))
   }
 
-  if (isOnAccount && !isLoggedIn) {
-    const loginUrl = new URL('/auth/login', nextUrl)
-    loginUrl.searchParams.set('callbackUrl', nextUrl.pathname)
-    return NextResponse.redirect(loginUrl)
+  // /account is customer-only: staff are redirected to their role home
+  if (isOnAccount) {
+    if (isStaff) {
+      return NextResponse.redirect(new URL(getRoleHome(userRole), nextUrl))
+    }
+    if (!isAuthenticated) {
+      const loginUrl = new URL('/auth/login', nextUrl)
+      loginUrl.searchParams.set('callbackUrl', nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
+    }
   }
 
-  if (isOnAdmin && (!isLoggedIn || (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN'))) {
+  // /admin is staff-only: everyone else is sent to the storefront
+  if (isOnAdmin && !(isAuthenticated && isStaff)) {
     return NextResponse.redirect(new URL('/', nextUrl))
   }
 

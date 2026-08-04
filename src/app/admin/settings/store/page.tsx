@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
 import { StoreSettingsClient } from './StoreSettingsClient'
+import { requireStaff } from '@/lib/authz'
+import { ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function StoreSettingsPage() {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
+  await requireStaff({ roles: [ADMIN_ROLE] })
 
   let settings = await prisma.storeSettings.findUnique({
     where: { id: 'singleton' },

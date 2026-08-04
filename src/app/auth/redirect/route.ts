@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 /**
  * Role-aware post-auth redirect endpoint.
@@ -22,12 +23,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  const role = session.user.role
-  if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+  // Staff always land on the admin dashboard — never on the storefront
+  if (isStaffRole(session.user.role)) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
   // Customers: honour the ?next param, but never allow open redirects to external URLs
-  const destination = next.startsWith('/') ? next : '/products'
+  const destination = next.startsWith('/') ? next : getRoleHome(session.user.role)
   return NextResponse.redirect(new URL(destination, request.url))
 }

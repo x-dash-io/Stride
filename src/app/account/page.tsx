@@ -1,16 +1,18 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { AccountContent } from './AccountContent'
 import { PageSkeleton } from '@/components/skeleton-loader'
+import { requireCustomer } from '@/lib/authz'
 
 export const metadata: Metadata = {
   title: 'My Account | STRIDE',
   description: 'Manage your account, orders, and addresses.',
 }
+
+export const dynamic = 'force-dynamic'
 
 async function getUserData(userId: string) {
   const [user, orders, wishlistCount, addresses, orderAgg] = await Promise.all([
@@ -37,13 +39,7 @@ async function getUserData(userId: string) {
 }
 
 async function AccountContentWrapper() {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account')
-
-  // Admins and Super Admins should use the admin dashboard, not the customer account page
-  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
-    redirect('/admin')
-  }
+  const session = await requireCustomer({ callbackUrl: '/account' })
 
   const { user, orders, wishlistCount, addresses, totalSpent, ordersCount } = await getUserData(session.user.id)
 

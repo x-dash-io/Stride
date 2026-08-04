@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, ShoppingCart, Search } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { useCart } from '@/providers/CartProvider'
 import { CartDrawer } from './header/CartDrawer'
 import { MobileMenu } from './header/MobileMenu'
 import { HeaderSearch } from './header/HeaderSearch'
+import { isStaffRole } from '@/lib/roles'
 
 const NAV_LINKS = [
   { label: 'Shop', href: '/products' },
@@ -21,11 +22,10 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const { itemCount, openCart } = useCart()
 
   useEffect(() => {
-    setMounted(true)
     const onScroll = () => setScrolled(window.scrollY > 8)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -164,7 +164,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
                           >
                             Wishlist
                           </Link>
-                          {session.user.role === 'ADMIN' && (
+                          {isStaffRole(session.user.role) && (
                             <Link
                               href="/admin"
                               className="block px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors"

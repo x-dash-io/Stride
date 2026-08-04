@@ -1,10 +1,11 @@
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getBillingStatus } from '@/lib/services/billing.service'
 import { headers } from 'next/headers'
 import { Suspense } from 'react'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { requireStaff } from '@/lib/authz'
+import { SUPER_ADMIN_ROLE } from '@/lib/roles'
 import { 
   LayoutDashboard, 
   Package, 
@@ -20,6 +21,18 @@ import { AdminSuspensionBanner } from './AdminSuspensionBanner'
 import { MobileHeader } from './MobileHeader'
 import { MobileNavDrawer } from './MobileNavDrawer'
 
+// Icon map for server-side rendering
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Truck,
+  Settings,
+  CreditCard,
+  ExternalLink,
+  AlertTriangle,
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({
@@ -27,12 +40,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-    redirect('/')
-  }
+  const session = await requireStaff()
 
-  const isSuperAdmin = session.user.role === 'SUPER_ADMIN'
+  const isSuperAdmin = session.user.role === SUPER_ADMIN_ROLE
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || '/admin'
 
@@ -54,26 +64,26 @@ export default async function AdminLayout({
   const billing = !isSuperAdmin ? await getBillingStatus() : null
   const isSuspended = billing?.isSuspended ?? false
 
-  // Define navigation tabs based on user role and suspension status
+// Define navigation tabs based on user role and suspension status
   // When suspended, regular admins only see Dashboard and Subscription
   const allAdminNav = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Products', href: '/admin/products', icon: Package },
-    { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-    { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: Truck },
-    { name: 'Store Settings', href: '/admin/settings/store', icon: Settings },
-    { name: 'Subscription', href: '/admin/subscription', icon: CreditCard },
+    { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+    { name: 'Products', href: '/admin/products', icon: 'Package' },
+    { name: 'Orders', href: '/admin/orders', icon: 'ShoppingBag' },
+    { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: 'Truck' },
+    { name: 'Store Settings', href: '/admin/settings/store', icon: 'Settings' },
+    { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
   ]
 
   const navigationItems = isSuperAdmin
     ? [
-        { name: 'Platform Dashboard', href: '/admin', icon: LayoutDashboard },
-        { name: 'Platform Billing', href: '/admin/billing', icon: CreditCard },
+        { name: 'Platform Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+        { name: 'Platform Billing', href: '/admin/billing', icon: 'CreditCard' },
       ]
     : isSuspended
     ? [
-        { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-        { name: 'Subscription', href: '/admin/subscription', icon: CreditCard },
+        { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+        { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
       ]
     : allAdminNav
 
@@ -102,7 +112,7 @@ export default async function AdminLayout({
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigationItems.map((item) => {
-            const Icon = item.icon
+            const Icon = iconMap[item.icon]
             const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
             return (
               <Link
@@ -114,7 +124,7 @@ export default async function AdminLayout({
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                {Icon ? <Icon className="w-5 h-5" /> : null}
                 <span className="tracking-tight">{item.name}</span>
               </Link>
             )
@@ -123,14 +133,14 @@ export default async function AdminLayout({
           {isSuspended && !isSuperAdmin && allAdminNav
             .filter(item => item.href !== '/admin' && item.href !== '/admin/subscription')
             .map(item => {
-              const Icon = item.icon
+              const Icon = iconMap[item.icon]
               return (
                 <span
                   key={item.href}
                   title="Unlock by clearing your subscription dues"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-not-allowed opacity-40 text-muted-foreground select-none"
                 >
-                  <Icon className="w-5 h-5" />
+                  {Icon ? <Icon className="w-5 h-5" /> : null}
                   <span className="tracking-tight">{item.name}</span>
                 </span>
               )

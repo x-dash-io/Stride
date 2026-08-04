@@ -13,6 +13,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getBillingStatus } from '@/lib/services/billing.service'
 import { auth } from '@/lib/auth'
+import { SUPER_ADMIN_ROLE } from '@/lib/roles'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
@@ -85,7 +86,7 @@ export default async function RootLayout({
   const isAuth = pathname.startsWith('/auth')
   const isSuspendedPage = pathname === '/suspended'
   const session = await auth()
-  const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN'
+  const isSuperAdmin = session?.user?.role === SUPER_ADMIN_ROLE
 
   if (!isAdmin && !isAuth && !isSuspendedPage) {
     const billing = await getBillingStatus()

@@ -3,6 +3,7 @@ import { verifyCsrfToken } from '@/lib/csrf'
 import { apiRateLimit, authRateLimit, paymentRateLimit, rateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp } from '@/lib/utils'
+import { isStaffRole, ADMIN_ROLE } from '@/lib/roles'
 
 export type RateLimitType = 'api' | 'auth' | 'payment'
 
@@ -67,11 +68,11 @@ export async function withProtection(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (requireAdmin && session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+  if (requireAdmin && !isStaffRole(session?.user?.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  if (requireAdmin && session?.user?.role === 'ADMIN') {
+  if (requireAdmin && session?.user?.role === ADMIN_ROLE) {
     const pathname = new URL(request.url).pathname
     const isBillingOrSettings = pathname.startsWith('/api/admin/billing') || pathname.startsWith('/api/admin/subscription')
     if (!isBillingOrSettings) {

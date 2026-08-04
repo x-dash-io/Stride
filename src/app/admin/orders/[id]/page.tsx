@@ -1,13 +1,14 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, ShoppingBag, Package, MapPin, CreditCard, User, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { OrderStatus } from '@prisma/client'
+import { requireStaff } from '@/lib/authz'
+import { ADMIN_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,8 +34,7 @@ export default async function AdminOrderDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
+  await requireStaff({ roles: [ADMIN_ROLE] })
 
   const { id } = await params
 
