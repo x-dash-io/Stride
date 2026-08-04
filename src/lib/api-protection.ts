@@ -66,18 +66,18 @@ export async function withProtection(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (requireAdmin && session?.user?.role !== 'ADMIN') {
+  if (requireAdmin && session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   if (requireAdmin && session?.user?.role === 'ADMIN') {
     const pathname = new URL(request.url).pathname
-    const isBillingOrSettings = pathname.startsWith('/api/admin/billing')
+    const isBillingOrSettings = pathname.startsWith('/api/admin/billing') || pathname.startsWith('/api/admin/subscription')
     if (!isBillingOrSettings) {
       const { getBillingStatus } = await import('@/lib/services/billing.service')
       const billing = await getBillingStatus()
       if (billing.isSuspended) {
-        return NextResponse.json({ error: 'Subscription suspended. Please clear outstanding dues at /admin/billing' }, { status: 402 })
+        return NextResponse.json({ error: 'Subscription suspended. Please clear outstanding dues at /admin/subscription' }, { status: 402 })
       }
     }
   }

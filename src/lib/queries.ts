@@ -50,7 +50,12 @@ export async function getProductById(id: string) {
 export async function getCategories() {
   return prisma.category.findMany({
     where: { isActive: true, parentId: null },
-    include: { children: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } } },
+    include: {
+      children: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+      _count: {
+        select: { products: true },
+      },
+    },
     orderBy: { sortOrder: 'asc' },
   })
 }

@@ -8,12 +8,14 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { removeFromWishlist } from '@/app/actions/wishlist'
 import { EmptyState } from '@/components/ui/empty-state'
+import { useToast } from '@/providers/ToastProvider'
 
 interface WishlistClientProps {
   items: WishlistItem[]
 }
 
 export default function WishlistClient({ items }: WishlistClientProps) {
+  const { showToast } = useToast()
   const [localItems, setLocalItems] = useState(items)
 
   const handleRemove = async (itemId: string) => {
@@ -23,12 +25,13 @@ export default function WishlistClient({ items }: WishlistClientProps) {
     try {
       const result = await removeFromWishlist(formData)
       if ('error' in result) {
-        alert(result.error)
+        showToast('error', result.error ?? 'Failed to remove item')
       } else {
         setLocalItems(localItems.filter(item => item.id !== itemId))
+        showToast('success', 'Item removed from wishlist')
       }
     } catch (error) {
-      alert('Failed to remove item')
+      showToast('error', 'Failed to remove item')
     }
   }
 

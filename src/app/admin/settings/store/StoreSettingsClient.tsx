@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Save, Check, Globe, HelpCircle, Loader2, Upload } from 'lucide-react'
+import { useToast } from '@/providers/ToastProvider'
 
 interface StoreSettings {
   storeName: string
@@ -32,6 +33,7 @@ interface StoreSettingsClientProps {
 
 export function StoreSettingsClient({ initialSettings }: StoreSettingsClientProps) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -129,11 +131,12 @@ export function StoreSettingsClient({ initialSettings }: StoreSettingsClientProp
         throw new Error(errorData.error || 'Failed to save store settings')
       }
 
+      showToast('success', 'Store settings updated successfully!')
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
       router.refresh()
     } catch (error: any) {
-      alert(error.message || 'An error occurred')
+      showToast('error', error.message || 'Failed to save store settings')
     } finally {
       setIsSubmitting(false)
     }
@@ -141,27 +144,6 @@ export function StoreSettingsClient({ initialSettings }: StoreSettingsClientProp
 
   return (
     <div className="space-y-6">
-      {/* Admin Nav Tabs */}
-      <div className="flex border-b border-border gap-4 pb-1">
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin">Dashboard</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/products">Products</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/orders">Orders</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/settings/shipping">Shipping Zones</a>
-        </Button>
-        <Button variant="ghost" asChild className="border-b-2 border-primary rounded-none px-1 text-foreground font-semibold">
-          <a href="/admin/settings/store">Store Settings</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/billing">Billing</a>
-        </Button>
-      </div>
 
       <div className="flex items-center justify-between">
         <div>

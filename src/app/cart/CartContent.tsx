@@ -2,17 +2,23 @@
 
 import Link from 'next/link'
 import { useCart } from '@/providers/CartProvider'
+import { useSession } from 'next-auth/react'
 import { formatPrice } from '@/lib/utils'
-import { ArrowLeft, Trash2, Plus, Minus, ChevronRight, ShoppingBag, Package } from 'lucide-react'
+import { ArrowLeft, Trash2, Plus, Minus, ChevronRight, ShoppingBag, Package, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { useState } from 'react'
 
 import { CartPageSkeleton } from '@/components/skeleton-loader'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export function CartContent() {
   const { cart, items, removeItem, updateQuantity, isLoading } = useCart()
+  const { data: session } = useSession()
+  const [pendingRemove, setPendingRemove] = useState<string | null>(null)
+
+  const isStaff = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN'
 
   if (isLoading) {
     return <CartPageSkeleton />
@@ -50,8 +56,36 @@ export function CartContent() {
               return (
                 <div
                   key={`${item.variantId}`}
-                  className="bg-card border border-border rounded-xl p-6 flex gap-6"
+                  className="bg-card border border-border rounded-xl p-6 flex gap-6 relative overflow-hidden"
                 >
+                  {/* Inline remove confirmation overlay */}
+                  {pendingRemove === item.variantId && (
+                    <div className="absolute inset-0 z-10 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-xl animate-fade-in">
+                      <p className="text-sm font-medium text-foreground text-center px-4">
+                        Remove <span className="font-bold">{product.name}</span> from your cart?
+                      </p>
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPendingRemove(null)}
+                        >
+                          Keep It
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            removeItem(item.variantId)
+                            setPendingRemove(null)
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {product.images[0]?.url ? (
                       <img
@@ -112,11 +146,7 @@ export function CartContent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          if (window.confirm('Are you sure you want to remove this item from your cart?')) {
-                            removeItem(item.variantId)
-                          }
-                        }}
+                        onClick={() => setPendingRemove(item.variantId)}
                         className="text-destructive hover:bg-destructive hover:text-white"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -160,9 +190,27 @@ export function CartContent() {
               </div>
             </div>
 
-            <Link href="/cart/checkout" className="block mb-3">
-              <Button className="w-full" size="lg">Proceed to Checkout</Button>
-            </Link>
+            {isStaff ? (
+              /* Staff cannot checkout — display a role notice */
+              <div className="space-y-3 mb-3">
+                <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
+                  <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">Admin accounts cannot place orders</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+                      Staff accounts are for store management only. Use a customer account to make purchases.
+                    </p>
+                  </div>
+                </div>
+                <Button className="w-full" size="lg" disabled>
+                  Proceed to Checkout
+                </Button>
+              </div>
+            ) : (
+              <Link href="/cart/checkout" className="block mb-3">
+                <Button className="w-full" size="lg">Proceed to Checkout</Button>
+              </Link>
+            )}
 
             <Button variant="outline" className="w-full" onClick={() => window.location.href = '/products'}>
               Continue Shopping

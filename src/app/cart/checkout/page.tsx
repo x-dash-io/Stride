@@ -95,6 +95,12 @@ async function CheckoutContentWrapper() {
   const session = await auth()
   const cookieStore = await cookies()
 
+  // Admins and Super Admins are staff — they should not be placing orders.
+  // Redirect them back to the admin dashboard.
+  if (session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') {
+    redirect('/admin?blocked=checkout')
+  }
+
   let cart = null
   let defaultAddress = null
   let userEmail = null

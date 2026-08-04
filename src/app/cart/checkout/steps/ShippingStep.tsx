@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { shippingAddressSchema } from '@/lib/validations'
 import { ChevronRight as ChevronRightIcon, Loader2 as Loader2Icon } from 'lucide-react'
+import { useToast } from '@/providers/ToastProvider'
 
 interface ShippingStepProps {
   onNext: (addressId: string) => void
@@ -18,6 +19,7 @@ interface ShippingStepProps {
 }
 
 export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps) {
+  const { showToast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [zones, setZones] = useState<{ id: string; name: string; baseCost: number }[]>([])
   const [isLoadingZones, setIsLoadingZones] = useState(true)
@@ -85,7 +87,7 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
       onNext(result.addressId)
     } catch (error) {
       console.error('Shipping address error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to save address')
+      showToast('error', error instanceof Error ? error.message : 'Failed to save address')
     }
   }
 

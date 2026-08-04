@@ -13,7 +13,7 @@ import { validateFileSignature, validateFileSize } from '@/lib/file-validation'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const session = await auth()
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!session?.user?.role || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

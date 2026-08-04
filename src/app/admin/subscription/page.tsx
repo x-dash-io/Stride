@@ -2,18 +2,18 @@ import { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { BillingClient } from './BillingClient'
 import { getBillingStatus } from '@/lib/services/billing.service'
+import { SubscriptionClient } from './SubscriptionClient'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Billing | STRIDE Admin',
+  title: 'My Store Subscription | STRIDE Admin',
 }
 
-export default async function BillingPage() {
+export default async function SubscriptionPage() {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'SUPER_ADMIN') redirect('/admin')
+  if (!session?.user || session.user.role !== 'ADMIN') redirect('/')
 
   const billingData = await getBillingStatus()
   
@@ -21,7 +21,7 @@ export default async function BillingPage() {
     orderBy: { periodStart: 'desc' },
   })
 
-  // Serialize models for safety (Decimals and Dates to JSON strings/numbers)
+  // Serialize models for safety
   const serializedInvoices = invoices.map(inv => ({
     ...inv,
     periodStart: inv.periodStart.toISOString(),
@@ -42,16 +42,12 @@ export default async function BillingPage() {
     latestInvoiceId: billingData.latestInvoiceId || '',
   }
 
-  const superAdminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@stride.co.ke'
-  const isSuperAdmin = session.user.email === superAdminEmail
-
   return (
     <div className="container-max py-8 min-h-screen">
-      <BillingClient
+      <SubscriptionClient
         initialStatus={serializedStatus}
         initialInvoices={serializedInvoices}
         userId={session.user.id}
-        isSuperAdmin={isSuperAdmin}
       />
     </div>
   )

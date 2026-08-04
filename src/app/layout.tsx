@@ -12,6 +12,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getBillingStatus } from '@/lib/services/billing.service'
+import { auth } from '@/lib/auth'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
@@ -83,6 +84,8 @@ export default async function RootLayout({
   const isAdmin = pathname.startsWith('/admin')
   const isAuth = pathname.startsWith('/auth')
   const isSuspendedPage = pathname === '/suspended'
+  const session = await auth()
+  const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN'
 
   if (!isAdmin && !isAuth && !isSuspendedPage) {
     const billing = await getBillingStatus()
@@ -91,10 +94,10 @@ export default async function RootLayout({
     }
   }
 
-  if (isAdmin && pathname !== '/admin/billing') {
+  if (isAdmin && pathname !== '/admin/subscription' && !isSuperAdmin) {
     const billing = await getBillingStatus()
     if (billing.isSuspended) {
-      redirect('/admin/billing')
+      redirect('/admin/subscription')
     }
   }
 
@@ -107,9 +110,9 @@ export default async function RootLayout({
       <body className="antialiased flex flex-col min-h-screen" suppressHydrationWarning>
         <LenisProvider>
           <Providers>
-            <Header storeName={settings?.storeName} logoUrl={settings?.logoUrl} />
+            {!isAdmin && <Header storeName={settings?.storeName} logoUrl={settings?.logoUrl} />}
             <main className="flex-1">{children}</main>
-            <Footer storeName={settings?.storeName} storeTagline={settings?.storeTagline} settings={settings} />
+            {!isAdmin && <Footer storeName={settings?.storeName} storeTagline={settings?.storeTagline} settings={settings} />}
             <CartDrawer />
           </Providers>
         </LenisProvider>

@@ -25,20 +25,37 @@ async function main() {
   const customerPhone = process.env.SEED_CUSTOMER_PHONE || '254711111111'
   const customerName = process.env.SEED_CUSTOMER_NAME || 'Demo Customer'
 
-  // Create admin user
+  // Create super admin user (Platform Manager)
   const adminPasswordHash = await bcrypt.hash(adminPassword, 12)
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
-    update: {},
+    update: { role: UserRole.SUPER_ADMIN },
     create: {
       email: adminEmail,
       name: adminName,
       passwordHash: adminPasswordHash,
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_ADMIN,
       phone: adminPhone,
     },
   })
-  console.log('[SUCCESS] Admin user created:', admin.email)
+  console.log('[SUCCESS] Super Admin user created:', admin.email)
+
+  // Create store admin user (Client / Store Owner)
+  const ownerEmail = 'owner@stride.co.ke'
+  const ownerPassword = 'owner123'
+  const ownerPasswordHash = await bcrypt.hash(ownerPassword, 12)
+  const owner = await prisma.user.upsert({
+    where: { email: ownerEmail },
+    update: { role: UserRole.ADMIN },
+    create: {
+      email: ownerEmail,
+      name: 'Store Owner',
+      passwordHash: ownerPasswordHash,
+      role: UserRole.ADMIN,
+      phone: '254722222222',
+    },
+  })
+  console.log('[SUCCESS] Store Owner Admin user created:', owner.email)
 
   // Create demo customer
   const customerPasswordHash = await bcrypt.hash(customerPassword, 12)

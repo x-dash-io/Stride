@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (isOnAdmin && (!isLoggedIn || userRole !== 'ADMIN')) {
+  if (isOnAdmin && (!isLoggedIn || (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN'))) {
     return NextResponse.redirect(new URL('/', nextUrl))
   }
 

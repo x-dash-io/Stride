@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Edit2, Check, X, MapPin } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { useToast } from '@/providers/ToastProvider'
 
 interface ShippingZone {
   id: string
@@ -25,9 +26,11 @@ interface ShippingSettingsClientProps {
 
 export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientProps) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [zones, setZones] = useState<ShippingZone[]>(initialZones)
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [zoneDeletingId, setZoneDeletingId] = useState<string | null>(null)
 
   // Form states
   const [name, setName] = useState('')
@@ -57,11 +60,14 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
     setIsActive(true)
     setIsAdding(false)
     setEditingId(null)
+    setZoneDeletingId(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !baseCost) return alert('Name and cost are required')
+    if (!name || !baseCost) {
+      return showToast('error', 'Name and base cost are required.')
+    }
 
     const payload = {
       name,
@@ -97,14 +103,16 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
       
       if (editingId) {
         setZones(zones.map(z => z.id === editingId ? savedZone : z))
+        showToast('success', 'Shipping zone updated successfully!')
       } else {
         setZones([...zones, savedZone])
+        showToast('success', 'Shipping zone created successfully!')
       }
       
       resetForm()
       router.refresh()
     } catch (error: any) {
-      alert(error.message || 'An error occurred')
+      showToast('error', error.message || 'An error occurred')
     }
   }
 
@@ -119,8 +127,6 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this shipping zone?')) return
-
     try {
       const csrfRes = await fetch('/api/csrf')
       const { csrfToken } = await csrfRes.json()
@@ -138,36 +144,16 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
       }
 
       setZones(zones.filter(z => z.id !== id))
+      showToast('success', 'Shipping zone deleted successfully!')
+      setZoneDeletingId(null)
       router.refresh()
     } catch (error: any) {
-      alert(error.message || 'Failed to delete')
+      showToast('error', error.message || 'Failed to delete shipping zone')
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Admin Nav Tabs */}
-      <div className="flex border-b border-border gap-4 pb-1">
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin">Dashboard</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/products">Products</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/orders">Orders</a>
-        </Button>
-        <Button variant="ghost" asChild className="border-b-2 border-primary rounded-none px-1 text-foreground font-semibold">
-          <a href="/admin/settings/shipping">Shipping Zones</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/settings/store">Store Settings</a>
-        </Button>
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-          <a href="/admin/billing">Billing</a>
-        </Button>
-      </div>
-
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-serif">Shipping Zones</h1>
@@ -181,9 +167,9 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
       </div>
 
       {isAdding && (
-        <Card className="border border-border">
+        <Card className="border border-border bg-white dark:bg-zinc-900 shadow-sm">
           <CardHeader>
-            <CardTitle>{editingId ? 'Edit Shipping Zone' : 'Add New Shipping Zone'}</CardTitle>
+            <CardTitle className="font-serif">{editingId ? 'Edit Shipping Zone' : 'Add New Shipping Zone'}</CardTitle>
             <CardDescription>Configure delivery price and boundaries</CardDescription>
           </CardHeader>
           <CardContent>
@@ -196,6 +182,7 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Nairobi CBD, Upcountry"
+                    className="bg-white dark:bg-zinc-950"
                     required
                   />
                 </div>
@@ -207,6 +194,7 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                     value={baseCost}
                     onChange={(e) => setBaseCost(e.target.value)}
                     placeholder="e.g. 200"
+                    className="bg-white dark:bg-zinc-950"
                     required
                   />
                 </div>
@@ -217,17 +205,19 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="e.g. Nairobi Central Business District delivery"
+                    className="bg-white dark:bg-zinc-950"
                   />
                 </div>
                 
                 {/* Counties list configuration */}
-                <div className="space-y-2 md:col-span-2 border-t pt-4">
+                <div className="space-y-2 md:col-span-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
                   <Label>Associated Counties (Optional)</Label>
                   <div className="flex gap-2">
                     <Input
                       value={countyInput}
                       onChange={(e) => setCountyInput(e.target.value)}
                       placeholder="e.g. Nairobi, Kiambu"
+                      className="bg-white dark:bg-zinc-950"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -243,9 +233,9 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                     {counties.map((c, i) => (
                       <span
                         key={c}
-                        className="inline-flex items-center gap-1 bg-muted px-2.5 py-1 rounded-full text-xs font-medium border border-border"
+                        className="inline-flex items-center gap-1 bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full text-xs font-medium border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200"
                       >
-                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                         {c}
                         <button
                           type="button"
@@ -271,7 +261,7 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
                 <Button type="button" variant="ghost" onClick={resetForm}>
                   Cancel
                 </Button>
@@ -284,28 +274,28 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
         </Card>
       )}
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-muted/50 border-b border-border">
-              <th className="p-4 font-semibold text-sm">Name</th>
-              <th className="p-4 font-semibold text-sm">Description</th>
-              <th className="p-4 font-semibold text-sm">Counties</th>
-              <th className="p-4 font-semibold text-sm">Cost</th>
-              <th className="p-4 font-semibold text-sm">Status</th>
-              <th className="p-4 font-semibold text-sm text-right">Actions</th>
+            <tr className="bg-slate-50 dark:bg-zinc-800/40 border-b border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400">
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider">Name</th>
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider">Description</th>
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider">Counties</th>
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider">Cost</th>
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider">Status</th>
+              <th className="p-4 font-semibold text-xs uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
             {zones.length > 0 ? (
               zones.map((zone) => (
-                <tr key={zone.id} className="hover:bg-muted/30">
-                  <td className="p-4 font-medium">{zone.name}</td>
+                <tr key={zone.id} className="hover:bg-slate-50/30 dark:hover:bg-zinc-800/10 transition-colors">
+                  <td className="p-4 font-medium text-slate-800 dark:text-zinc-200">{zone.name}</td>
                   <td className="p-4 text-sm text-muted-foreground">{zone.description || '—'}</td>
-                  <td className="p-4 text-sm">
+                  <td className="p-4 text-sm text-slate-600 dark:text-zinc-300">
                     {zone.counties.length > 0 ? zone.counties.join(', ') : 'All Counties'}
                   </td>
-                  <td className="p-4 font-semibold">{formatPrice(Number(zone.baseCost))}</td>
+                  <td className="p-4 font-bold text-sm text-slate-900 dark:text-white">{formatPrice(Number(zone.baseCost))}</td>
                   <td className="p-4">
                     <span
                       className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -315,13 +305,27 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                       {zone.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="p-4 text-right space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(zone)}>
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(zone.id)} className="text-destructive hover:bg-destructive/10">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <td className="p-4 text-right">
+                    {zoneDeletingId === zone.id ? (
+                      <div className="inline-flex items-center gap-1.5 animate-fade-in">
+                        <span className="text-[11px] text-muted-foreground font-semibold">Delete?</span>
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(zone.id)} className="h-7 px-2.5 text-xs font-bold">
+                          Yes
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setZoneDeletingId(null)} className="h-7 px-2.5 text-xs">
+                          No
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="inline-flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(zone)} className="h-8 w-8">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setZoneDeletingId(zone.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))
