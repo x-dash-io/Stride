@@ -7,6 +7,6 @@ test('login page loads', async ({ page }) => {
 
 test('can navigate to register from login', async ({ page }) => {
   await page.goto('/auth/login')
-  await page.getByText(/create account/i).click()
+  await page.getByRole('link', { name: /sign up/i }).click()
   await expect(page).toHaveURL(/\/auth\/register/)
 })
