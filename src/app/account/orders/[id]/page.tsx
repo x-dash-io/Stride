@@ -30,7 +30,12 @@ async function getOrder(id: string, userId: string) {
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login')
+  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/orders')
+
+  // Admins and Super Admins should use the admin dashboard, not the customer account page
+  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
+    redirect('/admin')
+  }
 
   const { id } = await params
   const order = await getOrder(id, session.user.id)

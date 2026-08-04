@@ -20,7 +20,10 @@ const registerSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
-  session: { strategy: 'jwt' as const, maxAge: 30 * 24 * 60 * 60 },
+  session: { 
+    strategy: 'jwt' as const, 
+    maxAge: 30 * 24 * 60 * 60,
+  },
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',

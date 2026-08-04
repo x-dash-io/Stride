@@ -30,6 +30,21 @@ function LoginForm() {
     }
   }, [errorParam, showToast])
 
+  // If user is already authenticated and visits login page directly (no callbackUrl),
+  // redirect them to their appropriate dashboard
+  // If they HAVE a callbackUrl, they were redirected from a protected page, so send them there
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      const role = session.user.role
+      const hasCallbackUrl = searchParams.get('callbackUrl') || searchParams.get('returnUrl')
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        router.replace(hasCallbackUrl || '/admin')
+      } else {
+        router.replace(hasCallbackUrl || '/products')
+      }
+    }
+  }, [status, session, router, searchParams])
+
   // After sign-in, redirect based on role.
   // Staff (ADMIN / SUPER_ADMIN) always go to the admin dashboard.
   // Customers go to the callbackUrl (e.g. /cart if they were bounced from checkout) or /products.

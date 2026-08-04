@@ -17,7 +17,12 @@ export default async function EditAddressPage({
   params: Promise<{ id: string }>
 }) {
   const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login')
+  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/addresses')
+
+  // Admins and Super Admins should use the admin dashboard, not the customer account page
+  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
+    redirect('/admin')
+  }
 
   const { id } = await params
 

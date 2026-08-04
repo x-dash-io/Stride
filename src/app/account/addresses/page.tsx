@@ -11,7 +11,12 @@ import { Label } from '@/components/ui/label'
 
 export default async function AddressesPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login')
+  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/addresses')
+
+  // Admins and Super Admins should use the admin dashboard, not the customer account page
+  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
+    redirect('/admin')
+  }
 
   const addresses = await prisma.address.findMany({
     where: { userId: session.user.id },

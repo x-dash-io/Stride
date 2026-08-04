@@ -24,7 +24,12 @@ async function getUserOrders(userId: string, page = 1, perPage = 10) {
 
 export default async function AccountOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login')
+  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/orders')
+
+  // Admins and Super Admins should use the admin dashboard, not the customer account page
+  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
+    redirect('/admin')
+  }
 
   const params = await searchParams
   const page = Math.max(1, Number(params.page) || 1)
@@ -45,16 +50,16 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'DELIVERED': return 'bg-green-100 text-green-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'SHIPPED': case 'IN_TRANSIT': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'DELIVERED': return 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20'
+      case 'CANCELLED': return 'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20'
+      case 'PENDING': return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+      case 'SHIPPED': case 'IN_TRANSIT': return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+      default: return 'bg-muted/10 text-muted-foreground border border-border'
     }
   }
 
   return (
-    <div className="container-max py-12 min-h-screen">
+    <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">My Orders</h1>
         <p className="text-muted-foreground">Track and manage your orders</p>
@@ -65,7 +70,7 @@ export default async function AccountOrdersPage({ searchParams }: { searchParams
           <div className="space-y-4">
             {items.map((order) => (
               <Link key={order.id} href={`/account/orders/${order.id}`} className="block">
-                <div className="bg-card border border-border rounded-xl p-6 hover:bg-muted/50 transition-colors">
+                <div className="bg-card rounded-xl p-6 hover:bg-accent/50 transition-colors">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-muted rounded-lg">{getStatusIcon(order.status)}</div>

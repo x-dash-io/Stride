@@ -17,7 +17,9 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next') || '/products'
 
   if (!session?.user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    const loginUrl = new URL('/auth/login', request.url)
+    loginUrl.searchParams.set('callbackUrl', next)
+    return NextResponse.redirect(loginUrl)
   }
 
   const role = session.user.role

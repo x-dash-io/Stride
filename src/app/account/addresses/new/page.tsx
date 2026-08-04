@@ -12,7 +12,12 @@ export const metadata: Metadata = {
 
 export default async function NewAddressPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect('/auth/login')
+  if (!session?.user?.id) redirect('/auth/login?callbackUrl=/account/addresses')
+
+  // Admins and Super Admins should use the admin dashboard, not the customer account page
+  if (session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN') {
+    redirect('/admin')
+  }
 
   return (
     <div className="container-max py-12 min-h-screen">
