@@ -6,7 +6,7 @@ datasource db {
   provider     = "postgresql"
   url          = env("DATABASE_URL")
   directUrl    = env("DIRECT_URL")
-  relationMode = "prisma"
+  // relationMode = "prisma"
 }
 
 enum UserRole {
@@ -622,4 +622,63 @@ model CmsPage {
   updatedAt       DateTime @updatedAt
 
   @@index([slug])
+}
+
+// ─── Admin-configurable Shipping Zones ───────────────────────────────────────
+
+model ShippingZone {
+  id          String   @id @default(cuid())
+  name        String   // e.g. "Nairobi CBD"
+  description String?
+  counties    String[] // display/reference only
+  baseCost    Decimal  @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Store Branding & Settings (singleton row) ───────────────────────────────
+
+model StoreSettings {
+  id              String   @id @default("singleton")
+  storeName       String   @default("STRIDE")
+  storeTagline    String?
+  logoUrl         String?
+  faviconUrl      String?
+  primaryColor    String?  // hex, e.g. "#000000"
+  contactEmail    String?
+  contactPhone    String?
+  address         String?
+  instagramUrl    String?
+  facebookUrl     String?
+  tiktokUrl       String?
+  twitterUrl      String?
+  metaTitle       String?
+  metaDescription String?
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── Client Billing / Subscription Ledger ────────────────────────────────────
+
+enum SubscriptionStatus {
+  UNPAID
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+model SubscriptionLedger {
+  id            String             @id @default(cuid())
+  periodStart   DateTime
+  periodEnd     DateTime
+  graceDeadline DateTime           // periodEnd + 3 days
+  amountKes     Decimal            @db.Decimal(10, 2)
+  status        SubscriptionStatus @default(UNPAID)
+  mpesaRef      String?            // M-Pesa receipt client provides
+  confirmedAt   DateTime?
+  confirmedBy   String?            // admin user id
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
