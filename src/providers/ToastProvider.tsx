@@ -17,11 +17,17 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
+let nextToastId = 0
+
+function createToastId(): string {
+  return `toast-${Date.now().toString(36)}-${++nextToastId}`
+}
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
   const showToast = (type: Toast['type'], message: string) => {
-    const id = Math.random().toString(36).slice(2)
+    const id = createToastId()
     setToasts((prev) => [...prev, { id, type, message }])
     setTimeout(() => dismissToast(id), 5000)
   }

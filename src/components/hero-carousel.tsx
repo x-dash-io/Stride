@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { Banner } from '@/types'
@@ -23,7 +23,19 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   const slides = banners && banners.length > 0 ? banners : FALLBACK_SLIDES
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlay, setIsAutoPlay] = useState(true)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const prefersReducedMotion = useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+      const onChange = (event: MediaQueryListEvent) => {
+        if (event.matches) setIsAutoPlay(false)
+        onStoreChange()
+      }
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false
+  )
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const goTo = useCallback((index: number) => {
@@ -41,19 +53,6 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   const goToNext = useCallback(() => {
     goTo((currentIndex + 1) % slides.length)
   }, [currentIndex, goTo, slides.length])
-
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(media.matches)
-
-    const onChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
-      if (event.matches) setIsAutoPlay(false)
-    }
-
-    media.addEventListener('change', onChange)
-    return () => media.removeEventListener('change', onChange)
-  }, [])
 
   useEffect(() => {
     if (!isAutoPlay || slides.length <= 1 || prefersReducedMotion) return

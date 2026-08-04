@@ -27,7 +27,7 @@ export function ConfirmationStep({ orderNumber, onContinueShopping, onViewOrders
         <p className="text-2xl font-bold font-mono">{orderNumber}</p>
       </div>
       <div className="space-y-3">
-        <p className="text-muted-foreground">You'll receive a confirmation email shortly with tracking information.</p>
+        <p className="text-muted-foreground">You&apos;ll receive a confirmation email shortly with tracking information.</p>
         <div className="flex gap-3 justify-center">
           <Button onClick={onViewOrders}>View Orders</Button>
           <Button variant="outline" onClick={onContinueShopping}>Continue Shopping</Button>

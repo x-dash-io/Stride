@@ -54,7 +54,7 @@ export default async function SuspendedStorePage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">Temporarily Unavailable</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">We'll be back shortly</p>
+              <p className="text-xs text-muted-foreground mt-0.5">We&apos;ll be back shortly</p>
             </div>
           </div>
 

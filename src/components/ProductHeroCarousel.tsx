@@ -18,8 +18,6 @@ const AUTO_PLAY_DELAY = 6000
 export function ProductHeroCarousel({ products }: ProductHeroCarouselProps) {
   // Filter out products without images
   const productsWithImages = products.filter(p => p.images.some(img => img.url))
-  
-  if (!productsWithImages || productsWithImages.length === 0) return null
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlay, setIsAutoPlay] = useState(true)

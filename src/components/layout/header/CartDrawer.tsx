@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import {
@@ -22,17 +22,13 @@ import { EmptyState } from '@/components/ui/empty-state'
 
 export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isOpen?: boolean; onClose?: () => void } = {}) {
   const { cart, itemCount, removeItem, updateQuantity, isCartOpen: contextIsOpen, closeCart: contextCloseCart } = useCart()
-  const [mounted, setMounted] = useState(false)
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const items = cart?.items || []
 
   const isOpen = propsIsOpen !== undefined ? propsIsOpen : contextIsOpen
   const onClose = propsOnClose || contextCloseCart
 
   const subtotal = items.reduce((total, item) => total + (item.unitPrice || 0) * (item.quantity || 1), 0)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     if (isOpen) {

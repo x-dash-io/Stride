@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,10 +46,11 @@ export function ProductFilters({
   const searchParams = useSearchParams()
   const [showFilters, setShowFilters] = useState(false)
   const [localPriceRange, setLocalPriceRange] = useState(priceRange)
-
-  useEffect(() => {
+  const [prevPriceRange, setPrevPriceRange] = useState(priceRange)
+  if (prevPriceRange.min !== priceRange.min || prevPriceRange.max !== priceRange.max) {
+    setPrevPriceRange(priceRange)
     setLocalPriceRange(priceRange)
-  }, [priceRange.min, priceRange.max])
+  }
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString())

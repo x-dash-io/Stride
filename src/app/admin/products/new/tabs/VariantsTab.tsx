@@ -68,7 +68,7 @@ export function VariantsTab() {
           {fields.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-lg">
               <p>No variants added yet</p>
-              <p className="text-sm mt-2">Click "Add Variant" to create size/color combinations</p>
+              <p className="text-sm mt-2">Click &quot;Add Variant&quot; to create size/color combinations</p>
             </div>
           ) : (
             <div className="space-y-4">

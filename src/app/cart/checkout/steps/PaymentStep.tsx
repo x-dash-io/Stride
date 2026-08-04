@@ -33,7 +33,7 @@ export function PaymentStep({ onSubmit, onBack, isProcessing, mpesaStatus, mpesa
       <Card>
         <CardHeader>
           <CardTitle>Payment Method</CardTitle>
-          <CardDescription>Choose how you'd like to pay</CardDescription>
+          <CardDescription>Choose how you&apos;d like to pay</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'MPESA_STK_PUSH' | 'CASH_ON_DELIVERY')} className="space-y-4">

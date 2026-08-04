@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center text-sm text-muted-foreground">
-            <p>Didn't receive the email? Check your spam folder or try again.</p>
+            <p>Didn&apos;t receive the email? Check your spam folder or try again.</p>
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button variant="outline" onClick={() => setIsSubmitted(false)}>
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-serif">Forgot Password</CardTitle>
-          <CardDescription>Enter your email and we'll send you a reset link</CardDescription>
+          <CardDescription>Enter your email and we&apos;ll send you a reset link</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -76,8 +76,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [sessionId])
 
   useEffect(() => {
-    refreshCart()
-  }, [refreshCart])
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await getCartAction(sessionId || undefined)
+        if (!cancelled && data?.items) {
+          setCart(data as unknown as Cart)
+        }
+      } catch (error) {
+        console.error('Failed to refresh cart:', error)
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId])
 
   const addItem = useCallback(async (variantId: string, quantity = 1) => {
     const formData = new FormData()
@@ -103,7 +118,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await refreshCart()
       throw error
     }
-  }, [sessionId])
+  }, [sessionId, refreshCart])
 
   const removeItem = useCallback(async (variantId: string) => {
     const formData = new FormData()
@@ -128,7 +143,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await refreshCart()
       throw error
     }
-  }, [sessionId])
+  }, [sessionId, refreshCart])
 
   const updateQuantity = useCallback(async (variantId: string, quantity: number) => {
     const formData = new FormData()

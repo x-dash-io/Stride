@@ -102,7 +102,7 @@ export function SubscriptionClient({ initialStatus, initialInvoices, userId }: S
             <div className="flex-1">
               <h3 className="text-base font-bold text-red-950 dark:text-red-200">Access Temporarily Suspended</h3>
               <p className="mt-1 text-sm text-red-800/90 dark:text-red-300/90 leading-relaxed">
-                Your store's subscription due for the period beginning {format(new Date(billingStatus.currentPeriodStart), 'MMM d, yyyy')} has not been cleared, and the 3-day grace period has expired. The public storefront is currently set to offline. Please pay to reactivate the store.
+                Your store&apos;s subscription due for the period beginning {format(new Date(billingStatus.currentPeriodStart), 'MMM d, yyyy')} has not been cleared, and the 3-day grace period has expired. The public storefront is currently set to offline. Please pay to reactivate the store.
               </p>
             </div>
           </div>

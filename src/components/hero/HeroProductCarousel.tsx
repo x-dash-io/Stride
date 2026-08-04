@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { ArrowRight, ShoppingBag, ShieldCheck, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
@@ -62,20 +62,26 @@ export function HeroProductCarousel({
     return PLACEHOLDER_PRODUCTS
   }, [incomingProducts])
 
-  // Don't render if no products available
-  if (products.length === 0) {
-    return null
-  }
-
   const [index, setIndex] = useState(0)
   const [autoplay, setAutoplay] = useState(true)
   const [direction, setDirection] = useState(0)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const prefersReducedMotion = useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+      const onChange = (event: MediaQueryListEvent) => {
+        if (event.matches) setAutoplay(false)
+        onStoreChange()
+      }
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false
+  )
   const carouselRef = useRef<HTMLDivElement>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const count = products.length
-  const currentProduct = products[index] ?? products[0]
 
   const goTo = useCallback(
     (nextIndex: number, navDirection?: number) => {
@@ -97,19 +103,6 @@ export function HeroProductCarousel({
   const goPrevious = useCallback(() => {
     goTo(index - 1, -1)
   }, [goTo, index])
-
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(media.matches)
-
-    const onChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
-      if (event.matches) setAutoplay(false)
-    }
-
-    media.addEventListener('change', onChange)
-    return () => media.removeEventListener('change', onChange)
-  }, [])
 
   useEffect(() => {
     if (!autoplay || count <= 1 || prefersReducedMotion) return
@@ -144,6 +137,13 @@ export function HeroProductCarousel({
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [count, goNext, goPrevious])
+
+  // Don't render if no products available — after all hooks so hook order stays stable
+  if (products.length === 0) {
+    return null
+  }
+
+  const currentProduct = products[index] ?? products[0]
 
   const pause = () => setAutoplay(false)
   const resume = () => {

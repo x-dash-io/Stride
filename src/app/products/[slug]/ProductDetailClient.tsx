@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useCart } from '@/providers/CartProvider'
 import { useToast } from '@/providers/ToastProvider'
@@ -31,16 +31,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
 
-  useEffect(() => {
+  // Reset selection when the product (i.e. its variants) changes during navigation
+  const [prevVariants, setPrevVariants] = useState(product.variants)
+  if (prevVariants !== product.variants) {
+    setPrevVariants(product.variants)
     const colors = [...new Set(product.variants.map(v => v.colour))]
-    if (colors.length > 0) setSelectedColor(colors[0])
+    setSelectedColor(colors[0] ?? '')
     const sizes = [...new Set(
       product.variants
         .filter(v => v.colour === colors[0] && v.availableStock > 0)
         .map(v => v.size)
     )].sort()
-    if (sizes.length > 0) setSelectedSize(sizes[0])
-  }, [product.variants])
+    setSelectedSize(sizes[0] ?? '')
+  }
 
   const selectedVariant = product.variants.find(
     v => v.colour === selectedColor && v.size === selectedSize
