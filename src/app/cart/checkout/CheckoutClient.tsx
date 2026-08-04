@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Cart } from '@/types'
 import { ShippingStep } from './steps/ShippingStep'
@@ -30,6 +30,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
   const [mpesaStatus, setMpesaStatus] = useState<'idle' | 'pending' | 'waiting' | 'success' | 'error'>('idle')
   const [mpesaMessage, setMpesaMessage] = useState('')
   const [stockErrors, setStockErrors] = useState<Record<string, string>>({})
+  const [shippingCost, setShippingCost] = useState<number>(500)
 
   const steps: { key: Step; label: string }[] = [
     { key: 'shipping', label: 'Shipping' },
@@ -111,7 +112,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
   const renderStep = () => {
     switch (step) {
       case 'shipping':
-        return <ShippingStep onNext={() => setStep('payment')} onBack={() => router.push('/cart')} />
+        return <ShippingStep onNext={() => setStep('payment')} onBack={() => router.push('/cart')} onZoneChange={setShippingCost} />
       case 'payment':
         return (
           <PaymentStep
@@ -145,7 +146,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
               )}
             >
               {['shipping', 'payment', 'confirmation'].indexOf(step) > idx ? (
-                <span className="text-green-600">✓</span>
+                <Check className="w-5 h-5 text-white" />
               ) : (
                 idx + 1
               )}
@@ -167,7 +168,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
         </div>
 
         <div className="lg:col-span-1">
-          <OrderSummary cart={cart!} />
+          <OrderSummary cart={cart!} shippingCost={shippingCost} />
         </div>
       </div>
     </div>

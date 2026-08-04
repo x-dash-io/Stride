@@ -73,6 +73,28 @@ export async function processPayment(formData: FormData) {
 
   if (!address) return { error: 'No shipping address found' }
 
+  // Recalculate shipping dynamically from DB zone matching state/county
+  let shippingTotal = Number(cart.shippingTotal)
+  const subtotal = Number(cart.subtotal)
+  const taxTotal = Number(cart.taxTotal)
+  const discountTotal = Number(cart.discountTotal)
+
+  if (subtotal < 10000) {
+    const zone = await prisma.shippingZone.findFirst({
+      where: {
+        name: { equals: address.state || '', mode: 'insensitive' },
+        isActive: true,
+      }
+    })
+    if (zone) {
+      shippingTotal = Number(zone.baseCost)
+    }
+  } else {
+    shippingTotal = 0
+  }
+
+  const grandTotal = subtotal + taxTotal + shippingTotal - discountTotal
+
   const order = await prisma.$transaction(async (tx) => {
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`
 
@@ -88,8 +110,8 @@ export async function processPayment(formData: FormData) {
         subtotal: cart.subtotal,
         discountTotal: cart.discountTotal,
         taxTotal: cart.taxTotal,
-        shippingTotal: cart.shippingTotal,
-        grandTotal: cart.grandTotal,
+        shippingTotal: shippingTotal,
+        grandTotal: grandTotal,
         shippingAddressId: address.id,
         billingAddressId: address.id,
         items: {

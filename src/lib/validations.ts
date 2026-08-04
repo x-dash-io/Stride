@@ -8,7 +8,7 @@ export const shippingAddressSchema = z.object({
   addressLine1: z.string().min(5, 'Address must be at least 5 characters'),
   addressLine2: z.string().optional(),
   city: z.string().min(2, 'City is required'),
-  state: z.string().min(2, 'County/State is required'),
+  state: z.string().min(2, 'County is required'),
   postalCode: z.string().min(2, 'Postal code is required'),
   country: z.string().default('KE'),
   isDefault: z.boolean().default(false),
@@ -17,7 +17,7 @@ export const shippingAddressSchema = z.object({
 })
 
 export const paymentSchema = z.object({
-  paymentMethod: z.enum(['MPESA_STK_PUSH', 'MPESA_PAYBILL', 'CASH_ON_DELIVERY']),
+  paymentMethod: z.enum(['MPESA_STK_PUSH', 'CASH_ON_DELIVERY']),
   phoneNumber: z.string().regex(/^254[0-9]{9}$/, 'Invalid Kenyan phone number').optional(),
 })
 
@@ -86,6 +86,21 @@ export const productCreateSchema = z.object({
   isTrending: z.boolean().default(false),
   status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).default('DRAFT'),
   publishedAt: z.string().datetime().optional(),
+  variants: z.array(z.object({
+    sku: z.string().min(3).max(100),
+    size: z.string().min(1).max(50),
+    sizeEu: z.string().max(20).optional(),
+    sizeUs: z.string().max(20).optional(),
+    sizeUk: z.string().max(20).optional(),
+    colour: z.string().min(1).max(100),
+    colourHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    basePrice: z.number().positive().optional(),
+    salePrice: z.number().positive().optional(),
+    quantity: z.number().int().min(0),
+    gender: z.enum(['MEN', 'WOMEN', 'KIDS', 'UNISEX']).optional(),
+    isActive: z.boolean().default(true),
+    isDefault: z.boolean().default(false),
+  })).optional(),
 })
 
 export type ProductCreateInput = z.infer<typeof productCreateSchema>
@@ -124,4 +139,30 @@ export const bannerCreateSchema = z.object({
   sortOrder: z.number().int().default(0),
   startsAt: z.string().datetime().optional(),
   endsAt: z.string().datetime().optional(),
+})
+
+export const shippingZoneSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  description: z.string().optional().nullable(),
+  counties: z.array(z.string()).default([]),
+  baseCost: z.number().nonnegative('Cost must be positive or zero'),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().default(0),
+})
+
+export const storeSettingsSchema = z.object({
+  storeName: z.string().min(2, 'Store name is required'),
+  storeTagline: z.string().optional().nullable(),
+  logoUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  faviconUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color').or(z.string().length(0)).optional().nullable(),
+  contactEmail: z.string().email('Invalid email address').or(z.string().length(0)).optional().nullable(),
+  contactPhone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  instagramUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  facebookUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  tiktokUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  twitterUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  metaTitle: z.string().max(255).optional().nullable(),
+  metaDescription: z.string().optional().nullable(),
 })

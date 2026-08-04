@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -14,14 +14,30 @@ import { ChevronRight as ChevronRightIcon, Loader2 as Loader2Icon } from 'lucide
 interface ShippingStepProps {
   onNext: (addressId: string) => void
   onBack: () => void
+  onZoneChange?: (cost: number) => void
 }
 
-export function ShippingStep({ onNext, onBack }: ShippingStepProps) {
+export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [zones, setZones] = useState<{ id: string; name: string; baseCost: number }[]>([])
+  const [isLoadingZones, setIsLoadingZones] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/shipping-zones')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setZones(data)
+        }
+      })
+      .catch(err => console.error(err))
+      .finally(() => setIsLoadingZones(false))
+  }, [])
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<any>({
     resolver: zodResolver(shippingAddressSchema),
@@ -33,6 +49,17 @@ export function ShippingStep({ onNext, onBack }: ShippingStepProps) {
       country: 'KE',
     },
   })
+
+  const selectedState = watch('state')
+
+  useEffect(() => {
+    if (selectedState && onZoneChange) {
+      const zone = zones.find(z => z.name === selectedState)
+      if (zone) {
+        onZoneChange(zone.baseCost)
+      }
+    }
+  }, [selectedState, zones, onZoneChange])
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true)
@@ -100,27 +127,45 @@ export function ShippingStep({ onNext, onBack }: ShippingStepProps) {
               {errors.addressLine1 && <p className="text-sm text-destructive">{String(errors.addressLine1.message)}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="addressLine2">Address Line 2</Label>
-              <Input id="addressLine2" {...register('addressLine2')} placeholder="Apartment, suite, etc." />
+              <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+              <Input id="addressLine2" {...register('addressLine2')} placeholder="Apartment, House No., Floor" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City *</Label>
-              <Input id="city" {...register('city', { required: 'City is required' })} />
+              <Label htmlFor="city">City / Town *</Label>
+              <Input id="city" placeholder="e.g. Nairobi" {...register('city', { required: 'City is required' })} />
               {errors.city && <p className="text-sm text-destructive">{String(errors.city.message)}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="state">County/State *</Label>
-              <Input id="state" {...register('state', { required: 'County/State is required' })} />
+              <Label htmlFor="state">County *</Label>
+              {isLoadingZones ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  Loading counties...
+                </div>
+              ) : (
+                <select
+                  id="state"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  {...register('state', { required: 'County is required' })}
+                >
+                  <option value="">Select County...</option>
+                  {zones.map((zone) => (
+                    <option key={zone.id} value={zone.name}>
+                      {zone.name} (KES {zone.baseCost})
+                    </option>
+                  ))}
+                </select>
+              )}
               {errors.state && <p className="text-sm text-destructive">{String(errors.state.message)}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="postalCode">Postal Code *</Label>
-              <Input id="postalCode" {...register('postalCode', { required: 'Postal code is required' })} />
+              <Input id="postalCode" placeholder="e.g. 00100" {...register('postalCode', { required: 'Postal code is required' })} />
               {errors.postalCode && <p className="text-sm text-destructive">{String(errors.postalCode.message)}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
-              <Input value="KE" readOnly className="bg-muted" />
+              <Input value="Kenya" readOnly className="bg-muted font-medium" />
             </div>
           </div>
         </CardContent>

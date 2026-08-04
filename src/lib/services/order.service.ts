@@ -38,21 +38,23 @@ export async function submitShippingAddress(formData: FormData): Promise<Result<
 }
 
 interface ProcessPaymentInput {
-  paymentMethod: 'MPESA_STK_PUSH' | 'MPESA_PAYBILL' | 'CASH_ON_DELIVERY'
+  paymentMethod: 'MPESA_STK_PUSH' | 'CASH_ON_DELIVERY'
   phoneNumber?: string
   csrfToken?: string
 }
 
 export async function processPayment(input: ProcessPaymentInput): Promise<Result<{ orderId: string; checkoutRequestId?: string }, string>> {
   const session = await auth()
-  if (!session?.user?.id) return err('Unauthorized')
+  const userId = session?.user?.id
+
+  if (!userId) return err('You must be signed in to place an order')
 
   if (input.csrfToken && !(await verifyCsrfToken(input.csrfToken))) {
     return err('Invalid CSRF token')
   }
 
   const cart = await prisma.cart.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     include: {
       items: {
         include: {
@@ -69,10 +71,32 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
   }
 
   const address = await prisma.address.findFirst({
-    where: { userId: session.user.id, isDefault: true, isShipping: true },
+    where: { userId, isDefault: true, isShipping: true },
   })
 
-  if (!address) return err('No shipping address found')
+  if (!address) return err('No shipping address found. Please complete the shipping step first.')
+
+  // Recalculate shipping dynamically from DB zone matching state/county
+  let shippingTotal = Number(cart.shippingTotal)
+  const subtotal = Number(cart.subtotal)
+  const taxTotal = Number(cart.taxTotal)
+  const discountTotal = Number(cart.discountTotal)
+
+  if (subtotal < 10000) {
+    const zone = await prisma.shippingZone.findFirst({
+      where: {
+        name: { equals: address.state || '', mode: 'insensitive' },
+        isActive: true,
+      }
+    })
+    if (zone) {
+      shippingTotal = Number(zone.baseCost)
+    }
+  } else {
+    shippingTotal = 0
+  }
+
+  const grandTotal = subtotal + taxTotal + shippingTotal - discountTotal
 
   const order = await prisma.$transaction(async (tx) => {
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`
@@ -80,8 +104,8 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
     const newOrder = await tx.order.create({
       data: {
         orderNumber,
-        userId: session.user.id,
-        email: session.user.email!,
+        userId,
+        email: session!.user.email!,
         status: 'PENDING',
         paymentStatus: 'PENDING',
         paymentMethod: input.paymentMethod,
@@ -89,8 +113,8 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
         subtotal: cart.subtotal,
         discountTotal: cart.discountTotal,
         taxTotal: cart.taxTotal,
-        shippingTotal: cart.shippingTotal,
-        grandTotal: cart.grandTotal,
+        shippingTotal: shippingTotal,
+        grandTotal: grandTotal,
         shippingAddressId: address.id,
         billingAddressId: address.id,
         items: {
@@ -165,7 +189,7 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
     })
   }
 
-  await clearCart(session.user.id)
+  await clearCart(userId)
   revalidatePath('/cart')
   revalidatePath('/account/orders')
 

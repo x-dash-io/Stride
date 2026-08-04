@@ -8,12 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 interface OrderSummaryProps {
   cart: Cart
+  shippingCost?: number
 }
 
-export function OrderSummary({ cart }: OrderSummaryProps) {
+export function OrderSummary({ cart, shippingCost = 500 }: OrderSummaryProps) {
   const subtotal = cart.subtotal || 0
   const tax = Math.round(subtotal * 0.16)
-  const shipping = subtotal >= 10000 ? 0 : 500
+  const shipping = subtotal >= 10000 ? 0 : shippingCost
   const total = subtotal + tax + shipping
 
   return (
