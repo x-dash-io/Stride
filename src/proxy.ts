@@ -25,11 +25,19 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', nextUrl))
   }
 
-  return NextResponse.next()
+  // Pass current pathname to Server Components in headers
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', nextUrl.pathname)
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.).*)',
   ],
 }
