@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +20,7 @@ interface ShippingStepProps {
 }
 
 export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps) {
+  const router = useRouter()
   const { showToast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [zones, setZones] = useState<{ id: string; name: string; baseCost: number }[]>([])
@@ -79,6 +81,11 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // User is not authenticated, redirect to login with callbackUrl
+          router.push('/auth/login?callbackUrl=/cart/checkout')
+          return
+        }
         const error = await response.json()
         throw new Error(error.error || 'Failed to save address')
       }
@@ -88,6 +95,8 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
     } catch (error) {
       console.error('Shipping address error:', error)
       showToast('error', error instanceof Error ? error.message : 'Failed to save address')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

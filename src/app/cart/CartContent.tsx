@@ -9,16 +9,45 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 import { CartPageSkeleton } from '@/components/skeleton-loader'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export function CartContent() {
-  const { cart, items, removeItem, updateQuantity, isLoading } = useCart()
+  const { cart, items, removeItem, updateQuantity, clearCart, isLoading } = useCart()
   const { data: session } = useSession()
   const [pendingRemove, setPendingRemove] = useState<string | null>(null)
+  const [showClearDialog, setShowClearDialog] = useState(false)
+  const [isClearing, setIsClearing] = useState(false)
 
   const isStaff = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN'
+
+  const handleClearCart = async () => {
+    setIsClearing(true)
+    try {
+      // Clear local storage cart session ID
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cartSessionId')
+        document.cookie = 'cartSessionId=; path=/; max-age=0; SameSite=Lax'
+      }
+
+      await clearCart()
+      setShowClearDialog(false)
+    } catch (error) {
+      console.error('Failed to clear cart:', error)
+    } finally {
+      setIsClearing(false)
+    }
+  }
 
   if (isLoading) {
     return <CartPageSkeleton />
@@ -37,7 +66,7 @@ export function CartContent() {
   }
 
   return (
-    <div className="container-max py-12 min-h-screen">
+    <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto">
       <div className="mb-8">
         <Breadcrumbs items={[{ label: 'Cart' }]} />
       </div>
@@ -56,7 +85,7 @@ export function CartContent() {
               return (
                 <div
                   key={`${item.variantId}`}
-                  className="bg-card border border-border rounded-xl p-6 flex gap-6 relative overflow-hidden"
+                  className="bg-card rounded-xl p-6 flex gap-6 relative overflow-hidden"
                 >
                   {/* Inline remove confirmation overlay */}
                   {pendingRemove === item.variantId && (
@@ -215,6 +244,38 @@ export function CartContent() {
             <Button variant="outline" className="w-full" onClick={() => window.location.href = '/products'}>
               Continue Shopping
             </Button>
+
+            <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+                  Clear Cart
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Clear Cart</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to remove all items from your cart? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowClearDialog(false)}
+                    disabled={isClearing}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleClearCart}
+                    disabled={isClearing}
+                  >
+                    {isClearing ? 'Clearing...' : 'Clear Cart'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

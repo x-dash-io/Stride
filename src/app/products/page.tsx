@@ -81,7 +81,7 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
 
   return (
     <div className="min-h-screen">
-      <div className="container-max py-12 md:py-16 border-b border-border">
+      <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto border-b border-border">
         <Breadcrumbs items={breadcrumbItems} />
         <h1 className="heading-page mt-4 mb-2">Our Collection</h1>
         <p className="body-large text-muted-foreground">
@@ -89,7 +89,7 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
         </p>
       </div>
 
-      <div className="container-max py-12 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
+      <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
         <aside className="lg:col-span-1 sticky top-24 self-start">
           <ProductFilters
             categories={categories}

@@ -15,8 +15,8 @@ export async function proxy(request: NextRequest) {
     if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
       return NextResponse.redirect(new URL('/admin', nextUrl))
     }
-    // Customers go back to where they were, or home
-    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/'
+    // Customers go back to where they were, or to products page
+    const callbackUrl = nextUrl.searchParams.get('callbackUrl') || '/products'
     return NextResponse.redirect(new URL(callbackUrl, nextUrl))
   }
 

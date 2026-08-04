@@ -116,20 +116,22 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold font-serif text-slate-900 dark:text-white">Platform Billing & Invoices</h1>
-        <p className="text-sm text-muted-foreground mt-1">Super Admin Panel to oversee store hosting ledgers and verify payments.</p>
+      <div className="flex items-center justify-between border-b border-border pb-5">
+        <div>
+          <h1 className="text-4xl font-bold font-serif text-foreground tracking-tight">Platform Billing & Invoices</h1>
+          <p className="text-sm text-muted-foreground mt-2 font-medium">Super Admin Panel to oversee store hosting ledgers and verify payments.</p>
+        </div>
       </div>
 
       {billingStatus.isSuspended && (
-        <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-amber-50/50 p-5 dark:border-amber-900/30 dark:bg-amber-950/20 backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/10 p-5 backdrop-blur-sm">
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-amber-950 dark:text-amber-200">Tenant Store Access Suspended</h3>
-              <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+              <h3 className="text-base font-bold text-amber-900 dark:text-amber-100 tracking-tight">Tenant Store Access Suspended</h3>
+              <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90 leading-relaxed font-medium">
                 The storefront is currently offline because the latest subscription invoice is overdue and the grace period has expired.
               </p>
             </div>
@@ -139,24 +141,24 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
 
       {/* Platform Verification Panel */}
       {isSuperAdmin && selectedInvoiceId && selectedInvoice && (
-        <Card className="border border-primary/30 bg-primary/5/30 backdrop-blur-sm shadow-md animate-slide-down max-w-xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
-              <ShieldCheck className="w-5 h-5 text-primary" /> Manager Verification Console
+        <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm shadow-lg animate-slide-down max-w-xl">
+          <CardHeader className="pb-4 bg-primary/5/50">
+            <CardTitle className="flex items-center gap-2 text-lg font-serif tracking-tight text-primary">
+              <ShieldCheck className="w-5 h-5" /> Manager Verification Console
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-xs font-medium">
               Verify payment reference for period {format(new Date(selectedInvoice.periodStart), 'MMM d')} – {format(new Date(selectedInvoice.periodEnd), 'MMM d')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-4">
             <form onSubmit={handleManagerUpdate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="managerStatus" className="text-sm font-semibold">Set Status</Label>
+                <Label htmlFor="managerStatus" className="text-sm font-semibold tracking-tight">Set Status</Label>
                 <select
                   id="managerStatus"
                   value={managerStatus}
                   onChange={(e: any) => setManagerStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-sm font-medium"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm font-medium focus:ring-2 focus:ring-primary/20"
                 >
                   <option value="PAID">PAID</option>
                   <option value="UNPAID">UNPAID</option>
@@ -166,15 +168,15 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
               </div>
 
               {managerStatus === 'PAID' && (
-                <div className="space-y-2.5 bg-slate-100/50 dark:bg-zinc-900/50 p-4 rounded-lg border border-slate-200/50 dark:border-zinc-800/60">
+                <div className="space-y-2.5 bg-gradient-to-br from-amber-500/10 to-amber-500/5 p-4 rounded-lg border border-amber-500/20">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">Submitted M-Pesa Reference:</span>
-                    <span className="font-mono font-bold bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20 text-sm">
+                    <span className="text-muted-foreground font-medium">Submitted M-Pesa Reference:</span>
+                    <span className="font-mono font-bold bg-primary/10 text-primary px-2.5 py-1 rounded border border-primary/30 text-sm">
                       {selectedInvoice.mpesaRef || 'None Submitted'}
                     </span>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="confirmMpesaRef" className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                    <Label htmlFor="confirmMpesaRef" className="text-xs font-bold text-foreground tracking-tight">
                       Confirm M-Pesa Reference Code
                     </Label>
                     <Input
@@ -182,22 +184,22 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                       value={confirmMpesaRef}
                       onChange={(e) => setConfirmMpesaRef(e.target.value)}
                       placeholder="Enter matching code to verify"
-                      className="font-mono text-base uppercase bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800"
+                      className="font-mono text-base uppercase bg-background border-border focus:ring-2 focus:ring-primary/20"
                       required
                     />
-                    <p className="text-[10px] text-muted-foreground">Type the exact reference code submitted by the store admin to confirm receipt of funds.</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Type the exact reference code submitted by the store admin to confirm receipt of funds.</p>
                   </div>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="managerNotes" className="text-sm font-semibold">Manager Notes / Transaction Audit Info</Label>
+                <Label htmlFor="managerNotes" className="text-sm font-semibold tracking-tight">Manager Notes / Transaction Audit Info</Label>
                 <Input
                   id="managerNotes"
                   value={managerNotes}
                   onChange={(e) => setManagerNotes(e.target.value)}
                   placeholder="e.g. Confirmed KES 3,500 receipt via M-Pesa statement"
-                  className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800"
+                  className="bg-background border-border focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
@@ -219,15 +221,15 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
       )}
 
       {/* Invoice History */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="font-serif font-bold text-lg text-slate-900 dark:text-white">Platform Invoice Ledger</h2>
-          <span className="text-xs text-muted-foreground font-semibold">Showing all billing entries</span>
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-md">
+        <div className="p-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-accent/50 to-card">
+          <h2 className="font-serif font-bold text-lg text-foreground tracking-tight">Platform Invoice Ledger</h2>
+          <span className="text-xs text-muted-foreground font-semibold bg-accent px-3 py-1 rounded-full">Showing all billing entries</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="bg-slate-50 dark:bg-zinc-800/40 border-b border-slate-100 dark:border-zinc-800 text-slate-600 dark:text-zinc-400">
+              <tr className="bg-accent/30 border-b border-border text-muted-foreground">
                 <th className="p-4 font-semibold text-xs uppercase tracking-wider">Period</th>
                 <th className="p-4 font-semibold text-xs uppercase tracking-wider">Amount</th>
                 <th className="p-4 font-semibold text-xs uppercase tracking-wider">Status</th>
@@ -236,30 +238,30 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                 {isSuperAdmin && <th className="p-4 font-semibold text-xs uppercase tracking-wider text-right">Action</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border">
               {invoices.length > 0 ? (
                 invoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-slate-50/30 dark:hover:bg-zinc-800/10 transition-colors">
-                    <td className="p-4 text-sm font-medium text-slate-800 dark:text-zinc-200">
+                  <tr key={invoice.id} className="hover:bg-accent/30 transition-colors">
+                    <td className="p-4 text-sm font-medium text-foreground">
                       {format(new Date(invoice.periodStart), 'MMM d, yyyy')} – {format(new Date(invoice.periodEnd), 'MMM d, yyyy')}
                     </td>
-                    <td className="p-4 font-bold text-sm text-slate-900 dark:text-white">{formatPrice(invoice.amountKes)}</td>
+                    <td className="p-4 font-bold text-sm text-foreground">{formatPrice(invoice.amountKes)}</td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold tracking-tight border ${
                           invoice.status === 'PAID'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
                             : invoice.status === 'WAIVED'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
                             : invoice.status === 'OVERDUE'
-                            ? 'bg-red-100 text-red-800 animate-pulse'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-destructive/10 text-destructive dark:text-destructive-foreground border-destructive/20 animate-pulse'
+                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                         }`}
                       >
                         {invoice.status}
                       </span>
                     </td>
-                    <td className="p-4 text-sm font-mono text-slate-700 dark:text-zinc-300">{invoice.mpesaRef || '—'}</td>
+                    <td className="p-4 text-sm font-mono text-foreground">{invoice.mpesaRef || '—'}</td>
                     <td className="p-4 text-sm text-muted-foreground">
                       {invoice.confirmedAt ? format(new Date(invoice.confirmedAt), 'MMM d, yyyy HH:mm') : '—'}
                     </td>
@@ -274,7 +276,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                             setManagerNotes(invoice.notes || '')
                             setConfirmMpesaRef('')
                           }}
-                          className="hover:border-primary hover:text-primary transition-all"
+                          className="hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
                         >
                           Verify
                         </Button>

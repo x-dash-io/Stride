@@ -71,10 +71,10 @@ export default async function AdminDashboardPage() {
     return (
       <div className="space-y-8 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-zinc-800 pb-5">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Platform Control Panel</h1>
-            <p className="text-sm text-muted-foreground mt-1">Monitor tenant subscriptions, payments, and system health.</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground tracking-tight">Platform Control Panel</h1>
+            <p className="text-sm text-muted-foreground mt-2 font-medium">Monitor tenant subscriptions, payments, and system health.</p>
           </div>
           <Button asChild>
             <Link href="/admin/billing">
@@ -85,17 +85,17 @@ export default async function AdminDashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+          <div className="bg-card rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">SaaS Status</p>
-                <p className="text-2xl font-bold mt-1 text-slate-800 dark:text-zinc-100">
+                <p className="text-2xl font-bold mt-1 text-foreground">
                   <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold ${
                     billing.status === 'PAID'
-                      ? 'bg-green-100 text-green-800'
+                      ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20'
                       : billing.status === 'WAIVED'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-red-100 text-red-800 animate-pulse'
+                      ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                      : 'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20 animate-pulse'
                   }`}>
                     {billing.status}
                   </span>
@@ -105,25 +105,25 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+          <div className="bg-card rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Monthly Fee</p>
-                <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">{formatPrice(3500)}</p>
+                <p className="text-2xl font-bold mt-1 text-foreground">{formatPrice(3500)}</p>
               </div>
               <Landmark className="w-10 h-10 text-primary/40" />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+          <div className="bg-card rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pending Approvals</p>
-                <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
+                <p className="text-2xl font-bold mt-1 text-foreground">
                   {pendingConfirmations > 0 ? (
-                    <span className="text-amber-600 animate-pulse">{pendingConfirmations} Pending</span>
+                    <span className="text-amber-600 dark:text-amber-400 animate-pulse">{pendingConfirmations} Pending</span>
                   ) : (
-                    <span className="text-slate-500 font-medium">None</span>
+                    <span className="text-muted-foreground font-medium">None</span>
                   )}
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+          <div className="bg-card rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Grace Deadline</p>
@@ -147,33 +147,33 @@ export default async function AdminDashboardPage() {
         {/* Content Split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Invoices list */}
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm lg:col-span-2">
-            <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+          <div className="bg-card rounded-xl shadow-sm lg:col-span-2">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-bold font-serif">Recent Subscription Invoices</h2>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/admin/billing">View All Invoices</Link>
               </Button>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-zinc-850">
+            <div className="divide-y divide-border">
               {totalInvoices.length > 0 ? (
                 totalInvoices.map((inv) => (
-                  <div key={inv.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <div key={inv.id} className="p-6 flex items-center justify-between hover:bg-accent/50 transition-colors">
                     <div>
                       <p className="font-semibold text-sm">
                         {format(new Date(inv.periodStart), 'MMM d')} – {format(new Date(inv.periodEnd), 'MMM d, yyyy')}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Submitted M-Pesa Ref: <span className="font-mono font-bold text-slate-800 dark:text-zinc-200">{inv.mpesaRef || '—'}</span>
+                        Submitted M-Pesa Ref: <span className="font-mono font-bold text-foreground">{inv.mpesaRef || '—'}</span>
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end gap-1.5">
-                      <span className="font-bold text-sm text-slate-800 dark:text-zinc-200">{formatPrice(Number(inv.amountKes))}</span>
+                      <span className="font-bold text-sm text-foreground">{formatPrice(Number(inv.amountKes))}</span>
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         inv.status === 'PAID'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20'
                           : inv.status === 'WAIVED'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                          : 'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20'
                       }`}>
                         {inv.status}
                       </span>
@@ -187,24 +187,24 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* Quick System info */}
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm space-y-6">
-            <h2 className="text-lg font-bold font-serif border-b border-slate-100 dark:border-zinc-800 pb-3">System Overview</h2>
+          <div className="bg-card rounded-xl p-6 shadow-sm space-y-6">
+            <h2 className="text-lg font-bold font-serif border-b border-border pb-3">System Overview</h2>
             <div className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Active Tenant Stores</span>
-                <span className="font-semibold">{totalStoresCount}</span>
+                <span className="font-semibold text-foreground">{totalStoresCount}</span>
               </div>
-              <div className="flex justify-between text-sm border-t border-slate-100 dark:border-zinc-800 pt-2">
+              <div className="flex justify-between text-sm border-t border-border pt-2">
                 <span className="text-muted-foreground">Neon Database Schema</span>
-                <span className="font-mono text-xs bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">public</span>
+                <span className="font-mono text-xs bg-accent px-1.5 py-0.5 rounded text-foreground">public</span>
               </div>
-              <div className="flex justify-between text-sm border-t border-slate-100 dark:border-zinc-800 pt-2">
+              <div className="flex justify-between text-sm border-t border-border pt-2">
                 <span className="text-muted-foreground">File Storage Provider</span>
-                <span className="font-mono text-xs bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">Cloudflare R2</span>
+                <span className="font-mono text-xs bg-accent px-1.5 py-0.5 rounded text-foreground">Cloudflare R2</span>
               </div>
             </div>
-            <div className="bg-slate-50 dark:bg-zinc-800/40 p-4 rounded-xl text-xs text-slate-500 space-y-2 border border-slate-100 dark:border-zinc-800/60">
-              <p className="font-semibold text-slate-700 dark:text-zinc-300">Manager Tip:</p>
+            <div className="bg-accent/50 p-4 rounded-xl text-xs text-muted-foreground space-y-2 border border-border">
+              <p className="font-semibold text-foreground">Manager Tip:</p>
               <p>Clients are automatically suspended if their invoice status becomes OVERDUE (3 days grace period past the 27th of the month cycle).</p>
             </div>
           </div>
@@ -218,10 +218,10 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-zinc-800 pb-5">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage products, view orders, and track your store sales.</p>
+          <h1 className="text-4xl font-serif font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-2">Manage products, view orders, and track your store sales.</p>
         </div>
         <div className="flex gap-2.5">
           <Button asChild>
@@ -239,41 +239,41 @@ export default async function AdminDashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Users</p>
-              <p className="text-3xl font-bold mt-1 text-slate-900 dark:text-white">{stats.totalUsers.toLocaleString()}</p>
+              <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalUsers.toLocaleString()}</p>
             </div>
             <Users className="w-12 h-12 text-primary/30" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Products</p>
-              <p className="text-3xl font-bold mt-1 text-slate-900 dark:text-white">{stats.totalProducts.toLocaleString()}</p>
+              <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalProducts.toLocaleString()}</p>
             </div>
             <Package className="w-12 h-12 text-primary/30" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Orders</p>
-              <p className="text-3xl font-bold mt-1 text-slate-900 dark:text-white">{stats.totalOrders.toLocaleString()}</p>
+              <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalOrders.toLocaleString()}</p>
             </div>
             <ShoppingBag className="w-12 h-12 text-primary/30" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Revenue</p>
-              <p className="text-3xl font-bold mt-1 text-slate-900 dark:text-white">{formatPrice(stats.totalRevenue)}</p>
+              <p className="text-3xl font-bold mt-1 text-foreground">{formatPrice(stats.totalRevenue)}</p>
             </div>
             <DollarSign className="w-12 h-12 text-primary/30" />
           </div>
@@ -282,17 +282,17 @@ export default async function AdminDashboardPage() {
 
       {/* Grid Detail Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm">
-          <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+        <div className="bg-card rounded-xl shadow-sm">
+          <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-bold font-serif">Recent Orders</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin/orders">View All</Link>
             </Button>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-zinc-850">
+          <div className="divide-y divide-border">
             {stats.recentOrders.length > 0 ? (
               stats.recentOrders.map((order) => (
-                <div key={order.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
+                <div key={order.id} className="p-6 flex items-center justify-between hover:bg-accent/50 transition-colors">
                   <div>
                     <p className="font-semibold text-sm">#{order.orderNumber}</p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -300,8 +300,8 @@ export default async function AdminDashboardPage() {
                     </p>
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
-                    <p className="font-bold text-sm text-slate-800 dark:text-zinc-200">{formatPrice(Number(order.grandTotal))}</p>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">
+                    <p className="font-bold text-sm text-foreground">{formatPrice(Number(order.grandTotal))}</p>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary dark:text-primary-foreground">
                       {order.status}
                     </span>
                   </div>
@@ -313,20 +313,20 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm">
-          <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+        <div className="bg-card rounded-xl shadow-sm">
+          <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-bold font-serif">Low Stock Alerts</h2>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-zinc-850">
+          <div className="divide-y divide-border">
             {stats.lowStockProducts.length > 0 ? (
               stats.lowStockProducts.map((variant) => (
-                <div key={variant.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
+                <div key={variant.id} className="p-6 flex items-center justify-between hover:bg-accent/50 transition-colors">
                   <div>
                     <p className="font-semibold text-sm">{variant.product.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">Size: {variant.size} • Color: {variant.colour}</p>
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-destructive/10 text-destructive dark:text-destructive-foreground">
                       {variant.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0)} left
                     </span>
                     <p className="text-[10px] text-muted-foreground font-mono">SKU: {variant.sku}</p>

@@ -23,7 +23,7 @@ interface AccountContentProps {
 
 export function AccountContent({ user, orders, wishlistCount, addresses, totalSpent, ordersCount }: AccountContentProps) {
   return (
-    <div className="container-max py-12 min-h-screen">
+    <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl md:text-5xl font-serif font-bold">My Account</h1>
         <p className="text-muted-foreground mt-2">Welcome back, {user?.name || 'Customer'}</p>
@@ -31,7 +31,7 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside className="lg:col-span-1">
-          <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
+          <div className="bg-card rounded-xl p-6 sticky top-24">
             <div className="flex items-center gap-4 mb-6">
               {user?.image ? (
                 <img src={user.image} alt="" className="w-16 h-16 rounded-full" />
@@ -78,7 +78,7 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
               <div className="space-y-4">
                 {orders.map((order) => (
                   <Link key={order.id} href={`/account/orders/${order.id}`} className="block">
-                    <div className="bg-card border border-border rounded-xl p-4 hover:bg-accent/50 transition-colors">
+                    <div className="bg-card rounded-xl p-4 hover:bg-accent/50 transition-colors">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex items-center gap-4">
                           <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
@@ -96,10 +96,10 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
                         <div className="flex flex-col items-end gap-2 text-right">
                           <p className="font-semibold">{formatPrice(Number(order.grandTotal))}</p>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                            order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                            order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
+                            order.status === 'DELIVERED' ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20' :
+                            order.status === 'CANCELLED' ? 'bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20' :
+                            order.status === 'PENDING' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20' :
+                            'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
                           }`}>
                             {order.status}
                           </span>
@@ -130,7 +130,7 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {addresses.length > 0 ? (
                 addresses.map((address) => (
-                  <div key={address.id} className="bg-card border border-border rounded-xl p-4">
+                  <div key={address.id} className="bg-card rounded-xl p-4">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium">{address.firstName} {address.lastName}</p>

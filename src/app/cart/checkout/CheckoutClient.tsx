@@ -129,7 +129,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
   }
 
   return (
-    <div className="container-max py-12 min-h-screen">
+    <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto">
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-12">Checkout</h1>
 
       <div className="mb-12 flex items-center gap-4">

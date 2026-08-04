@@ -101,6 +101,11 @@ async function CheckoutContentWrapper() {
     redirect('/admin?blocked=checkout')
   }
 
+  // Redirect unauthenticated users to login with proper callbackUrl
+  if (!session?.user?.id) {
+    redirect('/auth/login?callbackUrl=/cart/checkout')
+  }
+
   let cart = null
   let defaultAddress = null
   let userEmail = null
