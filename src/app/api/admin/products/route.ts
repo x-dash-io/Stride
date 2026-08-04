@@ -48,7 +48,7 @@ async function handleGet(
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: { [sort]: order },
+      orderBy: { [sort as string]: order } as any,
       skip,
       take: perPage,
       include: {

@@ -6,6 +6,7 @@ import { shippingAddressSchema, paymentSchema } from '@/lib/validations'
 import { initiateStkPush } from '@/lib/mpesa'
 import { verifyCsrfToken } from '@/lib/csrf'
 import { ok, err, Result } from '@/lib/types/result'
+import { calculateTax } from '@/lib/pricing'
 
 export async function submitShippingAddress(formData: FormData): Promise<Result<{ addressId: string }, string>> {
   const session = await auth()
@@ -59,7 +60,7 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
       items: {
         include: {
           variant: {
-            include: { product: { select: { id: true, name: true, brand: true, images: true } } },
+            include: { product: { select: { id: true, name: true, brand: true, images: true, basePrice: true, salePrice: true } } },
           },
         },
       },
@@ -78,8 +79,16 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
 
   // Recalculate shipping dynamically from DB zone matching state/county
   let shippingTotal = Number(cart.shippingTotal)
-  const subtotal = Number(cart.subtotal)
-  const taxTotal = Number(cart.taxTotal)
+  
+  // RECALCULATE PRICES FROM DATABASE TO PREVENT MANIPULATION
+  let recalculatedSubtotal = 0
+  for (const item of cart.items) {
+    const currentPrice = Number(item.variant.salePrice ?? item.variant.product.basePrice)
+    recalculatedSubtotal += currentPrice * item.quantity
+  }
+  
+  const subtotal = recalculatedSubtotal
+  const taxTotal = Math.round(subtotal * 0.16) // 16% tax rate
   const discountTotal = Number(cart.discountTotal)
 
   if (subtotal < 10000) {
@@ -101,6 +110,25 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
   const order = await prisma.$transaction(async (tx) => {
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`
 
+    // Use FOR UPDATE to prevent race conditions on inventory
+    for (const item of cart.items) {
+      const inventory = await tx.$queryRaw<Array<{ id: string; variantId: string; quantityOnHand: number }>>`
+        SELECT id, "variantId", "quantityOnHand" FROM "Inventory" 
+        WHERE "variantId" = ${item.variantId} 
+        AND "quantityOnHand" >= ${item.quantity}
+        FOR UPDATE
+      `
+      
+      if (!inventory || inventory.length === 0) {
+        throw new Error(`Insufficient stock for ${item.variant.sku}`)
+      }
+
+      await tx.inventory.update({
+        where: { id: inventory[0].id },
+        data: { quantityReserved: { increment: item.quantity } },
+      })
+    }
+
     const newOrder = await tx.order.create({
       data: {
         orderNumber,
@@ -110,9 +138,9 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
         paymentStatus: 'PENDING',
         paymentMethod: input.paymentMethod,
         currency: 'KES',
-        subtotal: cart.subtotal,
-        discountTotal: cart.discountTotal,
-        taxTotal: cart.taxTotal,
+        subtotal: subtotal,
+        discountTotal: discountTotal,
+        taxTotal: taxTotal,
         shippingTotal: shippingTotal,
         grandTotal: grandTotal,
         shippingAddressId: address.id,
@@ -126,25 +154,13 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
             size: item.variant.size,
             colour: item.variant.colour,
             quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
+            unitPrice: Number(item.variant.salePrice ?? item.variant.product.basePrice),
+            totalPrice: Number(item.variant.salePrice ?? item.variant.product.basePrice) * item.quantity,
             productImage: item.variant.product.images[0]?.url,
           })),
         },
       },
     })
-
-    for (const item of cart.items) {
-      const inventory = await tx.inventory.findFirst({
-        where: { variantId: item.variantId, quantityOnHand: { gte: item.quantity } },
-      })
-      if (!inventory) throw new Error(`Insufficient stock for ${item.variant.sku}`)
-
-      await tx.inventory.update({
-        where: { id: inventory.id },
-        data: { quantityReserved: { increment: item.quantity } },
-      })
-    }
 
     return newOrder
   })
