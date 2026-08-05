@@ -216,3 +216,44 @@ export const storeSettingsSchema = z.object({
   metaTitle: sanitizedOptionalText(255),
   metaDescription: sanitizedOptionalText(500),
 })
+export const brandCreateSchema = z.object({
+  name: sanitizedString(2, 255),
+  slug: sanitizedString(2, 280),
+  description: sanitizedOptionalText(1000),
+  logoUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  coverImageUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  websiteUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  originCountry: sanitizedOptionalText(100),
+  isFeatured: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().default(0),
+})
+
+export const collectionCreateSchema = z.object({
+  name: sanitizedString(2, 255),
+  slug: sanitizedString(2, 280),
+  description: sanitizedOptionalText(1000),
+  bannerUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  bannerMobileUrl: z.string().url().or(z.string().length(0)).optional().nullable(),
+  isActive: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
+  startDate: z.string().datetime().or(z.string().length(0)).optional().nullable(),
+  endDate: z.string().datetime().or(z.string().length(0)).optional().nullable(),
+  sortOrder: z.number().int().default(0),
+  productIds: z.array(z.string().cuid()).default([]),
+})
+
+export const inventoryAdjustSchema = z.object({
+  delta: z.number().int(),
+  reason: sanitizedOptionalText(500),
+})
+
+export const reviewModerationSchema = z.object({
+  action: z.enum(['approve', 'reject', 'feature', 'unfeature']),
+})
+
+export const orderUpdateSchema = z.object({
+  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED', 'ON_HOLD']),
+  paymentStatus: z.enum(['PENDING', 'AUTHORIZED', 'CAPTURED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED']).optional(),
+  note: sanitizedOptionalText(500),
+})

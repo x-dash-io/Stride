@@ -4,11 +4,11 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, ShoppingBag, Package, MapPin, CreditCard, User, Mail, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { OrderStatus } from '@prisma/client'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { OrderStatusManager } from './OrderStatusManager'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,6 +54,7 @@ export default async function AdminOrderDetailPage({
       shippingAddress: true,
       billingAddress: true,
       payments: { take: 1, orderBy: { createdAt: 'desc' } },
+      statusHistory: { orderBy: { createdAt: 'asc' } },
     },
   })
 
@@ -254,16 +255,36 @@ export default async function AdminOrderDetailPage({
 
           {/* Actions */}
           <div className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Actions</h2>
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/admin/orders">Back to Orders</Link>
-              </Button>
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                Status management coming soon
-              </p>
-            </div>
+            <h2 className="text-xl font-semibold mb-4">Manage Order</h2>
+            <OrderStatusManager
+              orderId={order.id}
+              orderNumber={order.orderNumber}
+              status={order.status}
+              paymentStatus={order.paymentStatus}
+            />
           </div>
+
+          {/* Timeline */}
+          {order.statusHistory.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-4">Timeline</h2>
+              <ol className="relative border-l border-border ml-3 space-y-5">
+                {order.statusHistory.map((entry) => (
+                  <li key={entry.id} className="ml-6">
+                    <span className="absolute -left-[7px] mt-1 w-3 h-3 rounded-full bg-accent ring-4 ring-card" />
+                    <p className="text-sm font-medium">
+                      {entry.fromStatus} <span className="text-muted-foreground">→</span> {entry.toStatus}
+                    </p>
+                    {entry.note && <p className="text-xs text-muted-foreground mt-0.5">{entry.note}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(entry.createdAt), 'MMM d, yyyy HH:mm')}
+                      {entry.changedBy && ` • by ${entry.changedBy}`}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </div>
     </div>

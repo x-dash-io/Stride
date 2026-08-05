@@ -156,3 +156,24 @@ REMAINING LOW PRIORITY ITEMS (ALL COMPLETED):
 - Forgot password implementation - Done
 - Hero carousel simplification - Done
 - Duplicate query logic consolidation - Done
+
+Phase 6 (Full Story Assessment Gaps - COMPLETED):
+22. ✅ Admin brands CRUD - /admin/brands + BrandManager (create/update/delete with product-count guard)
+23. ✅ Admin banners CRUD - /admin/banners + BannerManager (schedule, active state, image/CTA)
+24. ✅ Admin collections CRUD - /admin/collections + CollectionManager (product assignment, schedule)
+25. ✅ Collections storefront - /collections and /collections/[slug] (matches sitemap URLs)
+26. ✅ Admin inventory - /admin/inventory with adjust-stock modal (delta PATCH, reserved/available view)
+27. ✅ Review moderation - /admin/reviews (pending/approved/all, approve/reject/feature/delete)
+28. ✅ Admin order status progression - /admin/orders/[id] stepper + status/payment selects, OrderStatusHistory timeline, changedBy recorded
+29. ✅ Admin product edit page - Replaced placeholder with real form (BasicInfo + SEO tabs wired to PUT route)
+30. ✅ Homepage gaps - Hero banner now rendered (schedule-aware), Trending + On Sale sections added
+31. ✅ Newsletter form - Added to footer with /api/newsletter wiring
+32. ✅ Review images - Now rendered as thumbnails in storefront review cards
+33. ✅ Share button - Product share via navigator.share with clipboard fallback
+34. ✅ Dead components removed - product-recommendations.tsx, error-fallback.tsx (unused)
+35. ✅ New product CSRF bug - Create form now sends x-csrf-token (was 403)
+36. ✅ soldCount (item 9) - Confirmed implemented via orderItem.groupBy in all product queries; issue outdated
+
+NEW KNOWN ITEMS (deferred / by design):
+- Admin product edit covers product-level fields only; variant/images editing still via API (PUT route has no variant array support)
+- Product images tab on edit page intentionally omitted (PUT route does not accept image changes)

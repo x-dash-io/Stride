@@ -7,6 +7,7 @@ import { getCache, setCache, generateCacheKey } from '@/lib/cache'
 export interface ProductFilters {
   category?: string
   brand?: string
+  collectionSlug?: string
   gender?: string
   size?: string
   color?: string
@@ -200,7 +201,7 @@ export async function getRatingAggregations(productIds: string[]): Promise<Map<s
 
 export async function getProducts(params: ProductFilters): Promise<PaginatedProducts> {
   const {
-    category, brand, gender, size, color, minPrice, maxPrice, sort,
+    category, brand, collectionSlug, gender, size, color, minPrice, maxPrice, sort,
     page = 1, perPage = 24, query, featured, newArrival, bestSeller, trending, onSale, limit
   } = params
 
@@ -231,6 +232,9 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
       },
     }),
     ...(brandSlug && { brand: { slug: { equals: brandSlug, mode: 'insensitive' } } }),
+    ...(collectionSlug && {
+      collections: { some: { collection: { slug: { equals: collectionSlug, mode: 'insensitive' } } } },
+    }),
     ...(gender && { gender: gender.toUpperCase() as 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX' }),
     ...(size && { variants: { some: { size, isActive: true } } }),
     ...(color && { variants: { some: { colour: { contains: color, mode: 'insensitive' }, isActive: true } } }),
@@ -752,6 +756,21 @@ export async function getCollections(activeOnly = true) {
       : {},
     include: { products: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } }, orderBy: { sortOrder: 'asc' } } },
     orderBy: { sortOrder: 'asc' },
+  })
+}
+
+export async function getCollectionBySlug(slug: string, activeOnly = true) {
+  return prisma.collection.findUnique({
+    where: { slug },
+    include: { products: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } }, orderBy: { sortOrder: 'asc' } } },
+  }).then((collection) => {
+    if (!collection) return null
+    if (!activeOnly) return collection
+    if (!collection.isActive) return null
+    const now = new Date()
+    if (collection.startDate && collection.startDate > now) return null
+    if (collection.endDate && collection.endDate < now) return null
+    return collection
   })
 }
 

@@ -24,6 +24,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { data: session } = useSession()
   const { addItem } = useCart()
   const { showToast } = useToast()
+  const productUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.slug}`
   const [selectedColor, setSelectedColor] = useState(product.variants[0]?.colour || '')
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
@@ -141,6 +142,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               isAdding={isAdding}
               addedToCart={addedToCart}
               isWishlisted={isWishlisted}
+              productUrl={productUrl}
               onAddToCart={handleAddToCart}
               onToggleWishlist={handleToggleWishlist}
             />

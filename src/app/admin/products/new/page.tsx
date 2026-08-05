@@ -33,9 +33,11 @@ export default function NewProductPage() {
   const onSubmit = async (data: ProductCreateInput) => {
     setIsSubmitting(true)
     try {
+      const csrfRes = await fetch('/api/csrf')
+      const { csrfToken } = await csrfRes.json()
       const response = await fetch('/api/admin/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
         body: JSON.stringify(data),
       })
 

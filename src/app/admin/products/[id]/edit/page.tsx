@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { ProductEditForm } from './ProductEditForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,20 +25,43 @@ export default async function AdminProductEditPage({
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      brand: true,
-      category: true,
-      images: true,
+      brand: { select: { id: true } },
+      category: { select: { id: true } },
+      images: { orderBy: { sortOrder: 'asc' } },
       variants: {
         include: {
           inventory: true,
           images: true,
         },
+        orderBy: { sortOrder: 'asc' },
       },
     },
   })
 
   if (!product) {
     notFound()
+  }
+
+  const initial = {
+    name: product.name,
+    slug: product.slug,
+    brandId: product.brandId,
+    categoryId: product.categoryId ?? undefined,
+    shortDescription: product.shortDescription ?? undefined,
+    description: product.description ?? undefined,
+    gender: product.gender,
+    status: product.status,
+    basePrice: Number(product.basePrice),
+    salePrice: product.salePrice !== null ? Number(product.salePrice) : undefined,
+    costPrice: product.costPrice !== null ? Number(product.costPrice) : undefined,
+    weightKg: product.weightKg !== null ? Number(product.weightKg) : undefined,
+    isFeatured: product.isFeatured,
+    isNewArrival: product.isNewArrival,
+    isBestSeller: product.isBestSeller,
+    isLimitedEdition: product.isLimitedEdition,
+    isTrending: product.isTrending,
+    metaTitle: product.metaTitle ?? undefined,
+    metaDescription: product.metaDescription ?? undefined,
   }
 
   return (
@@ -51,25 +74,17 @@ export default async function AdminProductEditPage({
           <h1 className="text-4xl font-serif font-bold">Edit Product</h1>
           <p className="text-muted-foreground mt-1">{product.name}</p>
         </div>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl p-12 text-center">
-        <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-2xl font-semibold mb-2">Product Edit Page</h2>
-        <p className="text-muted-foreground mb-6">
-          This page is under construction. For now, please use the API to edit products.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button variant="outline" asChild>
-            <Link href="/admin/products">Back to Products</Link>
-          </Button>
-          <Button asChild>
-            <Link href={`/products/${product.slug}`} target="_blank">
-              View Product
-            </Link>
-          </Button>
+        <div className="flex gap-2">
+          <span className={`px-3 py-1.5 rounded-full text-sm font-medium bg-muted text-muted-foreground`}>
+            {product.status}
+          </span>
+          <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-muted text-muted-foreground">
+            {product.variants.length} variants
+          </span>
         </div>
       </div>
+
+      <ProductEditForm productId={product.id} initial={initial} />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Instagram, Facebook, Twitter, Shield } from 'lucide-react'
 import { ThemeSwitcher } from '@/components/theme-switcher'
+import { NewsletterForm } from '@/components/layout/NewsletterForm'
 
 const footerLinks = {
   shop: [
@@ -39,6 +40,17 @@ export function Footer({ storeName = 'STRIDE', storeTagline, settings }: FooterP
   return (
     <footer className="border-t bg-muted/30" role="contentinfo">
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-20 lg:py-24">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 border-b border-border pb-12 mb-12">
+          <div>
+            <p className="eyebrow">Stay in the loop</p>
+            <h2 className="font-serif text-2xl font-bold mt-2">Join the STRIDE newsletter</h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-md">
+              Early access to drops, exclusive deals and footwear tips. No spam, ever.
+            </p>
+          </div>
+          <NewsletterForm />
+        </div>
+
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-3">
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="font-serif text-2xl font-bold" aria-label={`${storeName} Home`}>

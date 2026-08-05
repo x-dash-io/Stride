@@ -24,6 +24,8 @@ interface ProductsPageProps {
     sort?: string
     page?: string
     q?: string
+    trending?: string
+    onSale?: string
   }>
 }
 
@@ -64,6 +66,8 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
       page,
       perPage,
       query: params.q,
+      trending: params.trending === '1',
+      onSale: params.onSale === '1',
     }),
     getCategories(),
     getBrands(),

@@ -15,6 +15,11 @@ import {
   CreditCard, 
   ExternalLink, 
   AlertTriangle,
+  Tag,
+  Image as ImageIcon,
+  Layers,
+  Boxes,
+  MessageSquare,
 } from 'lucide-react'
 import { SignOutButton } from './SignOutButton'
 import { AdminSuspensionBanner } from './AdminSuspensionBanner'
@@ -31,6 +36,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CreditCard,
   ExternalLink,
   AlertTriangle,
+  Tag,
+  ImageIcon,
+  Layers,
+  Boxes,
+  MessageSquare,
 }
 
 export const dynamic = 'force-dynamic'
@@ -70,6 +80,11 @@ export default async function AdminLayout({
     { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
     { name: 'Products', href: '/admin/products', icon: 'Package' },
     { name: 'Orders', href: '/admin/orders', icon: 'ShoppingBag' },
+    { name: 'Brands', href: '/admin/brands', icon: 'Tag' },
+    { name: 'Collections', href: '/admin/collections', icon: 'Layers' },
+    { name: 'Banners', href: '/admin/banners', icon: 'ImageIcon' },
+    { name: 'Inventory', href: '/admin/inventory', icon: 'Boxes' },
+    { name: 'Reviews', href: '/admin/reviews', icon: 'MessageSquare' },
     { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: 'Truck' },
     { name: 'Store Settings', href: '/admin/settings/store', icon: 'Settings' },
     { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },

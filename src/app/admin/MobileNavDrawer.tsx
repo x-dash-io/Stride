@@ -11,7 +11,12 @@ import {
   Settings, 
   CreditCard, 
   AlertTriangle, 
-  ExternalLink 
+  ExternalLink, 
+  Tag, 
+  Layers, 
+  Image as ImageIcon, 
+  Boxes, 
+  MessageSquare 
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,6 +37,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CreditCard,
   AlertTriangle,
   ExternalLink,
+  Tag,
+  Layers,
+  ImageIcon,
+  Boxes,
+  MessageSquare,
   Menu,
   X,
 }

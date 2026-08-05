@@ -85,6 +85,22 @@ function ReviewCard({ review }: { review: Review }) {
       </div>
       {review.title && <p className="font-semibold text-sm mb-1">{review.title}</p>}
       <p className="text-muted-foreground text-sm mb-3">{review.body}</p>
+      {review.images.length > 0 && (
+        <div className="flex gap-2 flex-wrap mb-3">
+          {review.images.map((image) => (
+            <a key={image.id} href={image.url} target="_blank" rel="noopener noreferrer" className="block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image.url}
+                alt={image.altText || 'Review photo'}
+                width={72}
+                height={72}
+                className="w-[72px] h-[72px] rounded-lg object-cover border border-border hover:opacity-80 transition-opacity"
+              />
+            </a>
+          ))}
+        </div>
+      )}
       <div className="flex items-center gap-4 text-sm">
         <button
           type="button"

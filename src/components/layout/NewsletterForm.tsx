@@ -1,19 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Check } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/providers/ToastProvider'
+import { Mail, CheckCircle2 } from 'lucide-react'
 
 export function NewsletterForm() {
+  const { showToast } = useToast()
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [subscribed, setSubscribed] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
-
-    setStatus('loading')
+    setIsSubmitting(true)
     try {
       const res = await fetch('/api/newsletter', {
         method: 'POST',
@@ -21,49 +22,42 @@ export function NewsletterForm() {
         body: JSON.stringify({ email }),
       })
       const data = await res.json()
-      if (res.ok) {
-        setStatus('success')
-        setMessage(data.message || 'Subscribed!')
-        setEmail('')
-      } else {
-        setStatus('error')
-        setMessage(data.error || 'Something went wrong')
-      }
-    } catch {
-      setStatus('error')
-      setMessage('Something went wrong')
+      if (!res.ok) throw new Error(data.error || 'Subscription failed')
+      setSubscribed(true)
+      showToast('success', data.message || 'Subscribed!')
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Subscription failed')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  if (status === 'success') {
+  if (subscribed) {
     return (
-      <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-        <Check className="h-4 w-4" />
-        <span>{message}</span>
+      <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+        <CheckCircle2 className="w-5 h-5" />
+        <span>You&apos;re subscribed — welcome to the family!</span>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-3">
-      <label className="text-sm text-muted-foreground">Subscribe to newsletter</label>
-      <div className="flex items-center gap-0">
-        <input
+    <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
+      <div className="relative flex-1">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
           type="email"
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          required
-          className="h-9 rounded-l-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:border-transparent w-48"
+          className="pl-9"
           aria-label="Email address"
         />
-        <Button type="submit" size="sm" className="rounded-l-none h-9" disabled={status === 'loading'}>
-          {status === 'loading' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Subscribe'}
-        </Button>
       </div>
-      {status === 'error' && (
-        <p className="text-xs text-destructive">{message}</p>
-      )}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+      </Button>
     </form>
   )
 }
