@@ -62,25 +62,7 @@ export function ErrorState({
         {message}
       </p>
 
-      {(errorDigest || errorMessage) && (
-        <div className="w-full max-w-md mb-6 text-left">
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto font-medium py-1"
-          >
-            {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            {showDetails ? 'Hide technical details' : 'Show technical details'}
-          </button>
-          
-          {showDetails && (
-            <div className="mt-2 p-4 bg-muted/50 border border-border rounded-lg text-xs font-mono text-muted-foreground break-all space-y-1">
-              {errorDigest && <p><span className="font-semibold text-foreground">Digest:</span> {errorDigest}</p>}
-              {errorMessage && <p><span className="font-semibold text-foreground">Message:</span> {errorMessage}</p>}
-            </div>
-          )}
-        </div>
-      )}
+
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         {reset && (

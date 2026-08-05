@@ -2,7 +2,7 @@
 
 import { WishlistItem } from '@/types'
 import { formatPrice } from '@/lib/utils'
-import { ShoppingBag, Trash2, Heart } from 'lucide-react'
+import { ShoppingBag, Trash2, Heart, Share2, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -12,9 +12,10 @@ import { useToast } from '@/providers/ToastProvider'
 
 interface WishlistClientProps {
   items: WishlistItem[]
+  shareToken?: string
 }
 
-export default function WishlistClient({ items }: WishlistClientProps) {
+export default function WishlistClient({ items, shareToken }: WishlistClientProps) {
   const { showToast } = useToast()
   const [localItems, setLocalItems] = useState(items)
 
@@ -35,6 +36,25 @@ export default function WishlistClient({ items }: WishlistClientProps) {
     }
   }
 
+  const handleShare = async () => {
+    if (!shareToken) return
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/wishlist/${shareToken}`
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: 'My Wishlist', url })
+        return
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast('success', 'Link copied to clipboard')
+    } catch {
+      showToast('error', 'Could not copy the link')
+    }
+  }
+
   if (localItems.length === 0) {
     return (
       <EmptyState
@@ -48,75 +68,88 @@ export default function WishlistClient({ items }: WishlistClientProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {localItems.map((item) => {
-        const product = item.variant.product
-        if (!product) return null
-        
-        const available = item.variant.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0)
-        const hasSale = product.salePrice && Number(product.salePrice) < Number(product.basePrice)
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          {shareToken && (
+            <Button variant="outline" onClick={handleShare} className="gap-2">
+              <Link2 className="w-4 h-4" />
+              Share
+            </Button>
+          )}
+        </div>
+      </div>
 
-        return (
-          <div key={item.id} className="group bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all">
-            <Link href={`/products/${product.slug}`} className="block aspect-square bg-muted relative overflow-hidden">
-              {product.images && product.images[0] ? (
-                <img
-                  src={product.images[0].url}
-                  alt={product.images[0].altText || product.name}
-                  width={320}
-                  height={320}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  <ShoppingBag className="w-12 h-12" />
-                </div>
-              )}
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleRemove(item.id)
-                }}
-                className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-destructive hover:text-white transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </Link>
-            <div className="p-4 space-y-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">{product.brand?.name || ''}</p>
-              <Link href={`/products/${product.slug}`}>
-                <h3 className="font-medium line-clamp-1 hover:text-primary transition-colors">{product.name}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {localItems.map((item) => {
+          const product = item.variant.product
+          if (!product) return null
+          
+          const available = item.variant.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0)
+          const hasSale = product.salePrice && Number(product.salePrice) < Number(product.basePrice)
+
+          return (
+            <div key={item.id} className="group bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all">
+              <Link href={`/products/${product.slug}`} className="block aspect-square bg-muted relative overflow-hidden">
+                {product.images && product.images[0] ? (
+                  <img
+                    src={product.images[0].url}
+                    alt={product.images[0].altText || product.name}
+                    width={320}
+                    height={320}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    <ShoppingBag className="w-12 h-12" />
+                  </div>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleRemove(item.id)
+                  }}
+                  className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-destructive hover:text-white transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </Link>
-              <div className="flex items-center gap-2">
-                {hasSale ? (
-                  <>
-                    <span className="font-semibold">{formatPrice(Number(product.salePrice))}</span>
-                    <span className="text-sm text-muted-foreground line-through">{formatPrice(Number(product.basePrice))}</span>
-                  </>
-                ) : (
-                  <span className="font-semibold">{formatPrice(Number(product.basePrice))}</span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Size: {item.variant.size} / {item.variant.colour}
-              </p>
-              <p className="text-xs">
-                {available > 0 ? (
-                  <span className="text-green-600">{available} in stock</span>
-                ) : (
-                  <span className="text-destructive">Out of stock</span>
-                )}
-              </p>
-              <Button className="w-full" size="sm" disabled={available === 0} asChild>
+              <div className="p-4 space-y-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{product.brand?.name || ''}</p>
                 <Link href={`/products/${product.slug}`}>
-                  <ShoppingBag className="w-4 h-4 mr-2" />
-                  {available > 0 ? 'Add to Cart' : 'View Product'}
+                  <h3 className="font-medium line-clamp-1 hover:text-primary transition-colors">{product.name}</h3>
                 </Link>
-              </Button>
+                <div className="flex items-center gap-2">
+                  {hasSale ? (
+                    <>
+                      <span className="font-semibold">{formatPrice(Number(product.salePrice))}</span>
+                      <span className="text-sm text-muted-foreground line-through">{formatPrice(Number(product.basePrice))}</span>
+                    </>
+                  ) : (
+                    <span className="font-semibold">{formatPrice(Number(product.basePrice))}</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Size: {item.variant.size} / {item.variant.colour}
+                </p>
+                <p className="text-xs">
+                  {available > 0 ? (
+                    <span className="text-green-600">{available} in stock</span>
+                  ) : (
+                    <span className="text-destructive">Out of stock</span>
+                  )}
+                </p>
+                <Button className="w-full" size="sm" disabled={available === 0} asChild>
+                  <Link href={`/products/${product.slug}`}>
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    {available > 0 ? 'Add to Cart' : 'View Product'}
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -64,6 +64,35 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
         </div>
       )}
 
+      {/* Status Badges */}
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+        {product.isLimitedEdition && (
+          <span className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            Limited Edition
+          </span>
+        )}
+        {product.isBestSeller && (
+          <span className="bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            Best Seller
+          </span>
+        )}
+        {product.isNewArrival && (
+          <span className="bg-blue-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            New
+          </span>
+        )}
+        {product.isTrending && (
+          <span className="bg-pink-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            Trending
+          </span>
+        )}
+        {product.isFeatured && (
+          <span className="bg-purple-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            Featured
+          </span>
+        )}
+      </div>
+
       <div className="aspect-square bg-muted relative overflow-hidden">
         {product.primaryImage ? (
           <img src={product.primaryImage} alt={product.name} width={640} height={640} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
@@ -99,7 +128,11 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
       </div>
 
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs uppercase tracking-wider text-accent mb-1">{product.brand.name}</p>
+        <p className="text-xs uppercase tracking-wider text-accent mb-1">
+          <Link href={`/brands/${product.brand.slug}`} className="hover:underline transition-colors">
+            {product.brand.name}
+          </Link>
+        </p>
         <h3 className="text-lg font-serif font-semibold mb-2 line-clamp-2">{product.name}</h3>
 
         <div className="flex items-baseline gap-2 mb-3 mt-auto">

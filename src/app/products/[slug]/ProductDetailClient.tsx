@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Product, ProductVariant } from '@/types'
 import { addToWishlist } from '@/app/actions/wishlist'
 import ProductReviews from '@/components/product-reviews'
+import { ProductRecommendations } from '@/components/ProductRecommendations'
 import {
   ProductImageGallery,
   ProductInfo,
@@ -185,6 +186,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         <h2 className="text-3xl font-serif font-bold mb-8">Customer Reviews</h2>
         <ProductReviews productId={product.id} reviews={product.reviews || []} />
       </div>
+
+      <ProductRecommendations
+        productId={product.id}
+        categoryId={product.category?.id}
+        brandId={product.brand.id}
+        limit={8}
+      />
     </div>
   )
 }

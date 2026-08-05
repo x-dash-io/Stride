@@ -42,20 +42,20 @@ export function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
-      <div className="relative flex-1">
-        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2 items-center">
+      <div className="relative flex-1 h-10">
+        <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          className="pl-9"
+          className="pl-10 h-full"
           aria-label="Email address"
         />
       </div>
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} className="h-10">
         {isSubmitting ? 'Subscribing...' : 'Subscribe'}
       </Button>
     </form>

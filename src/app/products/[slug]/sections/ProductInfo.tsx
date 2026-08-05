@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { Product } from '@/types'
 
@@ -15,10 +16,32 @@ export function ProductInfo({ product, price, originalPrice, availableStock }: P
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
     : null
 
+  const badges = [
+    { condition: product.isLimitedEdition, label: 'Limited Edition', className: 'bg-amber-500' },
+    { condition: product.isBestSeller, label: 'Best Seller', className: 'bg-emerald-500' },
+    { condition: product.isNewArrival, label: 'New', className: 'bg-blue-500' },
+    { condition: product.isTrending, label: 'Trending', className: 'bg-pink-500' },
+    { condition: product.isFeatured, label: 'Featured', className: 'bg-purple-500' },
+  ].filter(b => b.condition)
+
   return (
     <div>
-      <p className="text-xs uppercase tracking-widest text-primary mb-2">{product.brand.name}</p>
+      <p className="text-xs uppercase tracking-widest text-primary mb-2">
+        <Link href={`/brands/${product.brand.slug}`} className="hover:underline transition-colors">
+          {product.brand.name}
+        </Link>
+      </p>
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">{product.name}</h1>
+
+      {badges.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {badges.map((badge, i) => (
+            <span key={i} className={`${badge.className} text-white text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full shadow-sm`}>
+              {badge.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mb-8 pb-8 border-b border-border">
         <div className="flex items-baseline gap-3 mb-2">

@@ -16,6 +16,9 @@ import { FocusTrap } from '@/components/ui/focus-trap'
 const NAV_LINKS = [
   { label: 'Shop', href: '/products' },
   { label: 'New', href: '/products?sort=newest' },
+  { label: 'Collections', href: '/collections' },
+  { label: 'Best Sellers', href: '/products?sort=popular' },
+  { label: 'Sale', href: '/products?onSale=1' },
 ]
 
 export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; logoUrl?: string | null }) {

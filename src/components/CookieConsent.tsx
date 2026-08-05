@@ -46,6 +46,7 @@ export function CookieConsent() {
       role="dialog"
       aria-label="Cookie consent"
       aria-live="polite"
+      suppressHydrationWarning
       className="fixed bottom-4 left-4 right-4 z-[90] mx-auto max-w-3xl rounded-2xl border border-border/60 bg-background/95 p-5 shadow-2xl backdrop-blur-xl"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

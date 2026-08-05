@@ -12,6 +12,9 @@ import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 const shopItems = [
   { label: 'Shop', href: '/products' },
   { label: 'New Arrivals', href: '/products?sort=newest' },
+  { label: 'Collections', href: '/collections' },
+  { label: 'Best Sellers', href: '/products?sort=popular' },
+  { label: 'Sale', href: '/products?onSale=1' },
 ]
 
 export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {

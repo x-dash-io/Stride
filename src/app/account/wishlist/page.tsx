@@ -33,7 +33,7 @@ export default async function WishlistPage() {
         </p>
       </div>
 
-      <WishlistClient items={items} />
+      <WishlistClient items={items} shareToken={wishlist?.shareToken} />
     </div>
   )
 }

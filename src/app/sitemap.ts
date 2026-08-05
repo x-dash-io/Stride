@@ -20,7 +20,7 @@ export async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const [products, categories, brands, collections] = await Promise.all([
+    const [products, categories, brands, collections, cmsPages] = await Promise.all([
       prisma.product.findMany({
         where: { status: 'ACTIVE', publishedAt: { not: null, lte: new Date() } },
         select: { slug: true, updatedAt: true },
@@ -31,6 +31,14 @@ export async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }),
       prisma.brand.findMany({
         where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.collection.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.cmsPage.findMany({
+        where: { isPublished: true, publishedAt: { not: null, lte: new Date() } },
         select: { slug: true, updatedAt: true },
       }),
       prisma.collection.findMany({
@@ -67,7 +75,14 @@ export async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }))
 
-    return [...staticPages, ...productPages, ...categoryPages, ...brandPages, ...collectionPages]
+    const cmsPageUrls = cmsPages.map((page) => ({
+      url: `${baseUrl}/pages/${page.slug}`,
+      lastModified: page.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }))
+
+    return [...staticPages, ...productPages, ...categoryPages, ...brandPages, ...collectionPages, ...cmsPageUrls]
   } catch (error) {
     console.warn('Database not available for sitemap generation, returning static pages only:', error)
     return staticPages

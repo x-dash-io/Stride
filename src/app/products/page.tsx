@@ -75,6 +75,19 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
     getAvailableVariantFacets(),
   ])
 
+  // Filter categories to only show those with products
+  const categoriesWithProducts = categories
+    .filter((cat) => (cat._count?.products ?? 0) > 0)
+    .map((cat) => ({
+      ...cat,
+      children: cat.children.filter((child) => {
+        // children don't have _count, need to check products length from the actual include
+        // For now, just keep all children that are active
+        return true
+      }),
+    }))
+    .filter((cat) => (cat._count?.products ?? 0) > 0 || (cat.children?.length ?? 0) > 0)
+
   const totalPages = Math.ceil(productsData.total / perPage)
   const priceRangeMin = params.minPrice ? Number(params.minPrice) : priceRange.min
   const priceRangeMax = params.maxPrice ? Number(params.maxPrice) : priceRange.max
@@ -96,7 +109,7 @@ async function ProductsContent({ searchParams }: ProductsPageProps) {
       <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-12 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
         <aside className="lg:col-span-1 sticky top-24 self-start">
           <ProductFilters
-            categories={categories}
+            categories={categoriesWithProducts}
             brands={brands}
             availableSizes={facets.sizes}
             availableColors={facets.colors}
