@@ -73,27 +73,26 @@ export function HeroProductCarousel({
   const [index, setIndex] = useState(0)
   const [autoplay, setAutoplay] = useState(true)
   const [direction, setDirection] = useState(0)
-const prefersReducedMotion = mounted
-    ? useSyncExternalStore(
-        (onStoreChange) => {
-          const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-          const onChange = (event: MediaQueryListEvent) => {
-            if (event.matches) setAutoplay(false)
-            onStoreChange()
-          }
-          media.addEventListener('change', onChange)
-          return () => media.removeEventListener('change', onChange)
-        },
-        () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-        () => false
-      )
-    : false
-
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const prefersReducedMotion = useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === 'undefined') return () => {}
+      const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+      const onChange = (event: MediaQueryListEvent) => {
+        if (event.matches) setAutoplay(false)
+        onStoreChange()
+      }
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    },
+    () => typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false,
+    () => false
+  )
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const count = products.length

@@ -12,6 +12,7 @@ export interface CustomerGuardOptions {
 export interface StaffGuardOptions {
   roles?: readonly Role[]
   redirectTo?: string
+  unauthorizedRedirectTo?: string
 }
 
 export function loginUrl(callbackUrl: string): string {
@@ -44,13 +45,13 @@ export async function requireCustomer(
 /**
  * Authorization guard for staff-only areas (e.g. /admin).
  * - Not authenticated                       → redirectTo
- * - Authenticated with an unauthorized role → redirectTo
+ * - Authenticated with an unauthorized role → unauthorizedRedirectTo
  * - Authenticated staff (role allowed)      → session, access granted
  */
 export async function requireStaff(
   options: StaffGuardOptions = {}
 ): Promise<Session> {
-  const { roles, redirectTo = '/' } = options
+  const { roles, redirectTo = '/', unauthorizedRedirectTo = '/admin' } = options
   const session = await auth()
 
   if (!session?.user?.id) {
@@ -58,7 +59,7 @@ export async function requireStaff(
   }
 
   if (roles ? !isRoleAllowed(session.user.role, roles) : !isStaffRole(session.user.role)) {
-    redirect(redirectTo)
+    redirect(unauthorizedRedirectTo)
   }
 
   return session

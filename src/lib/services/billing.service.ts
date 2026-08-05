@@ -151,6 +151,16 @@ export async function syncSubscriptionLedger(): Promise<BillingStatus> {
  * Checks subscription status without side-effects (fast lookup).
  */
 export async function getBillingStatus(): Promise<BillingStatus> {
-  // Always call sync first to make sure current month invoice exists and state is fresh
-  return syncSubscriptionLedger()
+  try {
+    return await syncSubscriptionLedger()
+  } catch (err) {
+    console.error('[Billing Service] Failed to sync subscription ledger:', err)
+    return {
+      isSuspended: false,
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(),
+      graceDeadline: new Date(),
+      status: 'UNPAID',
+    }
+  }
 }
