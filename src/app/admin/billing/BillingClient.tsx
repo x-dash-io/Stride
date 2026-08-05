@@ -266,26 +266,39 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                       </span>
                     </td>
                     <td className="p-4 text-sm font-mono text-foreground">{invoice.mpesaRef || '—'}</td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {invoice.confirmedAt ? format(new Date(invoice.confirmedAt), 'MMM d, yyyy HH:mm') : '—'}
-                    </td>
-                    {isSuperAdmin && (
-                      <td className="p-4 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedInvoiceId(invoice.id)
-                            setManagerStatus(invoice.status)
-                            setManagerNotes(invoice.notes || '')
-                            setConfirmMpesaRef('')
-                          }}
-                          className="hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-                        >
-                          Verify
-                        </Button>
-                      </td>
-                    )}
+                     <td className="p-4 text-sm text-muted-foreground">
+                       {invoice.confirmedAt ? (
+                         <div className="flex items-center gap-2">
+                           <Check className="w-3.5 h-3.5 text-green-600" />
+                           <span className="text-green-600 font-medium">Verified</span>
+                           <span className="text-xs text-muted-foreground ml-2">
+                             {format(new Date(invoice.confirmedAt), 'MMM d, yyyy HH:mm')}
+                           </span>
+                         </div>
+                       ) : '—'}
+                     </td>
+                     {isSuperAdmin && (
+                       <td className="p-4 text-right">
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             setSelectedInvoiceId(invoice.id)
+                             setManagerStatus(invoice.status)
+                             setManagerNotes(invoice.notes || '')
+                             setConfirmMpesaRef('')
+                           }}
+                           className="hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
+                         >
+                           {invoice.status === 'PAID' && invoice.confirmedAt ? (
+                             <div className="flex items-center gap-1">
+                               <Check className="w-3.5 h-3.5" />
+                               <span>Update</span>
+                             </div>
+                           ) : 'Verify'}
+                         </Button>
+                       </td>
+                     )}
                   </tr>
                 ))
               ) : (

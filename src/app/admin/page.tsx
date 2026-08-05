@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
-import { Users, Package, ShoppingBag, DollarSign, Plus, ArrowRight, CreditCard, Clock, Activity, Landmark } from 'lucide-react'
+import { Users, Package, ShoppingBag, Receipt, Plus, ArrowRight, CreditCard, Clock, Activity, Landmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { getBillingStatus } from '@/lib/services/billing.service'
@@ -236,43 +236,51 @@ export default async function AdminDashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-card rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Users</p>
               <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalUsers.toLocaleString()}</p>
             </div>
-            <Users className="w-12 h-12 text-primary/30" />
+            <div className="bg-blue-500/10 rounded-xl p-3">
+              <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Products</p>
               <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalProducts.toLocaleString()}</p>
             </div>
-            <Package className="w-12 h-12 text-primary/30" />
+            <div className="bg-purple-500/10 rounded-xl p-3">
+              <Package className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Orders</p>
               <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalOrders.toLocaleString()}</p>
             </div>
-            <ShoppingBag className="w-12 h-12 text-primary/30" />
+            <div className="bg-amber-500/10 rounded-xl p-3">
+              <ShoppingBag className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-6 shadow-sm">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Total Revenue</p>
               <p className="text-3xl font-bold mt-1 text-foreground">{formatPrice(stats.totalRevenue)}</p>
             </div>
-            <DollarSign className="w-12 h-12 text-primary/30" />
+            <div className="bg-green-500/10 rounded-xl p-3">
+              <Receipt className="w-8 h-8 text-green-600 dark:text-green-400" />
+            </div>
           </div>
         </div>
       </div>

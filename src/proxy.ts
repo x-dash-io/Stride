@@ -3,14 +3,14 @@ import { auth } from '@/lib/auth'
 import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 export async function proxy(request: NextRequest) {
-  const token = await auth(request)
+  const token = await auth()
   const { nextUrl } = request
 
   // ── Authentication: is this an identified user? ──────────────────────────
   const isAuthenticated = !!token
 
   // ── Authorization: what is this user allowed to access? ──────────────────
-  const userRole = token?.role as string | undefined
+  const userRole = token?.user?.role as string | undefined
   const isStaff = isStaffRole(userRole)
 
   const isOnAuth = nextUrl.pathname.startsWith('/auth')

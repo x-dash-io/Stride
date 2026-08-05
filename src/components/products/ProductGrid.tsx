@@ -129,9 +129,9 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
       <div className="p-4 flex flex-col flex-1">
         <p className="text-xs uppercase tracking-wider text-accent mb-1">
-          <Link href={`/brands/${product.brand.slug}`} className="hover:underline transition-colors">
+          <span className="hover:underline transition-colors cursor-pointer">
             {product.brand.name}
-          </Link>
+          </span>
         </p>
         <h3 className="text-lg font-serif font-semibold mb-2 line-clamp-2">{product.name}</h3>
 

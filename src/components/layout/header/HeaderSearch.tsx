@@ -115,13 +115,13 @@ export function HeaderSearch() {
     <div className="relative w-full max-w-[280px]" ref={containerRef} suppressHydrationWarning>
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative flex items-center gap-0">
-          <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none shrink-0 z-10" aria-hidden="true" />
+          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none shrink-0 z-10" aria-hidden="true" />
 
           <Input
             ref={inputRef}
             type="search"
             placeholder="Search products…"
-            className="w-full h-9 pl-8 pr-7 bg-muted/50 border-border/50 text-sm placeholder:text-muted-foreground/60 hover:bg-muted focus:bg-background focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-transparent transition-all duration-200 dark:bg-muted/30 outline-none"
+            className="w-full h-9 pl-8.5 pr-7 bg-muted/50 border-border/50 text-sm placeholder:text-muted-foreground/60 hover:bg-muted focus:bg-background focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-transparent transition-all duration-200 dark:bg-muted/30 outline-none"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleFocus}

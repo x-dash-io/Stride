@@ -21,6 +21,8 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ storeName, navigationItems, suspendedNav, isSuspended, isSuperAdmin }: MobileHeaderProps) {
+  const pathname = '/admin'
+
   return (
     <header className="lg:hidden sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="px-4 py-3 flex items-center justify-between">
@@ -32,6 +34,7 @@ export function MobileHeader({ storeName, navigationItems, suspendedNav, isSuspe
               suspendedNav={suspendedNav}
               isSuspended={isSuspended}
               isSuperAdmin={isSuperAdmin}
+              pathname={pathname}
             />
           )}
           <Link href="/admin" className="flex items-center gap-2">
@@ -40,12 +43,14 @@ export function MobileHeader({ storeName, navigationItems, suspendedNav, isSuspe
             </span>
           </Link>
         </div>
-        <Link
-          href="/"
-          className="text-xs font-medium px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          Store
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="text-xs font-medium px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            Store
+          </Link>
+        </div>
       </div>
     </header>
   )
