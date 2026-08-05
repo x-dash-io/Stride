@@ -216,19 +216,31 @@ export async function getUserOrders(page = 1, perPage = 10): Promise<Result<{ it
   return ok({ items, total })
 }
 
-export async function getOrderDetails(orderId: string): Promise<Result<any, string>> {
+const orderDetailsInclude = {
+  items: {
+    include: {
+      variant: {
+        include: {
+          product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
+        },
+      },
+    },
+  },
+  statusHistory: { orderBy: { createdAt: 'asc' } },
+  payments: true,
+  shippingAddress: true,
+  billingAddress: true,
+} satisfies Prisma.OrderInclude
+
+export async function getOrderDetails(
+  orderId: string
+): Promise<Result<Prisma.OrderGetPayload<{ include: typeof orderDetailsInclude }>, string>> {
   const session = await auth()
   if (!session?.user?.id) return err('Unauthorized')
 
   const order = await prisma.order.findFirst({
     where: { id: orderId, userId: session.user.id },
-    include: {
-      items: { include: { variant: { include: { product: true } } } },
-      statusHistory: { orderBy: { createdAt: 'asc' } },
-      payments: true,
-      shippingAddress: true,
-      billingAddress: true,
-    },
+    include: orderDetailsInclude,
   })
 
   if (!order) return err('Order not found')

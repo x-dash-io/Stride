@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo, useSyncExternalStore } from 'react'
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import Link from 'next/link'
 import { ArrowRight, ShoppingBag, ShieldCheck, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
@@ -17,10 +18,7 @@ export interface ShowcaseProduct {
   originalPrice?: number
   badge?: string
   image?: string
-  shortDescription?: string
 }
-
-const PLACEHOLDER_PRODUCTS: ShowcaseProduct[] = []
 
 const AUTOPLAY_DELAY = 6000
 
@@ -46,7 +44,6 @@ export function mapProductToShowcase(product: Product): ShowcaseProduct {
     originalPrice: onSale ? product.basePrice : undefined,
     badge: productBadge(product),
     image: product.primaryImage ?? product.images[0]?.url,
-    shortDescription: product.shortDescription ?? undefined,
   }
 }
 
@@ -55,12 +52,7 @@ export function HeroProductCarousel({
 }: {
   products?: Product[]
 }) {
-  const products = useMemo(() => {
-    if (incomingProducts && incomingProducts.length > 0) {
-      return incomingProducts.map(mapProductToShowcase)
-    }
-    return PLACEHOLDER_PRODUCTS
-  }, [incomingProducts])
+  const products = (incomingProducts ?? []).map(mapProductToShowcase)
 
   const [index, setIndex] = useState(0)
   const [autoplay, setAutoplay] = useState(true)
@@ -78,7 +70,6 @@ export function HeroProductCarousel({
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     () => false
   )
-  const carouselRef = useRef<HTMLDivElement>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const count = products.length
@@ -113,7 +104,7 @@ export function HeroProductCarousel({
     }, AUTOPLAY_DELAY)
 
     return () => clearInterval(timer)
-  }, [autoplay, count, prefersReducedMotion, index])
+  }, [autoplay, count, prefersReducedMotion])
 
   useEffect(() => {
     return () => {
@@ -121,22 +112,17 @@ export function HeroProductCarousel({
     }
   }, [])
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (count <= 1) return
-      if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        goNext()
-      }
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault()
-        goPrevious()
-      }
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (count <= 1) return
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      goNext()
     }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [count, goNext, goPrevious])
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      goPrevious()
+    }
+  }
 
   // Don't render if no products available — after all hooks so hook order stays stable
   if (products.length === 0) {
@@ -158,12 +144,12 @@ export function HeroProductCarousel({
 
   return (
     <div
-      ref={carouselRef}
       className="relative z-10 w-full min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-between py-10 md:py-16 overflow-hidden bg-background"
       role="region"
       aria-roledescription="carousel"
       aria-label="Featured luxury footwear"
       tabIndex={0}
+      onKeyDown={handleKeyDown}
       onMouseEnter={pause}
       onMouseLeave={resume}
       onFocus={pause}

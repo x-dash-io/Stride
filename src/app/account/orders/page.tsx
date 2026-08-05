@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
@@ -6,30 +5,17 @@ import { ArrowRight, Truck, Package, Clock, CheckCircle, AlertCircle } from 'luc
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { requireCustomer } from '@/lib/authz'
-
-async function getUserOrders(userId: string, page = 1, perPage = 10) {
-  const skip = (page - 1) * perPage
-  const [items, total] = await Promise.all([
-    prisma.order.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: perPage,
-      include: { items: { include: { variant: true } } },
-    }),
-    prisma.order.count({ where: { userId } }),
-  ])
-  return { items, total }
-}
+import { getUserOrders } from '@/lib/services/order.service'
 
 export default async function AccountOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const session = await requireCustomer({ callbackUrl: '/account/orders' })
+  await requireCustomer({ callbackUrl: '/account/orders' })
 
   const params = await searchParams
   const page = Math.max(1, Number(params.page) || 1)
   const perPage = 10
 
-  const { items, total } = await getUserOrders(session.user.id, page, perPage)
+  const result = await getUserOrders(page, perPage)
+  const { items, total } = result.ok ? result.value : { items: [], total: 0 }
   const totalPages = Math.ceil(total / perPage)
 
   const getStatusIcon = (status: string) => {

@@ -89,3 +89,27 @@ export async function addToWishlist(formData: FormData) {
     return { error: 'Failed to add item to wishlist' }
   }
 }
+
+export async function getWishlist(userId: string) {
+  return prisma.wishlist.findFirst({
+    where: { userId },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: {
+                include: {
+                  brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
+                  images: { where: { isPrimary: true }, take: 1 },
+                },
+              },
+              inventory: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+  })
+}

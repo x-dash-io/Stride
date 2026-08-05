@@ -1,41 +1,21 @@
-import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { requireCustomer } from '@/lib/authz'
+import { getOrderDetails } from '@/lib/services/order.service'
 
 const statusOrder = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED']
 
-async function getOrder(id: string, userId: string) {
-  return prisma.order.findFirst({
-    where: { id, userId },
-    include: {
-      items: {
-        include: {
-          variant: {
-            include: {
-              product: { include: { images: { where: { isPrimary: true }, take: 1 } } }
-            }
-          }
-        }
-      },
-      statusHistory: { orderBy: { createdAt: 'asc' } },
-      payments: true,
-      shippingAddress: true,
-      billingAddress: true,
-    },
-  })
-}
-
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await requireCustomer({ callbackUrl: '/account/orders' })
+  await requireCustomer({ callbackUrl: '/account/orders' })
 
   const { id } = await params
-  const order = await getOrder(id, session.user.id)
+  const result = await getOrderDetails(id)
 
-  if (!order) notFound()
+  if (!result.ok) notFound()
+  const order = result.value
 
   const currentStatusIndex = statusOrder.indexOf(order.status)
 
