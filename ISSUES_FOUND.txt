@@ -150,7 +150,7 @@ Phase 5 (Code Cleanup - COMPLETED):
 20. ⏳ Hero carousel simplification - Not implemented (low priority)
 21. ⏳ Duplicate query logic - Not implemented (low priority)
 
-REMAINING LOW PRIORITY ITEMS (Optional):
+REMAINING LOW PRIORITY ITEMS:
 - Review helpful count functionality
 - Verified purchase status logic
 - Forgot password implementation
