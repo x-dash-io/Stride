@@ -1,3 +1,5 @@
+export type ProductTag = 'LIMITED_EDITION' | 'NEW_ARRIVAL' | 'TRENDING' | 'FEATURED' | 'BEST_SELLER'
+
 export interface Product {
   id: string
   name: string
@@ -8,11 +10,7 @@ export interface Product {
   description?: string | null
   gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
-  isFeatured: boolean
-  isNewArrival: boolean
-  isBestSeller: boolean
-  isLimitedEdition: boolean
-  isTrending: boolean
+  tag?: ProductTag | null
   basePrice: number
   salePrice?: number | null
   currency: string

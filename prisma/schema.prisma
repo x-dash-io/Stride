@@ -57,6 +57,14 @@ enum ProductStatus {
   DISCONTINUED
 }
 
+enum ProductTag {
+  LIMITED_EDITION
+  NEW_ARRIVAL
+  TRENDING
+  FEATURED
+  BEST_SELLER
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -201,11 +209,7 @@ model Product {
   description     String?        @db.Text
   gender          GenderCategory @default(UNISEX)
   status          ProductStatus  @default(DRAFT)
-  isFeatured      Boolean        @default(false)
-  isNewArrival    Boolean        @default(false)
-  isBestSeller    Boolean        @default(false)
-  isLimitedEdition Boolean       @default(false)
-  isTrending      Boolean        @default(false)
+  tag             ProductTag?
   basePrice       Decimal        @db.Decimal(10, 2)
   salePrice       Decimal?       @db.Decimal(10, 2)
   costPrice       Decimal?       @db.Decimal(10, 2)
@@ -214,6 +218,11 @@ model Product {
   metaTitle       String?
   metaDescription String?
   publishedAt     DateTime?
+  isFeatured      Boolean        @default(false)
+  isNewArrival    Boolean        @default(false)
+  isBestSeller    Boolean        @default(false)
+  isLimitedEdition Boolean       @default(false)
+  isTrending      Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -232,7 +241,7 @@ model Product {
   @@index([status, publishedAt, categoryId, brandId])
   @@index([basePrice, salePrice])
   @@index([gender])
-  @@index([isFeatured, isNewArrival, isBestSeller, isTrending])
+  @@index([tag])
   @@index([publishedAt])
 }
 

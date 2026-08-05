@@ -129,11 +129,7 @@ export const productCreateSchema = z.object({
   weightKg: z.number().positive().optional(),
   metaTitle: sanitizedOptionalText(255),
   metaDescription: sanitizedOptionalText(500),
-  isFeatured: z.boolean().default(false),
-  isNewArrival: z.boolean().default(false),
-  isBestSeller: z.boolean().default(false),
-  isLimitedEdition: z.boolean().default(false),
-  isTrending: z.boolean().default(false),
+  tag: z.enum(['LIMITED_EDITION', 'NEW_ARRIVAL', 'TRENDING', 'FEATURED', 'BEST_SELLER']).optional(),
   status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).default('DRAFT'),
   publishedAt: z.string().datetime().optional(),
   variants: z.array(z.object({

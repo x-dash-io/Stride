@@ -17,10 +17,7 @@ export interface ProductFilters {
   page?: number
   perPage?: number
   query?: string
-  featured?: boolean
-  newArrival?: boolean
-  bestSeller?: boolean
-  trending?: boolean
+  tag?: 'LIMITED_EDITION' | 'NEW_ARRIVAL' | 'TRENDING' | 'FEATURED' | 'BEST_SELLER'
   onSale?: boolean
   limit?: number
 }
@@ -40,11 +37,7 @@ export interface ProductListItem {
   shortDescription: string | null
   gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
-  isFeatured: boolean
-  isNewArrival: boolean
-  isBestSeller: boolean
-  isLimitedEdition: boolean
-  isTrending: boolean
+  tag: 'LIMITED_EDITION' | 'NEW_ARRIVAL' | 'TRENDING' | 'FEATURED' | 'BEST_SELLER' | null
   basePrice: number
   salePrice: number | null
   currency: string
@@ -131,11 +124,7 @@ export interface ProductDetail {
   description: string | null
   gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
-  isFeatured: boolean
-  isNewArrival: boolean
-  isBestSeller: boolean
-  isLimitedEdition: boolean
-  isTrending: boolean
+  tag: 'LIMITED_EDITION' | 'NEW_ARRIVAL' | 'TRENDING' | 'FEATURED' | 'BEST_SELLER' | null
   basePrice: number
   salePrice: number | null
   currency: string
@@ -202,7 +191,7 @@ export async function getRatingAggregations(productIds: string[]): Promise<Map<s
 export async function getProducts(params: ProductFilters): Promise<PaginatedProducts> {
   const {
     category, brand, collectionSlug, gender, size, color, minPrice, maxPrice, sort,
-    page = 1, perPage = 24, query, featured, newArrival, bestSeller, trending, onSale, limit
+    page = 1, perPage = 24, query, tag, onSale, limit
   } = params
 
   // Generate cache key
@@ -240,10 +229,7 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
     ...(color && { variants: { some: { colour: { contains: color, mode: 'insensitive' }, isActive: true } } }),
     ...(minPrice !== undefined && { basePrice: { gte: minPrice } }),
     ...(maxPrice !== undefined && { basePrice: { lte: maxPrice } }),
-    ...(featured && { isFeatured: true }),
-    ...(newArrival && { isNewArrival: true }),
-    ...(bestSeller && { isBestSeller: true }),
-    ...(trending && { isTrending: true }),
+    ...(tag && { tag }),
     ...(onSale && { salePrice: { not: null } }),
     ...(query && {
       OR: [
@@ -260,8 +246,8 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
     switch (sort) {
       case 'price-asc': return [{ basePrice: 'asc' }]
       case 'price-desc': return [{ basePrice: 'desc' }]
-      case 'popular': return [{ isTrending: 'desc' }, { isBestSeller: 'desc' }, { createdAt: 'desc' }]
-      case 'rating': return [{ isFeatured: 'desc' }, { createdAt: 'desc' }]
+      case 'popular': return [{ createdAt: 'desc' }]
+      case 'rating': return [{ createdAt: 'desc' }]
       case 'newest': return [{ createdAt: 'desc' }]
       default: return [{ createdAt: 'desc' }]
     }
@@ -280,11 +266,7 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
         shortDescription: true,
         gender: true,
         status: true,
-        isFeatured: true,
-        isNewArrival: true,
-        isBestSeller: true,
-        isLimitedEdition: true,
-        isTrending: true,
+        tag: true,
         basePrice: true,
         salePrice: true,
         currency: true,
@@ -418,11 +400,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       description: true,
       gender: true,
       status: true,
-      isFeatured: true,
-      isNewArrival: true,
-      isBestSeller: true,
-      isLimitedEdition: true,
-      isTrending: true,
+      tag: true,
       basePrice: true,
       salePrice: true,
       currency: true,
@@ -557,11 +535,7 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
       description: true,
       gender: true,
       status: true,
-      isFeatured: true,
-      isNewArrival: true,
-      isBestSeller: true,
-      isLimitedEdition: true,
-      isTrending: true,
+      tag: true,
       basePrice: true,
       salePrice: true,
       currency: true,

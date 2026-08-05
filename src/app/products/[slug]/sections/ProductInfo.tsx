@@ -16,13 +16,17 @@ export function ProductInfo({ product, price, originalPrice, availableStock }: P
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
     : null
 
-  const badges = [
-    { condition: product.isLimitedEdition, label: 'Limited Edition', className: 'bg-amber-500' },
-    { condition: product.isBestSeller, label: 'Best Seller', className: 'bg-emerald-500' },
-    { condition: product.isNewArrival, label: 'New', className: 'bg-blue-500' },
-    { condition: product.isTrending, label: 'Trending', className: 'bg-pink-500' },
-    { condition: product.isFeatured, label: 'Featured', className: 'bg-purple-500' },
-  ].filter(b => b.condition)
+  const badge = product.tag === 'LIMITED_EDITION'
+    ? { label: 'Limited Edition', className: 'bg-amber-500' }
+    : product.tag === 'NEW_ARRIVAL'
+    ? { label: 'New', className: 'bg-blue-500' }
+    : product.tag === 'TRENDING'
+    ? { label: 'Trending', className: 'bg-pink-500' }
+    : product.tag === 'FEATURED'
+    ? { label: 'Featured', className: 'bg-purple-500' }
+    : product.tag === 'BEST_SELLER'
+    ? { label: 'Best Seller', className: 'bg-emerald-500' }
+    : null
 
   return (
     <div>
@@ -33,13 +37,11 @@ export function ProductInfo({ product, price, originalPrice, availableStock }: P
       </p>
       <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">{product.name}</h1>
 
-      {badges.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {badges.map((badge, i) => (
-            <span key={i} className={`${badge.className} text-white text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full shadow-sm`}>
-              {badge.label}
-            </span>
-          ))}
+      {badge && (
+        <div className="mb-4">
+          <span className={`${badge.className} text-white text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full shadow-sm`}>
+            {badge.label}
+          </span>
         </div>
       )}
 

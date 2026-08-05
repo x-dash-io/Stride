@@ -24,6 +24,15 @@ const statusOptions = [
   { value: 'DISCONTINUED', label: 'Discontinued' },
 ] as const
 
+const tagOptions = [
+  { value: '', label: 'None' },
+  { value: 'LIMITED_EDITION', label: 'Limited Edition' },
+  { value: 'NEW_ARRIVAL', label: 'New Arrival' },
+  { value: 'TRENDING', label: 'Trending' },
+  { value: 'FEATURED', label: 'Featured' },
+  { value: 'BEST_SELLER', label: 'Best Seller' },
+] as const
+
 export function BasicInfoTab() {
   const { register, formState: { errors } } = useFormContext()
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([])
@@ -214,34 +223,32 @@ export function BasicInfoTab() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="weightKg">Weight (kg)</Label>
-              <Input
-                id="weightKg"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register('weightKg', { valueAsNumber: true })}
-              />
+              <Label htmlFor="tag">Product Tag</Label>
+              <Select {...register('tag')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tagOptions.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Select one tag to highlight this product</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {[
-              { id: 'isFeatured', label: 'Featured' },
-              { id: 'isNewArrival', label: 'New Arrival' },
-              { id: 'isBestSeller', label: 'Best Seller' },
-              { id: 'isLimitedEdition', label: 'Limited Edition' },
-              { id: 'isTrending', label: 'Trending' },
-            ].map(({ id, label }) => (
-              <div key={id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id={id}
-                  {...register(id)}
-                />
-                <label htmlFor={id} className="text-sm">{label}</label>
-              </div>
-            ))}
+          <div className="space-y-2">
+            <Label htmlFor="weightKg">Weight (kg)</Label>
+            <Input
+              id="weightKg"
+              type="number"
+              step="0.01"
+              min="0"
+              {...register('weightKg', { valueAsNumber: true })}
+            />
           </div>
         </CardContent>
       </Card>

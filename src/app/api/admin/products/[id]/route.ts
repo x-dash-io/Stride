@@ -64,11 +64,7 @@ async function handlePutById(
     weightKg: z.number().positive().optional(),
     metaTitle: z.string().max(255).optional(),
     metaDescription: z.string().optional(),
-    isFeatured: z.boolean().optional(),
-    isNewArrival: z.boolean().optional(),
-    isBestSeller: z.boolean().optional(),
-    isLimitedEdition: z.boolean().optional(),
-    isTrending: z.boolean().optional(),
+    tag: z.enum(['LIMITED_EDITION', 'NEW_ARRIVAL', 'TRENDING', 'FEATURED', 'BEST_SELLER']).optional().nullable(),
     status: z.enum(['DRAFT', 'ACTIVE', 'INACTIVE', 'DISCONTINUED']).optional(),
     publishedAt: z.string().datetime().optional(),
   })

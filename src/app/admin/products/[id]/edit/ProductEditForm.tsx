@@ -18,15 +18,11 @@ interface ProductFormValues {
   description?: string
   gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX'
   status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED'
+  tag?: 'LIMITED_EDITION' | 'NEW_ARRIVAL' | 'TRENDING' | 'FEATURED' | 'BEST_SELLER'
   basePrice: number
   salePrice?: number
   costPrice?: number
   weightKg?: number
-  isFeatured: boolean
-  isNewArrival: boolean
-  isBestSeller: boolean
-  isLimitedEdition: boolean
-  isTrending: boolean
   metaTitle?: string
   metaDescription?: string
 }

@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   const [featuredProducts, newArrivals, bestSellers, trendingProducts, onSaleProducts, categories, brands, heroBanner] =
     await Promise.all([
-      getProducts({ featured: true, limit: 8 }),
-      getProducts({ newArrival: true, limit: 8 }),
-      getProducts({ bestSeller: true, limit: 8 }),
-      getProducts({ trending: true, limit: 8 }),
+      getProducts({ tag: 'FEATURED', limit: 8 }),
+      getProducts({ tag: 'NEW_ARRIVAL', limit: 8 }),
+      getProducts({ tag: 'BEST_SELLER', limit: 8 }),
+      getProducts({ tag: 'TRENDING', limit: 8 }),
       getProducts({ onSale: true, limit: 8 }),
       getCategories(),
       getBrands(),
@@ -73,7 +73,7 @@ export default async function HomePage() {
         <ProductGrid products={bestSellers.items} />
         <div className="text-center mt-8">
           <Button variant="outline" size="lg" asChild>
-            <Link href="/products?sort=popular">View All Bestsellers</Link>
+            <Link href="/products?tag=BEST_SELLER">View All Bestsellers</Link>
           </Button>
         </div>
       </section>
@@ -87,7 +87,7 @@ export default async function HomePage() {
           <ProductGrid products={trendingProducts.items} />
           <div className="text-center mt-8">
             <Button variant="outline" size="lg" asChild>
-              <Link href="/products?trending=1">View All Trending</Link>
+              <Link href="/products?tag=TRENDING">View All Trending</Link>
             </Button>
           </div>
         </section>
@@ -119,7 +119,7 @@ export default async function HomePage() {
           <ProductGrid products={newArrivals.items} />
           <div className="text-center mt-8">
             <Button variant="outline" size="lg" asChild>
-              <Link href="/products?sort=newest">View All New Arrivals</Link>
+              <Link href="/products?tag=NEW_ARRIVAL">View All New Arrivals</Link>
             </Button>
           </div>
         </div>

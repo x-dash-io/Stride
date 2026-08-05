@@ -21,11 +21,7 @@ export default function NewProductPage() {
     defaultValues: {
       gender: 'UNISEX',
       currency: 'KES',
-      isFeatured: false,
-      isNewArrival: false,
-      isBestSeller: false,
-      isLimitedEdition: false,
-      isTrending: false,
+      tag: undefined,
       status: 'DRAFT',
     },
   })

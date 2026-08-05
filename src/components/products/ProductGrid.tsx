@@ -64,31 +64,31 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
         </div>
       )}
 
-      {/* Status Badges */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
-        {product.isLimitedEdition && (
+      {/* Status Badge */}
+      <div className="absolute top-3 right-3 z-10">
+        {product.tag === 'LIMITED_EDITION' && (
           <span className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
             Limited Edition
           </span>
         )}
-        {product.isBestSeller && (
-          <span className="bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
-            Best Seller
-          </span>
-        )}
-        {product.isNewArrival && (
+        {product.tag === 'NEW_ARRIVAL' && (
           <span className="bg-blue-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
             New
           </span>
         )}
-        {product.isTrending && (
+        {product.tag === 'TRENDING' && (
           <span className="bg-pink-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
             Trending
           </span>
         )}
-        {product.isFeatured && (
+        {product.tag === 'FEATURED' && (
           <span className="bg-purple-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
             Featured
+          </span>
+        )}
+        {product.tag === 'BEST_SELLER' && (
+          <span className="bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+            Best Seller
           </span>
         )}
       </div>

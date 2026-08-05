@@ -23,10 +23,11 @@ export interface ShowcaseProduct {
 const AUTOPLAY_DELAY = 6000
 
 function productBadge(product: Product): string | undefined {
-  if (product.isNewArrival) return 'New Arrival'
-  if (product.isBestSeller) return 'Best Seller'
-  if (product.isTrending) return 'Trending'
-  if (product.isLimitedEdition) return 'Limited Edition'
+  if (product.tag === 'LIMITED_EDITION') return 'Limited Edition'
+  if (product.tag === 'NEW_ARRIVAL') return 'New Arrival'
+  if (product.tag === 'TRENDING') return 'Trending'
+  if (product.tag === 'FEATURED') return 'Featured'
+  if (product.tag === 'BEST_SELLER') return 'Best Seller'
   return undefined
 }
 
