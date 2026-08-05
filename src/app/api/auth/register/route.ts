@@ -3,9 +3,10 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { registerSchema } from '@/lib/validations'
 import { authRateLimit, rateLimit } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const ip = getClientIp(request)
   const { success, remaining, reset } = await rateLimit(authRateLimit, ip)
 
   if (!success) {

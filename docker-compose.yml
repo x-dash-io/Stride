@@ -5,7 +5,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: stride
-      POSTGRES_PASSWORD: stride_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stride_dev_password}
       POSTGRES_DB: stride
     ports:
       - "5432:5432"

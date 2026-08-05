@@ -5,7 +5,6 @@ Full end-to-end, read-only audit performed 2026-08-05 across four domains (secur
 **~199 findings: 9 CRITICAL, 43 HIGH, 60 MEDIUM, rest LOW/INFO. No files modified during audit.**
 
 Baseline: lint 0 errors / 22 warnings (20 intentional `no-img-element` for R2 images), typecheck clean, 16/16 unit tests pass, working tree clean, 10 unpushed commits on `master`.
-
 ---
 
 ## CRITICAL
@@ -86,3 +85,13 @@ Magic numbers; `dangerouslySetInnerHTML` spots; docker-compose hardcoded `stride
 - [x] M5 Accessibility — body scroll lock in mobile drawer/UserMenu, `onTouched` form validation (login/register), 40px header tap targets, muted-foreground contrast raised to AA
 - [x] M6 README rewritten (accurate setup, env vars, seed/no-user policy, e2e credentials, scripts)
 - [x] M7 Cleanup — `legacy-peer-deps` removed (all peers valid; nodemailer pinned to next-auth-supported 7.x), `pnpm.overrides` removed, `engines.node` added, dead `payment/inventory.service.ts` + 2 dead carousels deleted, free-shipping magic number env-driven, dead `icon-sm` variant removed
+
+### Phase 4 — LOW / INFO + dependency debt
+- [x] L1 Dead code — removed unused `sessionId` cookie read in checkout route, deleted dead `submitShippingAddress` export
+- [x] L2 Register route now uses shared `getClientIp` (consistent proxy-aware IP extraction)
+- [x] L3 `.env.example` reorganized to match reality: removed unused vars (`DIRECT_URL`, `AUTH_URL`, `MPESA_CALLBACK_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_VERCEL_ANALYTICS_ID`, `SMTP_PASSWORD`→`SMTP_PASS`, `FROM_EMAIL`→`SMTP_FROM`), added missing (`S3/AWS` block, `EMAILJS_*`, `SMTP_FROM`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_VERSION`, `NEXTAUTH_SECRET`, `E2E_*`)
+- [x] L4 docker-compose postgres password env-driven (`${POSTGRES_PASSWORD:-stride_dev_password}`)
+- [x] L5 Copy/typo sweep — clean (no typos, lorem ipsum, TODO/FIXME in app copy)
+- [x] L6 Seed data realism — verified (real brands/categories/products, no user accounts)
+- [x] D1 **Auth.js version mismatch — decision documented**: `next-auth@latest` is still `4.24.15`; v5 is `5.0.0-beta.32` (not GA as of 2026-08-05). Migration deliberately deferred until stable GA. The `@auth/prisma-adapter` cast and `AUTH_SECRET` wiring remain the accepted interim state.
+- [x] D2 **jose dual-major — accepted**: `jose@6` (via `@auth/core`) and nested `jose@4` (inside next-auth v4) both resolve; app never imports `jose` directly. Re-evaluated automatically at the v5 GA migration (single major).

@@ -9,40 +9,10 @@ import { ok, err, Result } from '@/lib/types/result'
 import { TAX_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/pricing'
 import { toCents, fromCents, applyRateCents } from '@/lib/money'
 
-export async function submitShippingAddress(formData: FormData): Promise<Result<{ addressId: string }, string>> {
-  const session = await auth()
-  if (!session?.user?.id) return err('Unauthorized')
-
-  const parsed = shippingAddressSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return err(parsed.error.errors[0].message)
-
-  const { phone, city, country, label, firstName, lastName, addressLine1, state, addressLine2, postalCode } = parsed.data
-
-  const address = await prisma.address.create({
-    data: {
-      userId: session.user.id,
-      phone,
-      city,
-      country,
-      label,
-      firstName,
-      lastName,
-      addressLine1,
-      state,
-      addressLine2: addressLine2 || null,
-      postalCode,
-      isDefault: true,
-      isShipping: true,
-    },
-  })
-
-  return ok({ addressId: address.id })
-}
-
 interface ProcessPaymentInput {
   paymentMethod: 'MPESA_STK_PUSH' | 'CASH_ON_DELIVERY'
   phoneNumber?: string
-  csrfToken?: string
+  csrfToken?: string | null
 }
 
 export async function processPayment(input: ProcessPaymentInput): Promise<Result<{ orderId: string; checkoutRequestId?: string }, string>> {

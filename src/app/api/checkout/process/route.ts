@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withProtection } from '@/lib/api-protection'
 import { processPayment } from '@/lib/services/order.service'
-import { cookies } from 'next/headers'
 
 async function handleProcessPayment(request: NextRequest) {
   const formData = await request.formData()
@@ -17,10 +16,6 @@ async function handleProcessPayment(request: NextRequest) {
   if (paymentMethod === 'MPESA_STK_PUSH' && !phoneNumber) {
     return NextResponse.json({ error: 'Phone number required for M-Pesa' }, { status: 400 })
   }
-
-  // Read guest session cookie for cart lookup
-  const cookieStore = await cookies()
-  const sessionId = cookieStore.get('cartSessionId')?.value
 
   const result = await processPayment({
     paymentMethod: paymentMethod as 'MPESA_STK_PUSH' | 'CASH_ON_DELIVERY',
