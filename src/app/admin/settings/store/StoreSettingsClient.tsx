@@ -215,7 +215,7 @@ export function StoreSettingsClient({ initialSettings }: StoreSettingsClientProp
                 </div>
                 {logoUrl && (
                   <div className="mt-2 relative w-16 h-16 border rounded bg-muted/30 flex items-center justify-center overflow-hidden">
-                    <img src={logoUrl} alt="Store Logo Preview" className="object-contain max-w-full max-h-full" />
+                    <img src={logoUrl} alt="Store Logo Preview" width={64} height={64} className="object-contain max-w-full max-h-full" />
                   </div>
                 )}
               </div>
@@ -254,7 +254,7 @@ export function StoreSettingsClient({ initialSettings }: StoreSettingsClientProp
                 </div>
                 {faviconUrl && (
                   <div className="mt-2 relative w-8 h-8 border rounded bg-muted/30 flex items-center justify-center overflow-hidden">
-                    <img src={faviconUrl} alt="Store Favicon Preview" className="object-contain max-w-full max-h-full" />
+                    <img src={faviconUrl} alt="Store Favicon Preview" width={32} height={32} className="object-contain max-w-full max-h-full" />
                   </div>
                 )}
               </div>

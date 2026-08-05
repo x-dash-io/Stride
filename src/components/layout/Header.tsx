@@ -53,7 +53,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
           <div className="flex items-center gap-4 sm:gap-5 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -65,7 +65,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
               aria-label={`${storeName} Home`}
             >
               {logoUrl ? (
-                <img src={logoUrl} alt={storeName} className="h-8 w-auto object-contain" />
+                <img src={logoUrl} alt={storeName} width={128} height={32} className="h-8 w-auto object-contain" />
               ) : (
                 storeName
               )}
@@ -92,7 +92,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <button
                 onClick={handleCartOpen}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
                 aria-label={`Shopping cart, ${itemCount} items`}
               >
                 <ShoppingCart className="h-4.5 w-4.5" />
@@ -119,6 +119,8 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
                       <img
                         src={session.user.image}
                         alt=""
+                        width={28}
+                        height={28}
                         className="h-7 w-7 rounded-full object-cover"
                       />
                     ) : (
@@ -195,7 +197,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
               ) : (
                 <Link
                   href="/auth/login"
-                  className="inline-flex h-9 items-center justify-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/60 shrink-0"
+                  className="inline-flex h-10 items-center justify-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/60 shrink-0"
                 >
                   Sign In
                 </Link>

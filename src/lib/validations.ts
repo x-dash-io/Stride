@@ -79,8 +79,14 @@ export type LoginInput = z.infer<typeof loginSchema>
 export const registerSchema = z.object({
   name: sanitizedName,
   email: sanitizedEmail,
-  password: z.string().min(8, 'Password must be at least 8 characters').max(128),
-  confirmPassword: z.string().min(8, 'Password must be at least 8 characters').max(128),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must include uppercase, lowercase and a number'),
+  confirmPassword: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must include uppercase, lowercase and a number'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],

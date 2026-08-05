@@ -34,7 +34,7 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
           <div className="bg-card rounded-xl p-6 sticky top-24">
             <div className="flex items-center gap-4 mb-6">
               {user?.image ? (
-                <img src={user.image} alt="" className="w-16 h-16 rounded-full" />
+                <img src={user.image} alt="" width={64} height={64} className="w-16 h-16 rounded-full" />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-medium">
                   {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
@@ -83,7 +83,7 @@ export function AccountContent({ user, orders, wishlistCount, addresses, totalSp
                         <div className="flex items-center gap-4">
                           <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
                             {order.items[0]?.variant?.product?.images[0]?.url ? (
-                              <img src={order.items[0].variant.product.images[0].url} alt="" className="w-full h-full object-cover rounded-lg" />
+                              <img src={order.items[0].variant.product.images[0].url} alt="" width={64} height={64} className="w-full h-full object-cover rounded-lg" />
                             ) : (
                               <Package className="w-8 h-8 text-muted-foreground" />
                             )}

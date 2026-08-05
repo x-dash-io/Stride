@@ -23,8 +23,8 @@ describe('registerSchema', () => {
     const result = registerSchema.safeParse({
       name: 'Test User',
       email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password123',
+      password: 'Password123',
+      confirmPassword: 'Password123',
     })
     expect(result.success).toBe(true)
   })
@@ -33,8 +33,28 @@ describe('registerSchema', () => {
     const result = registerSchema.safeParse({
       name: 'Test User',
       email: 'test@example.com',
-      password: 'password123',
+      password: 'Password123',
       confirmPassword: 'different',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects weak passwords without mixed case and digits', () => {
+    const result = registerSchema.safeParse({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects short passwords', () => {
+    const result = registerSchema.safeParse({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'Pass1',
+      confirmPassword: 'Pass1',
     })
     expect(result.success).toBe(false)
   })

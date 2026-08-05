@@ -36,6 +36,8 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
             <img
               src={currentImage.url}
               alt={currentImage.altText || productName}
+              width={800}
+              height={800}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {images.length > 1 && (
@@ -81,7 +83,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               aria-label={`View image ${idx + 1}`}
               aria-current={selectedImageIndex === idx}
             >
-              <img src={img.url} alt={img.altText || `${productName} ${idx + 1}`} className="w-full h-full object-cover" />
+              <img src={img.url} alt={img.altText || `${productName} ${idx + 1}`} width={96} height={96} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -109,6 +111,8 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
           <img
             src={currentImage?.url}
             alt={currentImage?.altText || productName}
+            width={1200}
+            height={1200}
             className="max-w-full max-h-full object-contain"
             onClick={(e) => e.stopPropagation()}
           />

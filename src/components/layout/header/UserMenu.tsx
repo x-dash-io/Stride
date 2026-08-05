@@ -6,9 +6,12 @@ import { X, User, ShoppingCart, Heart, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { isStaffRole } from '@/lib/roles'
 import { FocusTrap } from '@/components/ui/focus-trap'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { data: session } = useSession()
+
+  useBodyScrollLock(isOpen)
 
   if (!isOpen || !session) return null
 

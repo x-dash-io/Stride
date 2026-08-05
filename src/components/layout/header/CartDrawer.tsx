@@ -77,7 +77,7 @@ export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isO
             size="icon"
             onClick={onClose}
             aria-label="Close cart"
-            className="h-9 w-9"
+            className="h-10 w-10"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -115,6 +115,8 @@ export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isO
                         <img
                           src={product.images[0].url}
                           alt={product.name}
+                          width={64}
+                          height={80}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />

@@ -95,7 +95,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               {order.items.map((item) => (
                 <div key={item.id} className="flex gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    {item.variant.product.images[0]?.url ? <img src={item.variant.product.images[0].url} alt="" className="w-full h-full object-cover rounded-lg" /> : <ShoppingBag className="w-8 h-8 text-muted-foreground" />}
+                    {item.variant.product.images[0]?.url ? <img src={item.variant.product.images[0].url} alt="" width={80} height={80} className="w-full h-full object-cover rounded-lg" /> : <ShoppingBag className="w-8 h-8 text-muted-foreground" />}
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{item.productName}</p>

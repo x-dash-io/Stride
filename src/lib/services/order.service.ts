@@ -6,7 +6,7 @@ import { shippingAddressSchema, paymentSchema } from '@/lib/validations'
 import { initiateStkPush } from '@/lib/mpesa'
 import { verifyCsrfToken } from '@/lib/csrf'
 import { ok, err, Result } from '@/lib/types/result'
-import { TAX_RATE } from '@/lib/pricing'
+import { TAX_RATE, FREE_SHIPPING_THRESHOLD } from '@/lib/pricing'
 import { toCents, fromCents, applyRateCents } from '@/lib/money'
 
 export async function submitShippingAddress(formData: FormData): Promise<Result<{ addressId: string }, string>> {
@@ -94,7 +94,7 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
   const discountCents = toCents(Number(cart.discountTotal))
 
   let shippingCents = toCents(shippingTotal)
-  if (subtotal < 10000) {
+  if (subtotalCents < toCents(FREE_SHIPPING_THRESHOLD)) {
     const zone = await prisma.shippingZone.findFirst({
       where: {
         name: { equals: address.state || '', mode: 'insensitive' },

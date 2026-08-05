@@ -151,7 +151,7 @@ export function HeaderSearch() {
                     >
                       {product.image ? (
                         <div className="w-12 h-12 bg-muted rounded-md overflow-hidden shrink-0">
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                          <img src={product.image} alt={product.name} width={48} height={48} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div className="w-12 h-12 bg-muted rounded-md shrink-0" />

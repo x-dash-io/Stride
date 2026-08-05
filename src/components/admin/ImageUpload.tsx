@@ -163,11 +163,13 @@ export function ImageUpload({
             >
               <div className="absolute inset-0 flex items-center justify-center">
                 {image.url.startsWith('blob:') ? (
-                  <img src={image.url} alt="" className="w-full h-full object-cover" />
+                  <img src={image.url} alt="" width={128} height={128} className="w-full h-full object-cover" />
                 ) : (
                   <img
                     src={image.url}
                     alt=""
+                    width={128}
+                    height={128}
                     className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                     loading="lazy"
                   />

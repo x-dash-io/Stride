@@ -18,6 +18,9 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
+const MAX_FAILED_LOGIN_ATTEMPTS = 5
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
   // next-auth v4 does not auto-read AUTH_SECRET (v5 name) — wire explicitly
@@ -58,8 +61,35 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({ where: { email } })
         if (!user || !user.passwordHash) return null
 
+        const now = new Date()
+        if (user.lockoutUntil && user.lockoutUntil > now) return null
+
         const isValid = await bcrypt.compare(password, user.passwordHash)
-        if (!isValid) return null
+        if (!isValid) {
+          const attempts = (user.failedLoginCount ?? 0) + 1
+          if (attempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginCount: 0,
+                lockoutUntil: new Date(now.getTime() + LOCKOUT_DURATION_MS),
+              },
+            })
+          } else {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { failedLoginCount: { increment: 1 } },
+            })
+          }
+          return null
+        }
+
+        if ((user.failedLoginCount ?? 0) > 0 || user.lockoutUntil) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { failedLoginCount: 0, lockoutUntil: null },
+          })
+        }
 
         return {
           id: user.id,

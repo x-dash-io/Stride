@@ -22,6 +22,7 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
+    mode: 'onTouched',
   })
 
   const password = watch('password')
@@ -100,6 +101,7 @@ export default function RegisterPage() {
               className="h-12 text-base"
             />
             {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            <p className="text-xs text-muted-foreground">At least 8 characters with uppercase, lowercase and a number.</p>
           </div>
 
           <div className="space-y-2">

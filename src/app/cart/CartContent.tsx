@@ -121,6 +121,8 @@ export function CartContent() {
                       <img
                         src={product.images[0].url}
                         alt={product.name}
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />

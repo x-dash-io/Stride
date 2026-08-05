@@ -1,266 +1,140 @@
-# STRIDE - Premium Footwear E-Commerce Platform
+# STRIDE — Premium Footwear E-Commerce Platform
 
-A modern, feature-rich e-commerce platform built with Next.js, React, and Tailwind CSS. STRIDE offers a premium shopping experience with authentication, shopping cart, checkout, and loyalty rewards.
+A full-stack e-commerce platform for the Kenyan market built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Prisma/PostgreSQL (Neon), and NextAuth. Includes a storefront, customer accounts, M-Pesa STK push + COD checkout, and an admin panel with RBAC and subscription/suspension billing.
 
 ## Features
 
-### Core Features
-- **Product Catalog**: Browse and search through a curated collection of premium shoes
-- **Advanced Filtering**: Filter by category, brand, price range, and more
-- **Product Details**: Comprehensive product pages with images, specifications, and customer reviews
-- **Shopping Cart**: Add, remove, and manage items with persistent storage
-- **Checkout Flow**: Multi-step checkout process with shipping and payment options
-
-### User Features
-- **Authentication**: Secure login and registration system
-- **User Dashboard**: View orders, favorites, and account settings
-- **Order History**: Track past purchases and order status
-- **Favorites/Wishlist**: Save products for later
-- **Address Management**: Store and manage multiple shipping addresses
-- **Profile Settings**: Update personal information and preferences
-
-### Social Features
-- **Product Reviews**: Read and write product reviews with ratings
-- **Helpful Votes**: Mark reviews as helpful or not helpful
-- **Product Recommendations**: Get personalized product suggestions
-- **Loyalty Program**: Earn and redeem reward points
-- **Tier System**: Bronze, Silver, Gold, and Platinum membership tiers
-
-### Business Features
-- **Promotional Codes**: Apply discount codes at checkout
-- **Free Shipping**: Automatic free shipping on orders over $200
-- **Tax Calculation**: Automatic tax calculation (9% default)
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
-- **Performance Optimized**: Fast loading times and smooth interactions
+- **Storefront**: product catalog with filters (category, brand, size, colour, price), search, featured/new/best-seller rails, product pages with gallery and reviews
+- **Cart & checkout**: guest and signed-in carts (DB-backed, merged at login), multi-step checkout (shipping → payment), M-Pesa STK push and cash on delivery
+- **Accounts**: register/login (credentials + Google), order history, wishlist, address book
+- **Admin**: product/variant/inventory management, orders, settings, shipping zones, store branding; staff roles with subscription billing and automatic suspension
+- **Platform**: Redis caching (Upstash), rate limiting (per-user when authenticated), Sentry error tracking, cookie consent, strict CSP in production, SEO metadata/sitemap/robots
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 with App Router
-- **Frontend**: React 19 with TypeScript
-- **Styling**: Tailwind CSS v4 with custom design system
-- **State Management**: React Context API
-- **Persistence**: localStorage for cart and auth state
-- **Icons**: Lucide React
-- **SEO**: Next.js metadata, sitemap, and robots.txt
+- **Framework**: Next.js 16 (App Router, Turbopack), React 19, TypeScript 5.5
+- **Styling**: Tailwind CSS v4, shadcn-style UI components, Radix primitives
+- **Data**: Prisma 6 + PostgreSQL (Neon), Upstash Redis for cache + rate limiting
+- **Auth**: NextAuth v4 (JWT sessions) with credentials + Google providers, `@auth/prisma-adapter`
+- **Payments**: Safaricom M-Pesa Daraja API (STK push, callback webhook)
+- **Quality**: ESLint 9 (flat config), Vitest, Playwright (e2e), Sentry
+- **Infra**: Deployed on Vercel; assets on Cloudflare R2 / Cloudinary
+
+## Prerequisites
+
+- Node.js **20.9+** (required by Next.js 16)
+- npm (the repo ships `.npmrc` with `legacy-peer-deps=true`)
+
+## Getting Started
+
+1. Clone the repository and install dependencies:
+
+```bash
+git clone <repository-url>
+cd stride
+npm install
+```
+
+2. Configure environment variables:
+
+```bash
+cp .env.example .env
+```
+
+At minimum set:
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string (Neon recommended) |
+| `AUTH_SECRET` | JWT signing secret (generate with `openssl rand -base64 32`) |
+| `NEXT_PUBLIC_TAX_RATE` | VAT rate as decimal (e.g. `0.16`) |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Cache + rate limiting (optional; features degrade gracefully) |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth (optional) |
+| `MPESA_CONSUMER_KEY` / `MPESA_CONSUMER_SECRET` / `MPESA_PASSKEY` / `MPESA_SHORTCODE` | M-Pesa Daraja (sandbox vars supported) |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Error tracking (optional) |
+
+3. Prepare the database and generate the Prisma client:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+4. Seed catalog data (brands, categories, products, CMS pages):
+
+```bash
+npm run prisma:seed
+```
+
+> **Note**: the seed creates **no user accounts** — this is intentional. Create customers through the register page and promote staff/admin roles directly in the database (`role` column on `User`, values `CUSTOMER`, `STAFF`, `ADMIN`, `SUPER_ADMIN`).
+
+5. Run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Scripts
+
+```bash
+npm run dev          # development server (Turbopack)
+npm run build        # production build
+npm run start        # start production build
+npm run lint         # ESLint (flat config)
+npm run typecheck    # tsc --noEmit
+npm test             # Vitest unit tests
+npm run test:e2e     # Playwright e2e (requires E2E_* credentials, see below)
+npm run prisma:seed  # seed catalog data
+```
+
+## E2E Tests
+
+Playwright specs for auth flows skip automatically unless credentials are provided. Set these in the environment to run them:
+
+```bash
+export E2E_ADMIN_EMAIL=...
+export E2E_ADMIN_PASSWORD=...
+export E2E_CUSTOMER_EMAIL=...
+export E2E_CUSTOMER_PASSWORD=...
+npm run test:e2e
+```
+
+## Security Notes
+
+- Passwords are bcrypt-hashed (cost 12); registration enforces 8+ chars with mixed case and a number
+- Accounts are locked for 15 minutes after 5 failed login attempts
+- All mutations require CSRF tokens; admin APIs are staff-gated; checkout re-verifies totals server-side in integer cents
+- Rate limiting is keyed per-user when authenticated, per-IP otherwise
+- Production CSP forbids `unsafe-eval`; `frame-ancestors 'none'`, HSTS, and standard security headers are set in `next.config.ts`
+- The M-Pesa callback is idempotent (terminal-state guarded) and rejects callbacks from non-whitelisted IPs in production
+
+## Database Migrations
+
+`prisma/migrations/` is gitignored; schema changes are applied to the hosted database with `prisma db push` (or manually managed migrations for production). Always run `npx prisma generate` after schema changes.
 
 ## Project Structure
 
 ```
-/vercel/share/v0-project/
+src/
 ├── app/
-│   ├── layout.tsx              # Root layout with providers
-│   ├── page.tsx                # Homepage
-│   ├── products/
-│   │   ├── page.tsx            # Products listing page
-│   │   └── [id]/
-│   │       └── page.tsx        # Product detail page
-│   ├── cart/
-│   │   ├── page.tsx            # Shopping cart
-│   │   └── checkout/
-│   │       └── page.tsx        # Checkout flow
-│   ├── auth/
-│   │   ├── login/page.tsx      # Login page
-│   │   └── register/page.tsx   # Registration page
-│   ├── account/
-│   │   └── page.tsx            # User dashboard
-│   ├── error.tsx               # Error boundary
-│   ├── not-found.tsx           # 404 page
-│   ├── sitemap.ts             # SEO sitemap
-│   └── globals.css             # Global styles
-│
-├── components/
-│   ├── layout/
-│   │   ├── Header.tsx          # Navigation header
-│   │   └── Footer.tsx          # Footer
-│   ├── product-card.tsx        # Product card component
-│   ├── product-reviews.tsx     # Reviews component
-│   ├── product-recommendations.tsx # Recommendations
-│   ├── loyalty-dashboard.tsx   # Loyalty rewards
-│   ├── skeleton-loader.tsx     # Loading skeletons
-│   └── meta-tags.tsx           # SEO meta tags
-│
-├── lib/
-│   ├── contexts/
-│   │   ├── auth-context.tsx    # Authentication context
-│   │   └── cart-context.tsx    # Shopping cart context
-│   ├── data/
-│   │   ├── products.ts         # Product data & helpers
-│   │   ├── reviews.ts          # Review data
-│   │   └── orders.ts           # Order data & functions
-│   ├── types/
-│   │   └── index.ts            # TypeScript types
-│   └── utils.ts                # Utility functions
-│
-├── public/
-│   └── robots.txt             # SEO robots file
-│
-├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── next.config.mjs
+│   ├── api/            # Route handlers (auth, checkout, mpesa, admin, reviews, ...)
+│   ├── admin/          # Admin panel (orders, products, settings, billing)
+│   ├── auth/           # Login / register / error pages
+│   ├── account/        # Customer dashboard (orders, wishlist, addresses)
+│   ├── cart/           # Cart + checkout
+│   ├── products/       # Catalog listing + detail
+│   └── ...             # Static pages (privacy, terms, cookie policy, about, ...)
+├── components/         # UI components (layout, cart, products, ui)
+├── hooks/              # Shared React hooks
+├── lib/                # Services, validation, auth, cache, money helpers, types
+└── e2e/                # Playwright specs (repo root)
+prisma/
+├── schema.prisma       # Data model
+└── migrations/         # Manual SQL migrations (gitignored)
 ```
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- pnpm (or npm/yarn)
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone <repository-url>
-cd v0-project
-```
-
-2. Install dependencies
-```bash
-pnpm install
-```
-
-3. Run the development server
-```bash
-pnpm dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-### Demo Account
-For testing purposes, use these credentials:
-- **Email**: demo@example.com
-- **Password**: demo
-
-## Authentication
-
-The app uses a Context-based authentication system with localStorage persistence:
-- Users can register with name, email, and password
-- Login with email and password
-- Session persists across page refreshes
-- Demo account available for testing
-
-## Shopping Cart
-
-- Add/remove products with color and size selection
-- Persistent cart (saved to localStorage)
-- Real-time price calculations
-- Quantity adjustments
-- Free shipping on orders over $200
-- Tax calculation (9%)
-- Promo code support
-
-## Checkout Process
-
-Multi-step checkout flow:
-1. **Shipping**: Enter delivery address
-2. **Payment**: Card payment information
-3. **Confirmation**: Order confirmation with number
-
-## Loyalty Program
-
-Four-tier membership system:
-- **Bronze**: 1x points multiplier, free shipping over $200
-- **Silver**: 2x points multiplier, free shipping on all orders, 10% discount
-- **Gold**: 3x points multiplier, express shipping, 15% discount
-- **Platinum**: 4x points multiplier, white glove delivery, 20% discount, personal stylist
-
-Earn 1 point per $10 spent, redeem for exclusive rewards.
-
-## Performance Optimizations
-
-- Component-level code splitting
-- Image optimization with Next.js Image component
-- CSS-in-JS for critical styles
-- Lazy loading for product recommendations
-- Efficient filtering with memoization
-- LocalStorage caching for cart and auth
-
-## SEO Features
-
-- Dynamic metadata for all pages
-- XML sitemap auto-generation
-- robots.txt configuration
-- Open Graph tags
-- Canonical URLs
-- Structured data support
-
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Styling Guide
-
-### Design System
-
-**Colors**:
-- Primary: #E8A97C (Accent)
-- Background: #F9F7F4 (Light), #0F0F0F (Dark)
-- Foreground: #1A1A1A (Light), #F9F7F4 (Dark)
-- Muted: #E8E6E4 (Light), #2A2A2A (Dark)
-
-**Typography**:
-- Headings: Geist font-family
-- Body: Geist font-family
-
-**Spacing**: Tailwind default scale (4px base unit)
-
-### Tailwind Classes
-
-Common patterns used throughout:
-- `.btn-primary`: Primary action button
-- `.btn-secondary`: Secondary action button
-- `.input-base`: Standard input field
-- `.container-max`: Content container with max-width
-- `.card`: Card component styling
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues or questions:
-1. Check existing documentation
-2. Review the code comments
-3. Test with the demo account
-4. Create an issue with detailed information
 
 ## Deployment
 
-Deploy to Vercel with a single click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/stride)
-
-Or deploy manually:
-
-```bash
-pnpm build
-# Deployment to Vercel or your preferred hosting
-```
-
-## Future Enhancements
-
-- [ ] Product inventory management
-- [ ] Admin dashboard
-- [ ] Email notifications
-- [ ] Real payment processing
-- [ ] Advanced analytics
-- [ ] AI-powered recommendations
-- [ ] Social sharing
-- [ ] AR product preview
-- [ ] Multiple languages
-- [ ] Mobile app
-
----
-
-Built with ❤️ using Next.js and Tailwind CSS
+Deploy on Vercel. The production build requires all secrets in the Vercel project settings, and a Neon (or equivalent) database. Note `@sentry/nextjs` >= 10 is pinned to match Next.js 16 peer requirements.

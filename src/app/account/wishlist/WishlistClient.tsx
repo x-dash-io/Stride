@@ -63,6 +63,8 @@ export default function WishlistClient({ items }: WishlistClientProps) {
                 <img
                   src={product.images[0].url}
                   alt={product.images[0].altText || product.name}
+                  width={320}
+                  height={320}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (

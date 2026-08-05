@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { isStaffRole } from '@/lib/roles'
 import { FocusTrap } from '@/components/ui/focus-trap'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 const shopItems = [
   { label: 'Shop', href: '/products' },
@@ -15,6 +16,8 @@ const shopItems = [
 
 export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { data: session } = useSession()
+
+  useBodyScrollLock(isOpen)
 
   if (!isOpen) return null
 

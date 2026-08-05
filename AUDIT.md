@@ -79,10 +79,10 @@ Magic numbers; `dangerouslySetInnerHTML` spots; docker-compose hardcoded `stride
 - [x] H12 Sentry — upgraded to `@sentry/nextjs@10.69.0` (Next 16 peer), `instrumentation.ts` + `instrumentation.client.ts` + `sentry.edge.config.js`
 
 ### Phase 3 — MEDIUM / LOW
-- [ ] M1 Security headers (CSP)
-- [ ] M2 Password policy + failed-login lockout
-- [ ] M3 Remaining indexes (category/brand slugs)
-- [ ] M4 Image dimensions (CLS)
-- [ ] M5 Accessibility: targets, contrast, form validation UX
-- [ ] M6 README + docs refresh
-- [ ] M7 Cleanup: dead configs, magic numbers, unused exports
+- [x] M1 Security headers — env-aware CSP (no `unsafe-eval` in prod, GTM/GA domains removed, analytics domain corrected, `upgrade-insecure-requests`)
+- [x] M2 Password policy (mixed case + number, min 8) + failed-login lockout (5 attempts → 15 min, schema + migration applied + tests)
+- [x] M3 Indexes — category/brand slug + Product FK indexes verified present in live DB
+- [x] M4 Image dimensions — width/height on all 19 `<img>` elements (CLS)
+- [x] M5 Accessibility — body scroll lock in mobile drawer/UserMenu, `onTouched` form validation (login/register), 40px header tap targets, muted-foreground contrast raised to AA
+- [x] M6 README rewritten (accurate setup, env vars, seed/no-user policy, e2e credentials, scripts)
+- [x] M7 Cleanup — `legacy-peer-deps` removed (all peers valid; nodemailer pinned to next-auth-supported 7.x), `pnpm.overrides` removed, `engines.node` added, dead `payment/inventory.service.ts` + 2 dead carousels deleted, free-shipping magic number env-driven, dead `icon-sm` variant removed

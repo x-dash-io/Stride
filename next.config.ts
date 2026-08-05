@@ -5,16 +5,26 @@ const withBundleAnalyzer = process.env.ANALYZE === 'true'
   ? require('@next/bundle-analyzer')()
   : (config: NextConfig) => config
 
+// CSP is stricter in production: no eval, no unused marketing domains.
+// 'unsafe-inline' stays for scripts because Next App Router inlines its
+// streaming bootstrap scripts (nonce support would require middleware).
+const isProd = process.env.NODE_ENV === 'production'
+
+const scriptSrc = isProd
+  ? "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com"
+  : "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.googletagmanager.com https://www.google-analytics.com https://vercel.live",
+  scriptSrc,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://res.cloudinary.com https://*.r2.dev https://pub-*.r2.dev https://*.s3.*.amazonaws.com https://*.r2.cloudflarestorage.com http://localhost:3000",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://*.upstash.io https://api.safaricom.co.ke https://sandbox.safaricom.co.ke https://*.r2.dev https://*.r2.cloudflarestorage.com",
+  "connect-src 'self' https://*.upstash.io https://api.safaricom.co.ke https://sandbox.safaricom.co.ke https://*.r2.dev https://*.r2.cloudflarestorage.com https://va.vercel-scripts.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
+  ...(isProd ? ["upgrade-insecure-requests"] : []),
 ].join('; ')
 
 import path from 'path'

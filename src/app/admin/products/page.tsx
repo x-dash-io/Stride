@@ -147,6 +147,8 @@ export default async function AdminProductsPage({
                             <img
                               src={product.images[0].url}
                               alt={product.name}
+                              width={48}
+                              height={48}
                               className="w-12 h-12 rounded-lg object-cover"
                             />
                           )}

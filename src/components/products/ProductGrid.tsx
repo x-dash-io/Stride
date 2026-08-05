@@ -66,7 +66,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
       <div className="aspect-square bg-muted relative overflow-hidden">
         {product.primaryImage ? (
-          <img src={product.primaryImage} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+          <img src={product.primaryImage} alt={product.name} width={640} height={640} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
         ) : (
           <Package className="w-12 h-12 text-muted-foreground" />
         )}

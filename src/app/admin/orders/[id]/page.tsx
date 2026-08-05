@@ -97,6 +97,8 @@ export default async function AdminOrderDetailPage({
                     <img
                       src={item.variant.product.images[0].url}
                       alt={item.variant.product.name}
+                      width={80}
+                      height={80}
                       className="w-20 h-20 rounded-lg object-cover"
                     />
                   )}
