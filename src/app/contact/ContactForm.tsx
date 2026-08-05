@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false)
@@ -36,8 +38,8 @@ export function ContactForm() {
         <Input id="subject" type="text" required placeholder="How can we help?" />
       </div>
       <div>
-        <label htmlFor="message" className="block text-sm font-medium mb-1">Message</label>
-        <textarea id="message" required rows={5} className="w-full px-4 py-2.5 border border-border rounded-lg bg-card text-foreground placeholder-muted-foreground text-sm resize-y transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent" placeholder="Tell us more..." />
+        <Label htmlFor="message" className="block text-sm font-medium mb-1">Message</Label>
+        <Textarea id="message" required rows={5} placeholder="Tell us more..." />
       </div>
       <Button type="submit" variant="default" className="w-full">Send Message</Button>
     </form>

@@ -11,18 +11,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loginSchema, LoginInput } from '@/lib/validations'
 import { useToast } from '@/providers/ToastProvider'
-import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || 
-                       searchParams.get('returnUrl') || 
+  const callbackUrl = searchParams.get('callbackUrl') ||
+                       searchParams.get('returnUrl') ||
                        '/products'
   const errorParam = searchParams.get('error')
   const { status, data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
-  const [justSignedIn, setJustSignedIn] = useState(false)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -31,34 +29,16 @@ function LoginForm() {
     }
   }, [errorParam, showToast])
 
-  // If user is already authenticated and visits login page directly (no callbackUrl),
-  // redirect them to their appropriate dashboard
-  // If they HAVE a callbackUrl, they were redirected from a protected page, so send them there
+  // If user is already authenticated and visits the login page,
+  // route through the server-side redirect handler so role-based
+  // redirect and callbackUrl validation are applied consistently.
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      const role = session.user.role
       const hasCallbackUrl = searchParams.get('callbackUrl') || searchParams.get('returnUrl')
-      if (isStaffRole(role)) {
-        router.replace(hasCallbackUrl || '/admin')
-      } else {
-        router.replace(hasCallbackUrl || getRoleHome(role))
-      }
+      const destination = hasCallbackUrl || '/products'
+      router.replace(`/auth/redirect?next=${encodeURIComponent(destination)}`)
     }
   }, [status, session, router, searchParams])
-
-  // After sign-in, redirect based on role.
-  // Staff (ADMIN / SUPER_ADMIN) always go to the admin dashboard.
-  // Customers go to the callbackUrl (e.g. /cart if they were bounced from checkout) or /products.
-  useEffect(() => {
-    if (justSignedIn && status === 'authenticated' && session?.user) {
-      const role = session.user.role
-      if (isStaffRole(role)) {
-        router.replace('/admin')
-      } else {
-        router.replace(callbackUrl)
-      }
-    }
-  }, [justSignedIn, status, callbackUrl, router, session])
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -81,12 +61,9 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        // Let the useEffect handle the redirect once the session updates with the user's role
-        setJustSignedIn(true)
+        router.replace(`/auth/redirect?next=${encodeURIComponent(callbackUrl)}`)
         return
       }
-
-      setJustSignedIn(true)
     } catch {
       showToast('error', 'Something went wrong')
     } finally {
@@ -98,14 +75,11 @@ function LoginForm() {
     <div className="container-max py-16 md:py-24 min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <Link href="/" className="font-serif text-3xl font-bold tracking-tight inline-block mb-6">
-            STRIDE
-          </Link>
           <h1 className="heading-page mb-2">Sign In</h1>
-          <p className="body-large text-muted-foreground">Welcome back to STRIDE</p>
+          <p className="body-large text-muted-foreground">Welcome back</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <Input

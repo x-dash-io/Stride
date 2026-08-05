@@ -5,6 +5,7 @@ import { useFormContext, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Trash2 } from 'lucide-react'
@@ -117,13 +118,8 @@ export function VariantsTab() {
                       <div className="flex gap-2">
                         <Input
                           {...register(`variants.${index}.colourHex` as any)}
-                          placeholder="#000000"
-                          type="text"
-                        />
-                        <input
-                          {...register(`variants.${index}.colourHex` as any)}
                           type="color"
-                          className="w-12 h-10 rounded cursor-pointer"
+                          className="w-12 h-10 p-1 rounded"
                         />
                       </div>
                     </div>
@@ -177,22 +173,15 @@ export function VariantsTab() {
                   </div>
 
                   <div className="flex gap-4 items-center">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        {...register(`variants.${index}.isActive` as any)}
-                        defaultChecked={true}
-                      />
-                      <span className="text-sm">Active</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        {...register(`variants.${index}.isDefault` as any)}
-                      />
-                      <span className="text-sm">Default variant</span>
-                    </label>
-                  </div>
+                      <div className="flex items-center gap-2">
+                        <Switch id={`isActive-${index}`} {...register(`variants.${index}.isActive` as any)} defaultChecked />
+                        <Label htmlFor={`isActive-${index}`} className="text-sm cursor-pointer">Active</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch id={`isDefault-${index}`} {...register(`variants.${index}.isDefault` as any)} />
+                        <Label htmlFor={`isDefault-${index}`} className="text-sm cursor-pointer">Default variant</Label>
+                      </div>
+                    </div>
                 </div>
               ))}
             </div>

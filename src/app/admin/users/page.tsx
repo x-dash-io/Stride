@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { ArrowLeft, Search, Users, ChevronLeft, ChevronRight, Shield } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
 
@@ -87,15 +88,25 @@ export default async function AdminUsersPage({
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
-        <select
-          name="role"
+        <Select
           defaultValue={role}
-          className="px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          onValueChange={(value) => {
+            const params = new URLSearchParams()
+            if (search) params.set('search', search)
+            params.set('role', value)
+            params.set('page', '1')
+            window.location.href = `/admin/users?${params.toString()}`
+          }}
         >
-          {roleOptions.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Filter by role" />
+          </SelectTrigger>
+          <SelectContent>
+            {roleOptions.map((r) => (
+              <SelectItem key={r} value={r}>{r}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </form>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">

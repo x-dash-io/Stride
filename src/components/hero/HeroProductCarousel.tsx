@@ -40,11 +40,11 @@ export function mapProductToShowcase(product: Product): ShowcaseProduct {
     name: product.name,
     slug: product.slug,
     category: product.category?.name ?? 'Featured',
-    brand: product.brand.name,
+    brand: product.brand?.name ?? 'STRIDE',
     price,
     originalPrice: onSale ? product.basePrice : undefined,
     badge: productBadge(product),
-    image: product.primaryImage ?? product.images[0]?.url,
+    image: product.primaryImage ?? product.images?.[0]?.url,
   }
 }
 
@@ -55,22 +55,45 @@ export function HeroProductCarousel({
 }) {
   const products = (incomingProducts ?? []).map(mapProductToShowcase)
 
+  // Debug logging in useEffect to avoid hydration mismatch
+  useEffect(() => {
+    console.log('[HeroProductCarousel] Products received:', incomingProducts?.length, 'Mapped:', products.length)
+    if (incomingProducts?.[0]) {
+      console.log('[HeroProductCarousel] First product:', {
+        id: incomingProducts[0].id,
+        name: incomingProducts[0].name,
+        brand: incomingProducts[0].brand,
+        category: incomingProducts[0].category,
+        primaryImage: incomingProducts[0].primaryImage,
+        images: incomingProducts[0].images?.length
+      })
+    }
+  }, [incomingProducts])
+
   const [index, setIndex] = useState(0)
   const [autoplay, setAutoplay] = useState(true)
   const [direction, setDirection] = useState(0)
-  const prefersReducedMotion = useSyncExternalStore(
-    (onStoreChange) => {
-      const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-      const onChange = (event: MediaQueryListEvent) => {
-        if (event.matches) setAutoplay(false)
-        onStoreChange()
-      }
-      media.addEventListener('change', onChange)
-      return () => media.removeEventListener('change', onChange)
-    },
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    () => false
-  )
+const prefersReducedMotion = mounted
+    ? useSyncExternalStore(
+        (onStoreChange) => {
+          const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+          const onChange = (event: MediaQueryListEvent) => {
+            if (event.matches) setAutoplay(false)
+            onStoreChange()
+          }
+          media.addEventListener('change', onChange)
+          return () => media.removeEventListener('change', onChange)
+        },
+        () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        () => false
+      )
+    : false
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const count = products.length
@@ -127,7 +150,49 @@ export function HeroProductCarousel({
 
   // Don't render if no products available — after all hooks so hook order stays stable
   if (products.length === 0) {
-    return null
+    if (typeof window !== 'undefined') {
+      console.warn('[HeroProductCarousel] No products to display, showing fallback')
+    }
+    return (
+      <div className="relative z-10 w-full min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-between py-10 md:py-16 overflow-hidden bg-background">
+        <div className="container-max w-full my-auto flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <h1 className="mt-4 mb-6 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold leading-[1.02] tracking-tight text-foreground text-balance">
+              Crafted For <br />
+              <span className="text-accent italic font-normal drop-shadow-sm">Excellence</span>
+            </h1>
+            <p className="mx-auto mb-10 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground font-medium">
+              Discover iconic footwear engineered with uncompromising artistry, premium materials, and modern ergonomic support.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="xl" asChild className="w-full sm:w-auto group relative overflow-hidden px-8 shadow-xl shadow-primary/10">
+                <Link href="/products">
+                  <span>Shop Collection</span>
+                  <ArrowRight className="ml-2.5 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="xl" asChild className="w-full sm:w-auto px-8 border-border/80 hover:bg-muted/50">
+                <Link href="/products">
+                  <span>Browse All Footwear</span>
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="w-full border-t border-border/40 pt-6 mt-8">
+          <div className="container-max flex flex-wrap items-center justify-center md:justify-between gap-6 text-xs text-muted-foreground font-medium">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <span>100% Authentic Footwear</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4 text-accent" />
+              <span>M-Pesa Instant Checkout</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const currentProduct = products[index] ?? products[0]
@@ -145,6 +210,7 @@ export function HeroProductCarousel({
 
   return (
     <div
+      suppressHydrationWarning
       className="relative z-10 w-full min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-between py-10 md:py-16 overflow-hidden bg-background"
       role="region"
       aria-roledescription="carousel"
@@ -165,18 +231,10 @@ export function HeroProductCarousel({
       <div className="container-max w-full my-auto">
         <div className="grid items-center gap-12 lg:grid-cols-12">
           
-          {/* Left Editorial Headline Section */}
-          <div className="lg:col-span-6 text-center lg:text-left z-20 flex flex-col justify-center">
-            
-            <div className="mb-4 inline-flex items-center gap-2 mx-auto lg:mx-0 justify-center">
-              <span className="h-px w-8 bg-accent"></span>
-              <span className="text-xs font-bold tracking-[0.2em] text-accent uppercase">
-                The New Standard
-              </span>
-            </div>
-
-            {/* Editorial Bold Main Title */}
-            <h1 className="mb-6 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold leading-[1.02] tracking-tight text-foreground text-balance">
+{/* Left Editorial Headline Section */}
+            <div className="lg:col-span-6 text-center lg:text-left z-20 flex flex-col justify-center">
+              {/* Editorial Bold Main Title */}
+              <h1 className="mb-6 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold leading-[1.02] tracking-tight text-foreground text-balance">
               Crafted For <br />
               <span className="text-accent italic font-normal drop-shadow-sm">Excellence</span>
             </h1>
@@ -235,13 +293,10 @@ export function HeroProductCarousel({
                       <div className="relative flex flex-col items-center justify-center w-full h-full p-4">
                         {/* High Resolution Floating Shoe Image */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          className={cn(
-                            'max-h-[300px] sm:max-h-[380px] lg:max-h-[420px] max-w-[90%] object-contain no-outline select-none filter drop-shadow-[0_25px_35px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_30px_50px_rgba(0,0,0,0.7)]',
-                            !prefersReducedMotion && 'float-animation'
-                          )}
+<img
+          src={p.image}
+          alt={p.name}
+          className="max-h-[300px] sm:max-h-[380px] lg:max-h-[420px] max-w-[90%] object-contain no-outline select-none filter drop-shadow-[0_25px_35px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_30px_50px_rgba(0,0,0,0.7)]"
                         />
 
                         {/* Ground Shadow */}

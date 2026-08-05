@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Product } from '@/types'
 
 type SizeSystem = 'EU' | 'US' | 'UK'
@@ -142,12 +143,12 @@ export function ProductOptions({ variants, selectedColor, selectedSize, quantity
             aria-label="Decrease quantity"
             className="min-h-[48px] min-w-[48px]"
           >−</Button>
-          <input
+          <Input
             type="number"
             value={quantity}
             onChange={(e) => onQuantityChange(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-16 text-center border border-border rounded py-2"
-            min="1"
+            className="w-16 text-center border border-border rounded"
+            min={1}
             max={maxStock}
           />
           <Button

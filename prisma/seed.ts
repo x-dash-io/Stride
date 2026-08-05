@@ -534,6 +534,8 @@ async function main() {
     update: {
       desktopImageUrl: `${IMAGE_BASE_URL}Air Jordan 4 Retro-black-red.jpg`,
       mobileImageUrl: `${IMAGE_BASE_URL}Air Jordan 4 Retro-black-red.jpg`,
+      textColor: '#ffffff',
+      bgColor: '#000000',
     },
     create: {
       id: 'hero-banner-1',
@@ -546,6 +548,8 @@ async function main() {
       placement: 'hero',
       isActive: true,
       sortOrder: 1,
+      textColor: '#ffffff',
+      bgColor: '#000000',
     },
   })
   console.log('[SUCCESS] Banners created')

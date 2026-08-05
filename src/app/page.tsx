@@ -47,11 +47,28 @@ export default async function HomePage() {
               : { backgroundColor: activeBanner.bgColor || undefined }
           }
         >
-          <div className={`${activeBanner.desktopImageUrl ? 'bg-black/55' : ''} container-max py-16 md:py-24 flex flex-col items-start`}>
+          <div
+            className="container-max py-16 md:py-24 flex flex-col items-start"
+            style={
+              activeBanner.desktopImageUrl
+                ? { backgroundColor: 'rgba(0, 0, 0, 0.55)' }
+                : activeBanner.bgColor
+                  ? { backgroundColor: activeBanner.bgColor }
+                  : undefined
+            }
+          >
             {activeBanner.subtitle && (
-              <p className="eyebrow text-white">{activeBanner.subtitle}</p>
+              <p
+                className="eyebrow"
+                style={activeBanner.textColor ? { color: activeBanner.textColor } : undefined}
+              >
+                {activeBanner.subtitle}
+              </p>
             )}
-            <h2 className="heading-section mt-2 text-white max-w-2xl text-balance">
+            <h2
+              className="heading-section mt-2 max-w-2xl text-balance"
+              style={activeBanner.textColor ? { color: activeBanner.textColor } : undefined}
+            >
               {activeBanner.title}
             </h2>
             {activeBanner.ctaText && activeBanner.ctaUrl && (

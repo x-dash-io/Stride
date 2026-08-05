@@ -263,12 +263,10 @@ export function CollectionManager({ initialCollections, products }: CollectionMa
                 <p className="p-4 text-sm text-muted-foreground">No products match your search.</p>
               )}
               {filteredProducts.map((product) => (
-                <label key={product.id} className="flex items-center gap-3 p-2.5 hover:bg-muted/40 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div key={product.id} className="flex items-center gap-3 p-2.5 hover:bg-muted/40">
+                  <Switch
                     checked={form.productIds.includes(product.id)}
-                    onChange={() => toggleProduct(product.id)}
-                    className="w-4 h-4 rounded border-border accent-primary"
+                    onCheckedChange={() => toggleProduct(product.id)}
                   />
                   {product.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -279,7 +277,7 @@ export function CollectionManager({ initialCollections, products }: CollectionMa
                     </div>
                   )}
                   <span className="text-sm font-medium truncate">{product.name}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>

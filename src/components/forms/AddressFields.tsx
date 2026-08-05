@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { AddressFormData } from './AddressForm'
 
@@ -150,16 +151,10 @@ export function AddressFields({
         <Input value="Kenya" readOnly className="bg-muted font-medium" />
       </div>
 
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
-        <input
-          type="checkbox"
-          checked={data.isDefault}
-          onChange={(e) => onFieldChange('isDefault', e.target.checked)}
-          disabled={isLoading}
-          className="rounded border-input"
-        />
-        Set as default address
-      </label>
+      <div className="flex items-center gap-2">
+        <Switch id="isDefault" checked={data.isDefault} onCheckedChange={(checked) => onFieldChange('isDefault', checked)} disabled={isLoading} />
+        <Label htmlFor="isDefault" className="text-sm cursor-pointer">Set as default address</Label>
+      </div>
     </div>
   )
 }

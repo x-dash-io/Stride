@@ -39,7 +39,7 @@ export function ProductInfo({ product, price, originalPrice, availableStock }: P
 
       {badge && (
         <div className="mb-4">
-          <span className={`${badge.className} text-white text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full shadow-sm`}>
+          <span className={`${badge.className} text-white text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full shadow-sm bg-opacity-90 backdrop-blur-sm`}>
             {badge.label}
           </span>
         </div>

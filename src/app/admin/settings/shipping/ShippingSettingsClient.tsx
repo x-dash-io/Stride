@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2, Edit2, Check, X, MapPin } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useToast } from '@/providers/ToastProvider'
@@ -250,13 +251,7 @@ export function ShippingSettingsClient({ initialZones }: ShippingSettingsClientP
                 </div>
 
                 <div className="flex items-center gap-2 md:col-span-2">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
+                  <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
                   <Label htmlFor="isActive">Active (available at checkout)</Label>
                 </div>
               </div>

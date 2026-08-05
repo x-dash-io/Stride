@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { shippingAddressSchema } from '@/lib/validations'
@@ -110,11 +111,16 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="label">Address Label</Label>
-              <select {...register('label')} className="w-full px-3 py-2 border border-border rounded-lg bg-background">
-                <option value="Home">Home</option>
-                <option value="Work">Work</option>
-                <option value="Other">Other</option>
-              </select>
+              <Select onValueChange={(value) => register('label').onChange({ target: { value } } as any)} defaultValue="Home">
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select label" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Home">Home</SelectItem>
+                  <SelectItem value="Work">Work</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name *</Label>
@@ -153,18 +159,22 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
                   Loading counties...
                 </div>
               ) : (
-                <select
-                  id="state"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  {...register('state', { required: 'County is required' })}
+                <Select
+                  onValueChange={(value) => register('state', { required: 'County is required' }).onChange({ target: { value } } as any)}
+                  defaultValue=""
                 >
-                  <option value="">Select County...</option>
-                  {zones.map((zone) => (
-                    <option key={zone.id} value={zone.name}>
-                      {zone.name} (KES {zone.baseCost})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full" id="state">
+                    <SelectValue placeholder="Select County..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="" disabled>Select County...</SelectItem>
+                    {zones.map((zone) => (
+                      <SelectItem key={zone.id} value={zone.name}>
+                        {zone.name} (KES {zone.baseCost})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
               {errors.state && <p className="text-sm text-destructive">{String(errors.state.message)}</p>}
             </div>

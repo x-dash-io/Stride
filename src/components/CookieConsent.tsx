@@ -1,6 +1,6 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -18,19 +18,14 @@ function readConsent(): ConsentChoice {
   return null
 }
 
-function subscribe(callback: () => void): () => void {
-  window.addEventListener('storage', callback)
-  window.addEventListener('stride-consent', callback)
-  return () => {
-    window.removeEventListener('storage', callback)
-    window.removeEventListener('stride-consent', callback)
-  }
-}
-
 export function CookieConsent() {
-  const choice = useSyncExternalStore(subscribe, readConsent, () => null)
+  const [choice, setChoice] = useState<ConsentChoice>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
-  if (choice !== null) return null
+  useEffect(() => {
+    setIsMounted(true)
+    setChoice(readConsent())
+  }, [])
 
   const choose = (value: Exclude<ConsentChoice, null>) => {
     try {
@@ -38,8 +33,11 @@ export function CookieConsent() {
     } catch {
       // localStorage unavailable — dismiss for the session only
     }
-    window.dispatchEvent(new Event('stride-consent'))
+    setChoice(value)
   }
+
+  // Don't render anything until mounted and if consent has been given
+  if (!isMounted || choice !== null) return null
 
   return (
     <div

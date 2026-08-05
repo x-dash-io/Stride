@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Check, AlertTriangle, ShieldCheck, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
@@ -154,17 +155,20 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
             <form onSubmit={handleManagerUpdate} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="managerStatus" className="text-sm font-semibold tracking-tight">Set Status</Label>
-                <select
-                  id="managerStatus"
+                <Select
                   value={managerStatus}
-                  onChange={(e: any) => setManagerStatus(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm font-medium focus:ring-2 focus:ring-primary/20"
+                  onValueChange={setManagerStatus}
                 >
-                  <option value="PAID">PAID</option>
-                  <option value="UNPAID">UNPAID</option>
-                  <option value="OVERDUE">OVERDUE</option>
-                  <option value="WAIVED">WAIVED</option>
-                </select>
+                  <SelectTrigger id="managerStatus" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PAID">PAID</SelectItem>
+                    <SelectItem value="UNPAID">UNPAID</SelectItem>
+                    <SelectItem value="OVERDUE">OVERDUE</SelectItem>
+                    <SelectItem value="WAIVED">WAIVED</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {managerStatus === 'PAID' && (

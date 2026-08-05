@@ -67,27 +67,27 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
       {/* Status Badge */}
       <div className="absolute top-3 right-3 z-10">
         {product.tag === 'LIMITED_EDITION' && (
-          <span className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+          <span className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-opacity-90 backdrop-blur-sm">
             Limited Edition
           </span>
         )}
         {product.tag === 'NEW_ARRIVAL' && (
-          <span className="bg-blue-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+          <span className="bg-blue-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-opacity-90 backdrop-blur-sm">
             New
           </span>
         )}
         {product.tag === 'TRENDING' && (
-          <span className="bg-pink-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+          <span className="bg-pink-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-opacity-90 backdrop-blur-sm">
             Trending
           </span>
         )}
         {product.tag === 'FEATURED' && (
-          <span className="bg-purple-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+          <span className="bg-purple-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-opacity-90 backdrop-blur-sm">
             Featured
           </span>
         )}
         {product.tag === 'BEST_SELLER' && (
-          <span className="bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded">
+          <span className="bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-opacity-90 backdrop-blur-sm">
             Best Seller
           </span>
         )}
@@ -138,12 +138,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
         <div className="flex items-baseline gap-2 mb-3 mt-auto">
           <span className="text-xl font-bold text-primary">{formatPrice(price)}</span>
           {originalPrice && (
-            <>
-              <span className="text-sm line-through text-muted-foreground">{formatPrice(originalPrice)}</span>
-              {discountPercent && (
-                <span className="text-xs text-destructive font-semibold tracking-wide">Save {discountPercent}%</span>
-              )}
-            </>
+            <span className="text-sm line-through text-muted-foreground">{formatPrice(originalPrice)}</span>
           )}
         </div>
 

@@ -1,32 +1,44 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 
 interface ProductSortProps {
   currentSort?: string
 }
+
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'price-asc', label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
+  { value: 'popular', label: 'Most Popular' },
+  { value: 'rating', label: 'Highest Rated' },
+] as const
 
 export function ProductSort({ currentSort }: ProductSortProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   return (
-    <select
+    <Select
       value={currentSort || 'newest'}
-      onChange={(e) => {
+      onValueChange={(value) => {
         const params = new URLSearchParams(searchParams.toString())
-        params.set('sort', e.target.value)
+        params.set('sort', value)
         params.delete('page')
         router.push(`/products?${params.toString()}`)
       }}
-      className="px-3 py-2 border border-border rounded-lg bg-card text-foreground text-sm w-auto focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent cursor-pointer"
     >
-      <option value="newest">Newest</option>
-      <option value="price-asc">Price: Low to High</option>
-      <option value="price-desc">Price: High to Low</option>
-      <option value="popular">Most Popular</option>
-      <option value="rating">Highest Rated</option>
-    </select>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Sort by" />
+      </SelectTrigger>
+      <SelectContent>
+        {SORT_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
-

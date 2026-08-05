@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 interface ProductFiltersProps {
   categories: Array<{ id: string; name: string; slug: string; children?: Array<{ id: string; name: string; slug: string }> }>
@@ -97,122 +98,80 @@ export function ProductFilters({
       {/* Category Filter */}
       <div>
         <Label className="text-sm font-semibold uppercase tracking-wider mb-3 block">Category</Label>
-        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-          <label className="flex items-center cursor-pointer hover:text-primary">
-            <input
-              type="radio"
-              name="category"
-              value=""
-              checked={!currentCategorySlug}
-              onChange={() => updateFilters({ category: null })}
-              className="w-4 h-4 text-primary focus:ring-primary"
-            />
-            <span className="ml-2 text-sm font-medium">All Categories</span>
-          </label>
+        <RadioGroup value={currentCategorySlug || '__all__'} onValueChange={(val) => updateFilters({ category: val === '__all__' ? null : val })} className="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <div className="flex items-center">
+            <RadioGroupItem value="__all__" id="cat-all" />
+            <Label htmlFor="cat-all" className="ml-2 text-sm font-medium cursor-pointer">All Categories</Label>
+          </div>
           {categories.map((cat) => {
             const isCatSelected = currentCategorySlug === cat.slug.toLowerCase()
             return (
               <div key={cat.id} className="space-y-1">
-                <label className="flex items-center cursor-pointer hover:text-primary">
-                  <input
-                    type="radio"
-                    name="category"
-                    value={cat.slug}
-                    checked={isCatSelected}
-                    onChange={() => updateFilters({ category: cat.slug })}
-                    className="w-4 h-4 text-primary focus:ring-primary"
-                  />
-                  <span className={cn('ml-2 text-sm capitalize', isCatSelected && 'font-semibold text-primary')}>
+                <div className="flex items-center">
+                  <RadioGroupItem value={cat.slug} id={`cat-${cat.id}`} />
+                  <Label htmlFor={`cat-${cat.id}`} className={cn('ml-2 text-sm capitalize cursor-pointer', isCatSelected && 'font-semibold text-primary')}>
                     {cat.name}
-                  </span>
-                </label>
+                  </Label>
+                </div>
                 {cat.children && cat.children.length > 0 && (
-                  <div className="ml-5 space-y-1 border-l border-border pl-3 mt-1">
+                  <RadioGroup value={currentCategorySlug || '__all__'} onValueChange={(val) => updateFilters({ category: val === '__all__' ? null : val })} className="ml-5 space-y-1 border-l border-border pl-3 mt-1">
                     {cat.children.map((child) => {
                       const isChildSelected = currentCategorySlug === child.slug.toLowerCase()
                       return (
-                        <label key={child.id} className="flex items-center cursor-pointer hover:text-primary">
-                          <input
-                            type="radio"
-                            name="category"
-                            value={child.slug}
-                            checked={isChildSelected}
-                            onChange={() => updateFilters({ category: child.slug })}
-                            className="w-3.5 h-3.5 text-primary focus:ring-primary"
-                          />
-                          <span className={cn('ml-2 text-xs capitalize', isChildSelected && 'font-semibold text-primary')}>
+                        <div key={child.id} className="flex items-center">
+                          <RadioGroupItem value={child.slug} id={`cat-${child.id}`} />
+                          <Label htmlFor={`cat-${child.id}`} className={cn('ml-2 text-xs capitalize cursor-pointer', isChildSelected && 'font-semibold text-primary')}>
                             {child.name}
-                          </span>
-                        </label>
+                          </Label>
+                        </div>
                       )
                     })}
-                  </div>
+                  </RadioGroup>
                 )}
               </div>
             )
           })}
-        </div>
+        </RadioGroup>
       </div>
 
       {/* Gender Filter */}
       <div>
         <Label className="text-sm font-semibold uppercase tracking-wider mb-3 block">Gender</Label>
-        <div className="space-y-2">
+        <RadioGroup value={currentGender || '__all__'} onValueChange={(val) => updateFilters({ gender: val === '__all__' ? null : val })} className="space-y-2">
           {GENDER_OPTIONS.map(({ label, value }) => {
             const isSelected = currentGender === value
             return (
-              <label key={value} className="flex items-center cursor-pointer hover:text-primary">
-                <input
-                  type="radio"
-                  name="gender"
-                  value={value}
-                  checked={isSelected}
-                  onChange={() => updateFilters({ gender: value || null })}
-                  className="w-4 h-4 text-primary focus:ring-primary"
-                />
-                <span className={cn('ml-2 text-sm', isSelected && 'font-semibold text-primary')}>
+              <div key={value} className="flex items-center">
+                <RadioGroupItem value={value} id={`gender-${value}`} />
+                <Label htmlFor={`gender-${value}`} className={cn('ml-2 text-sm cursor-pointer', isSelected && 'font-semibold text-primary')}>
                   {label}
-                </span>
-              </label>
+                </Label>
+              </div>
             )
           })}
-        </div>
+        </RadioGroup>
       </div>
 
       {/* Brand Filter */}
       <div>
         <Label className="text-sm font-semibold uppercase tracking-wider mb-3 block">Brand</Label>
-        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-          <label className="flex items-center cursor-pointer hover:text-primary">
-            <input
-              type="radio"
-              name="brand"
-              value=""
-              checked={!currentBrandSlug}
-              onChange={() => updateFilters({ brand: null })}
-              className="w-4 h-4 text-primary focus:ring-primary"
-            />
-            <span className="ml-2 text-sm font-medium">All Brands</span>
-          </label>
+        <RadioGroup value={currentBrandSlug || '__all__'} onValueChange={(val) => updateFilters({ brand: val === '__all__' ? null : val })} className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <div className="flex items-center">
+            <RadioGroupItem value="__all__" id="brand-all" />
+            <Label htmlFor="brand-all" className="ml-2 text-sm font-medium cursor-pointer">All Brands</Label>
+          </div>
           {brands.map((brand) => {
             const isBrandSelected = currentBrandSlug === brand.slug.toLowerCase()
             return (
-              <label key={brand.id} className="flex items-center cursor-pointer hover:text-primary">
-                <input
-                  type="radio"
-                  name="brand"
-                  value={brand.slug}
-                  checked={isBrandSelected}
-                  onChange={() => updateFilters({ brand: brand.slug })}
-                  className="w-4 h-4 text-primary focus:ring-primary"
-                />
-                <span className={cn('ml-2 text-sm', isBrandSelected && 'font-semibold text-primary')}>
+              <div key={brand.id} className="flex items-center">
+                <RadioGroupItem value={brand.slug} id={`brand-${brand.id}`} />
+                <Label htmlFor={`brand-${brand.id}`} className={cn('ml-2 text-sm cursor-pointer', isBrandSelected && 'font-semibold text-primary')}>
                   {brand.name}
-                </span>
-              </label>
+                </Label>
+              </div>
             )
           })}
-        </div>
+        </RadioGroup>
       </div>
 
       {/* Size Filter */}

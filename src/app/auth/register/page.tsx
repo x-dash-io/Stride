@@ -14,8 +14,8 @@ import { useToast } from '@/providers/ToastProvider'
 export default function RegisterPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || 
-                       searchParams.get('returnUrl') || 
+  const callbackUrl = searchParams.get('callbackUrl') ||
+                       searchParams.get('returnUrl') ||
                        '/products'
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
@@ -44,7 +44,8 @@ export default function RegisterPage() {
       }
 
       showToast('success', 'Account created successfully!')
-      router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+      const safeCallbackUrl = callbackUrl === '/cart' ? '/' : callbackUrl
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`)
     } catch (error) {
       showToast('error', 'Something went wrong')
     } finally {
@@ -56,11 +57,8 @@ export default function RegisterPage() {
     <div className="container-max py-16 md:py-24 min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <Link href="/" className="font-serif text-3xl font-bold tracking-tight inline-block mb-6">
-            STRIDE
-          </Link>
           <h1 className="heading-page mb-2">Create Account</h1>
-          <p className="body-large text-muted-foreground">Join STRIDE for a premium shopping experience</p>
+          <p className="body-large text-muted-foreground">Join for a premium shopping experience</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

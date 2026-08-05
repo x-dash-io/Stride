@@ -230,7 +230,7 @@ export function WarehouseManager({ rows, page, totalPages, search }: WarehouseMa
                 <Input id="country" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Kenya" />
               </div>
               <div className="flex items-center gap-2">
-                <Input id="isActive" type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+                <Switch id="isActive" checked={form.isActive} onCheckedChange={(checked) => setForm({ ...form, isActive: checked })} />
                 <Label htmlFor="isActive">Active</Label>
               </div>
             </div>

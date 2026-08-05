@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Plus, Trash2, Pencil, X, Search, Folder, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 
@@ -249,19 +250,22 @@ export function CategoryManager({ rows, page, totalPages, search }: CategoryMana
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="parentId">Parent Category</Label>
-<select
-                  id="parentId"
+                <Select
                   value={form.parentId || ''}
-                  onChange={(e) => setForm({ ...form, parentId: e.target.value || null })}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onValueChange={(value) => setForm({ ...form, parentId: value || null })}
                 >
-                  <option value="">None (top-level)</option>
-                  {allCategories
-                    .filter(c => c.id !== editingId)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                </select>
+                  <SelectTrigger id="parentId" className="w-full">
+                    <SelectValue placeholder="None (top-level)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="" disabled>None (top-level)</SelectItem>
+                    {allCategories
+                      .filter(c => c.id !== editingId)
+                      .map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="imageUrl">Image URL</Label>
@@ -281,12 +285,7 @@ export function CategoryManager({ rows, page, totalPages, search }: CategoryMana
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Input
-                  id="isActive"
-                  type="checkbox"
-                  checked={form.isActive}
-                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                />
+                <Switch id="isActive" checked={form.isActive} onCheckedChange={(checked) => setForm({ ...form, isActive: checked })} />
                 <Label htmlFor="isActive">Active</Label>
               </div>
             </div>

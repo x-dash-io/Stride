@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Search, Mail, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
 
@@ -73,15 +74,25 @@ export default async function AdminNewsletterPage({
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
-        <select
-          name="subscribed"
+        <Select
           defaultValue={subscribed}
-          className="px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          onValueChange={(value) => {
+            const params = new URLSearchParams()
+            if (search) params.set('search', search)
+            params.set('subscribed', value)
+            params.set('page', '1')
+            window.location.href = `/admin/newsletter?${params.toString()}`
+          }}
         >
-          <option value="ALL">All</option>
-          <option value="ACTIVE">Active</option>
-          <option value="UNSUBSCRIBED">Unsubscribed</option>
-        </select>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="UNSUBSCRIBED">Unsubscribed</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" asChild>
           <a href="/api/admin/newsletter/export" download>
             <Download className="w-4 h-4 mr-2" /> Export CSV

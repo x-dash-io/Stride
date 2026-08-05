@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { auth } from '@/lib/auth'
 import { isStaffRole, getRoleHome } from '@/lib/roles'
 
 export async function proxy(request: NextRequest) {
-  const token = await getToken({ req: request })
+  const token = await auth(request)
   const { nextUrl } = request
 
   // ── Authentication: is this an identified user? ──────────────────────────
