@@ -1,8 +1,7 @@
 'use client'
 
-import { useFormContext, Controller } from 'react-hook-form'
-import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
+import { useFormContext } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { TabsContent } from '@/components/ui/tabs'
-import { productCreateSchema, ProductCreateInput } from '@/lib/validations'
-import { ChevronRight } from 'lucide-react'
 
 const genderOptions = [
   { value: 'MEN', label: 'Men' },
@@ -28,7 +25,26 @@ const statusOptions = [
 ] as const
 
 export function BasicInfoTab() {
-  const { register, control, watch, setValue, formState: { errors } } = useFormContext()
+  const { register, formState: { errors } } = useFormContext()
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([])
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      fetch('/api/admin/brands').then((res) => (res.ok ? res.json() : [])),
+      fetch('/api/admin/categories').then((res) => (res.ok ? res.json() : [])),
+    ])
+      .then(([brandList, categoryList]) => {
+        if (cancelled) return
+        setBrands(brandList)
+        setCategories(categoryList)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <TabsContent value="basic" className="space-y-6">
@@ -56,11 +72,16 @@ export function BasicInfoTab() {
                   <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="nike">Nike</SelectItem>
-                  <SelectItem value="adidas">Adidas</SelectItem>
-                  <SelectItem value="puma">Puma</SelectItem>
-                  <SelectItem value="new-balance">New Balance</SelectItem>
-                  <SelectItem value="african-footwear">African Footwear Co.</SelectItem>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                  {brands.length === 0 && (
+                    <SelectItem value="__none__" disabled>
+                      No brands available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               {errors.brandId && <p className="text-sm text-destructive">{(errors.brandId.message as string) || 'Invalid'}</p>}
@@ -72,11 +93,16 @@ export function BasicInfoTab() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sneakers">Sneakers</SelectItem>
-                  <SelectItem value="formal-shoes">Formal Shoes</SelectItem>
-                  <SelectItem value="boots">Boots</SelectItem>
-                  <SelectItem value="sandals">Sandals</SelectItem>
-                  <SelectItem value="kids">Kids</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                  {categories.length === 0 && (
+                    <SelectItem value="__none__" disabled>
+                      No categories available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

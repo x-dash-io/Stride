@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Star, ThumbsUp, MessageSquare } from 'lucide-react'
 import { Review } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -18,14 +19,39 @@ function ReviewCard({ review }: { review: Review }) {
   const [helpfulCount, setHelpfulCount] = useState(review.helpfulCount)
   const [hasVotedHelpful, setHasVotedHelpful] = useState(false)
 
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/reviews/${review.id}/helpful`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        setHasVotedHelpful(data.hasVoted)
+        setHelpfulCount(data.helpfulCount)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [review.id])
+
   const handleHelpful = async () => {
-    if (hasVotedHelpful) return
-    setHasVotedHelpful(true)
-    setHelpfulCount((prev) => prev + 1)
+    const previous = hasVotedHelpful
+    setHasVotedHelpful(!previous)
+    setHelpfulCount((prev) => Math.max(0, prev + (previous ? -1 : 1)))
     try {
-      await fetch(`/api/reviews/${review.id}/helpful`, { method: 'POST' })
+      const res = await fetch(`/api/reviews/${review.id}/helpful`, { method: 'POST' })
+      if (!res.ok) {
+        setHasVotedHelpful(previous)
+        setHelpfulCount((prev) => Math.max(0, prev + (previous ? 1 : -1)))
+        return
+      }
+      const data = await res.json()
+      setHasVotedHelpful(data.hasVoted)
+      setHelpfulCount(data.helpfulCount)
     } catch (err) {
       console.error('Failed to vote helpful:', err)
+      setHasVotedHelpful(previous)
+      setHelpfulCount((prev) => Math.max(0, prev + (previous ? 1 : -1)))
     }
   }
 
@@ -61,15 +87,16 @@ function ReviewCard({ review }: { review: Review }) {
       <p className="text-muted-foreground text-sm mb-3">{review.body}</p>
       <div className="flex items-center gap-4 text-sm">
         <button
+          type="button"
           onClick={handleHelpful}
-          disabled={hasVotedHelpful}
+          aria-pressed={hasVotedHelpful}
           className={cn(
             'text-muted-foreground hover:text-foreground flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border transition-colors text-xs font-medium',
-            hasVotedHelpful && 'text-primary border-primary bg-primary/5 cursor-default'
+            hasVotedHelpful && 'text-primary border-primary bg-primary/5'
           )}
         >
           <ThumbsUp className="w-3.5 h-3.5" />
-          {hasVotedHelpful ? 'Helpful' : 'Helpful'} ({helpfulCount})
+          {hasVotedHelpful ? 'Helpful' : 'Mark as helpful'} ({helpfulCount})
         </button>
       </div>
     </div>
@@ -78,12 +105,20 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function ProductReviews({ productId, reviews }: ProductReviewsProps) {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
+  const formRef = useRef<HTMLFormElement>(null)
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [body, setBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (searchParams.get('review') === '1') {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [searchParams])
 
   const avgRating = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
@@ -113,9 +148,12 @@ export default function ProductReviews({ productId, reviews }: ProductReviewsPro
     setError('')
 
     try {
+      const csrfRes = await fetch('/api/csrf')
+      const { csrfToken } = await csrfRes.json()
+
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
         body: JSON.stringify({ productId, rating, body: body.trim() }),
       })
       if (!res.ok) {
@@ -190,7 +228,7 @@ export default function ProductReviews({ productId, reviews }: ProductReviewsPro
 
       {/* Submit Form */}
       {!submitted ? (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4 scroll-mt-24">
           <h3 className="text-lg font-semibold">Write a Review</h3>
 
           {error && (

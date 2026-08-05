@@ -33,16 +33,10 @@ export default function NewProductPage() {
   const onSubmit = async (data: ProductCreateInput) => {
     setIsSubmitting(true)
     try {
-      const formData = new FormData()
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, typeof value === 'boolean' ? String(value) : String(value))
-        }
-      })
-
       const response = await fetch('/api/admin/products', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       })
 
       const result = await response.json()
@@ -52,7 +46,7 @@ export default function NewProductPage() {
       }
 
       showToast('success', 'Product created successfully')
-      router.push(`/admin/products/${result.id}`)
+      router.push('/admin/products')
     } catch (error) {
       showToast('error', error instanceof Error ? error.message : 'Failed to create product')
     } finally {

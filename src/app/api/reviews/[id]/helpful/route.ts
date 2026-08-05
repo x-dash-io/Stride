@@ -1,45 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createProtectedRoute } from '@/lib/api-protection'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
-import { getClientIp } from '@/lib/utils'
-import { apiRateLimit, rateLimit } from '@/lib/rate-limit'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+type RouteContext = {
+  session: { user: { id: string } }
+  ip: string
+}
 
-  // Add rate limiting
-  const ip = getClientIp(request)
-  const { success } = await rateLimit(apiRateLimit, `review-helpful:${ip}`)
-  if (!success) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-
-  const { id } = await params
-
-  // Check if user already voted
-  const existingVote = await prisma.reviewHelpfulVote.findUnique({
-    where: { reviewId_userId: { reviewId: id, userId: session.user.id } }
-  })
-  if (existingVote) {
-    return NextResponse.json({ error: 'Already voted' }, { status: 409 })
-  }
-
-  // Use transaction for atomicity
-  await prisma.$transaction([
-    prisma.review.update({
-      where: { id },
-      data: { helpfulCount: { increment: 1 } }
+async function getVoteState(reviewId: string, userId: string) {
+  const [vote, review] = await Promise.all([
+    prisma.reviewHelpfulVote.findUnique({
+      where: { reviewId_userId: { reviewId, userId } },
+      select: { id: true },
     }),
-    prisma.reviewHelpfulVote.create({
-      data: { reviewId: id, userId: session.user.id }
-    })
+    prisma.review.findUnique({
+      where: { id: reviewId },
+      select: { helpfulCount: true },
+    }),
   ])
 
-  return NextResponse.json({ success: true })
+  return {
+    hasVoted: Boolean(vote),
+    helpfulCount: review?.helpfulCount ?? 0,
+  }
 }
+
+async function handleGetVote(
+  _request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> },
+  routeContext: RouteContext
+) {
+  const { id } = await params
+  const state = await getVoteState(id, routeContext.session.user.id)
+  return NextResponse.json(state)
+}
+
+async function handleToggleVote(
+  _request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> },
+  routeContext: RouteContext
+) {
+  const { id } = await params
+  const userId = routeContext.session.user.id
+
+  const review = await prisma.review.findUnique({ where: { id }, select: { id: true } })
+  if (!review) {
+    return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+  }
+
+  const existingVote = await prisma.reviewHelpfulVote.findUnique({
+    where: { reviewId_userId: { reviewId: id, userId } },
+    select: { id: true },
+  })
+
+  if (existingVote) {
+    await prisma.$transaction([
+      prisma.reviewHelpfulVote.delete({ where: { id: existingVote.id } }),
+      prisma.review.update({
+        where: { id },
+        data: { helpfulCount: { decrement: 1 } },
+      }),
+    ])
+  } else {
+    await prisma.$transaction([
+      prisma.reviewHelpfulVote.create({ data: { reviewId: id, userId } }),
+      prisma.review.update({
+        where: { id },
+        data: { helpfulCount: { increment: 1 } },
+      }),
+    ])
+  }
+
+  const state = await getVoteState(id, userId)
+  return NextResponse.json(state)
+}
+
+export const GET = createProtectedRoute(handleGetVote, { requireAuth: true, rateLimit: 'api' })
+export const POST = createProtectedRoute(handleToggleVote, { requireAuth: true, rateLimit: 'api' })

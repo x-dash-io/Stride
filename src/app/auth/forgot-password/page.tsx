@@ -12,13 +12,28 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-    setIsSubmitted(true)
+    setError('')
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Something went wrong')
+      }
+      setIsSubmitted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isSubmitted) {
@@ -69,6 +84,7 @@ export default function ForgotPasswordPage() {
                 disabled={isLoading}
                 required
               />
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={isLoading || !email}>
               {isLoading ? 'Sending...' : 'Send Reset Link'}

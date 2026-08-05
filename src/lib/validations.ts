@@ -76,23 +76,33 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 
+export const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128)
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must include uppercase, lowercase and a number')
+
 export const registerSchema = z.object({
   name: sanitizedName,
   email: sanitizedEmail,
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must include uppercase, lowercase and a number'),
-  confirmPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must include uppercase, lowercase and a number'),
+  password: passwordSchema,
+  confirmPassword: passwordSchema,
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
 
 export type RegisterInput = z.infer<typeof registerSchema>
+
+export const forgotPasswordSchema = z.object({
+  email: sanitizedEmail,
+})
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  password: passwordSchema,
+})
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 
 export const reviewSchema = z.object({
   productId: z.string().cuid(),

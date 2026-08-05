@@ -139,20 +139,20 @@ Phase 3 (Critical Data Issues - COMPLETED):
 Phase 4 (High Priority Features - COMPLETED):
 12. ✅ Wishlist remove button - Now functional with server action
 13. ✅ Wishlist API endpoints - Created add/remove actions
-14. ⏳ Review helpful count - Not implemented (low priority)
-15. ⏳ Verified purchase status - Not implemented (low priority)
-16. ⏳ Forgot password - Not implemented (low priority)
+14. ✅ Review helpful count - Implemented: toggle vote API (POST + GET state, withProtection) and client component with optimistic updates
+15. ✅ Verified purchase status - Implemented: server-derived from orderItemId at review creation, badge rendered, review CTA on order detail
+16. ✅ Forgot password - Implemented: token flow via VerificationToken, email via sendEmail, forgot/reset pages
 
 Phase 5 (Code Cleanup - COMPLETED):
 17. ✅ SKU search fix - Now searches variants correctly
 18. ✅ Unused slate theme - Removed from globals.css
 19. ✅ Product status duplicate - Removed duplicate type definition
-20. ⏳ Hero carousel simplification - Not implemented (low priority)
-21. ⏳ Duplicate query logic - Not implemented (low priority)
+20. ✅ Hero carousel simplification - Dead code removed, scoped keyboard nav
+21. ✅ Duplicate query logic - queries.ts and actions/orders.ts removed, pages use order.service
 
-REMAINING LOW PRIORITY ITEMS:
-- Review helpful count functionality
-- Verified purchase status logic
-- Forgot password implementation
-- Hero carousel simplification
-- Duplicate query logic consolidation
+REMAINING LOW PRIORITY ITEMS (ALL COMPLETED):
+- Review helpful count functionality - Done
+- Verified purchase status logic - Done
+- Forgot password implementation - Done
+- Hero carousel simplification - Done
+- Duplicate query logic consolidation - Done

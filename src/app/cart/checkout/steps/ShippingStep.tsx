@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { shippingAddressSchema } from '@/lib/validations'
-import { ChevronRight as ChevronRightIcon, Loader2 as Loader2Icon } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 
 interface ShippingStepProps {
@@ -68,16 +67,16 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
   const onSubmit = async (data: any) => {
     setIsSubmitting(true)
     try {
-      const formData = new FormData()
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, typeof value === 'boolean' ? String(value) : String(value))
-        }
-      })
+      const csrfRes = await fetch('/api/csrf')
+      const { csrfToken } = await csrfRes.json()
 
       const response = await fetch('/api/account/addresses', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -91,7 +90,7 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
       }
 
       const result = await response.json()
-      onNext(result.addressId)
+      onNext(result.id)
     } catch (error) {
       console.error('Shipping address error:', error)
       showToast('error', error instanceof Error ? error.message : 'Failed to save address')

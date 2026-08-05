@@ -221,7 +221,13 @@ const orderDetailsInclude = {
     include: {
       variant: {
         include: {
-          product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
+          product: {
+            select: {
+              id: true,
+              slug: true,
+              images: { where: { isPrimary: true }, take: 1 },
+            },
+          },
         },
       },
     },

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
-import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Truck, CheckCircle, Clock, Package, MapPin, Smartphone, CreditCard, ShoppingBag, MessageSquarePlus } from 'lucide-react'
 import Link from 'next/link'
 import { requireCustomer } from '@/lib/authz'
 import { getOrderDetails } from '@/lib/services/order.service'
@@ -86,6 +86,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     <p className="font-semibold">{formatPrice(Number(item.totalPrice))}</p>
                     <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                   </div>
+                  {['CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status) && item.variant.product.slug && (
+                    <div className="flex items-center">
+                      <Link
+                        href={`/products/${item.variant.product.slug}?review=1`}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
+                      >
+                        <MessageSquarePlus className="h-3.5 w-3.5" />
+                        Write a review
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
