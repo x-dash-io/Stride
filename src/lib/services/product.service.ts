@@ -46,7 +46,6 @@ export interface ProductListItem {
   isTrending: boolean
   basePrice: number
   salePrice: number | null
-  costPrice: number | null
   currency: string
   weightKg: number | null
   publishedAt: string | null
@@ -138,7 +137,6 @@ export interface ProductDetail {
   isTrending: boolean
   basePrice: number
   salePrice: number | null
-  costPrice: number | null
   currency: string
   weightKg: number | null
   ratingAvg: number
@@ -285,7 +283,6 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
         isTrending: true,
         basePrice: true,
         salePrice: true,
-        costPrice: true,
         currency: true,
         weightKg: true,
         publishedAt: true,
@@ -326,17 +323,19 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
   ])
 
   const productIds = products.map((p) => p.id)
-  const ratings = await getRatingAggregations(productIds)
 
-  // Calculate sold count from order items
-  const salesData = await prisma.orderItem.groupBy({
-    by: ['variantId'],
-    where: {
-      variant: { productId: { in: productIds } },
-      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
-    },
-    _sum: { quantity: true },
-  })
+  // Ratings and sales aggregations run in parallel — no per-product queries (N+1)
+  const [ratings, salesData] = await Promise.all([
+    getRatingAggregations(productIds),
+    prisma.orderItem.groupBy({
+      by: ['variantId'],
+      where: {
+        variant: { productId: { in: productIds } },
+        order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+      },
+      _sum: { quantity: true },
+    }),
+  ])
 
   const salesByVariant = new Map(
     salesData.map((s) => [s.variantId, s._sum.quantity || 0])
@@ -352,7 +351,6 @@ export async function getProducts(params: ProductFilters): Promise<PaginatedProd
       ...p,
       basePrice: Number(p.basePrice),
       salePrice: p.salePrice ? Number(p.salePrice) : null,
-      costPrice: p.costPrice ? Number(p.costPrice) : null,
       weightKg: p.weightKg ? Number(p.weightKg) : null,
       ratingAvg: r?.avg ?? 0,
       reviewCount: r?.count ?? 0,
@@ -423,7 +421,6 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       isTrending: true,
       basePrice: true,
       salePrice: true,
-      costPrice: true,
       currency: true,
       weightKg: true,
       metaTitle: true,
@@ -472,19 +469,20 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 
   if (!product) return null
 
-  const rating = await getRatingAggregations([product.id])
-  const r = rating.get(product.id)
   const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
 
-  // Calculate sold count from order items
-  const salesData = await prisma.orderItem.groupBy({
-    by: ['variantId'],
-    where: {
-      variantId: { in: product.variants.map(v => v.id) },
-      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
-    },
-    _sum: { quantity: true },
-  })
+  // Rating + sales aggregations run in parallel (no N+1)
+  const [{ rating: r }, salesData] = await Promise.all([
+    getRatingAggregations([product.id]).then((map) => ({ rating: map.get(product.id) })),
+    prisma.orderItem.groupBy({
+      by: ['variantId'],
+      where: {
+        variantId: { in: product.variants.map(v => v.id) },
+        order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+      },
+      _sum: { quantity: true },
+    }),
+  ])
 
   const totalSold = salesData.reduce((sum, s) => sum + (s._sum.quantity || 0), 0)
 
@@ -492,7 +490,6 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
-    costPrice: product.costPrice ? Number(product.costPrice) : null,
     weightKg: product.weightKg ? Number(product.weightKg) : null,
     ratingAvg: r?.avg ?? 0,
     reviewCount: r?.count ?? 0,
@@ -563,7 +560,6 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
       isTrending: true,
       basePrice: true,
       salePrice: true,
-      costPrice: true,
       currency: true,
       weightKg: true,
       metaTitle: true,
@@ -612,19 +608,20 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
 
   if (!product) return null
 
-  const rating = await getRatingAggregations([product.id])
-  const r = rating.get(product.id)
   const allVariantsStock = product.variants.reduce((sum, v) => sum + v.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0), 0)
 
-  // Calculate sold count from order items
-  const salesData = await prisma.orderItem.groupBy({
-    by: ['variantId'],
-    where: {
-      variantId: { in: product.variants.map(v => v.id) },
-      order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
-    },
-    _sum: { quantity: true },
-  })
+  // Rating + sales aggregations run in parallel (no N+1)
+  const [{ rating: r }, salesData] = await Promise.all([
+    getRatingAggregations([product.id]).then((map) => ({ rating: map.get(product.id) })),
+    prisma.orderItem.groupBy({
+      by: ['variantId'],
+      where: {
+        variantId: { in: product.variants.map(v => v.id) },
+        order: { status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+      },
+      _sum: { quantity: true },
+    }),
+  ])
 
   const totalSold = salesData.reduce((sum, s) => sum + (s._sum.quantity || 0), 0)
 
@@ -632,7 +629,6 @@ export async function getProductById(id: string): Promise<ProductDetail | null> 
     ...product,
     basePrice: Number(product.basePrice),
     salePrice: product.salePrice ? Number(product.salePrice) : null,
-    costPrice: product.costPrice ? Number(product.costPrice) : null,
     weightKg: product.weightKg ? Number(product.weightKg) : null,
     ratingAvg: r?.avg ?? 0,
     reviewCount: r?.count ?? 0,

@@ -66,8 +66,9 @@ async function handlePutById(
     })
 
     return NextResponse.json(updated)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to update billing record' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to update billing record:', _error)
+    return NextResponse.json({ error: 'Failed to update billing record' }, { status: 500 })
   }
 }
 

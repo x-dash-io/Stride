@@ -44,9 +44,13 @@ export async function withProtection(
   const { requireAuth = true, requireAdmin = false, rateLimit: rateLimitType = 'api', requireCsrf = false } = options
 
   const ip = getClientIp(request)
+  const session = await auth()
 
+  // Key on the authenticated user when available so shared IPs (NAT, cafés,
+  // campus networks) don't exhaust a single bucket or mask a single abuser.
   const limiter = rateLimitType === 'auth' ? authRateLimit : rateLimitType === 'payment' ? paymentRateLimit : apiRateLimit
-  const { success, remaining, reset } = await rateLimit(limiter, ip)
+  const identifier = session?.user?.id ?? ip
+  const { success, remaining, reset } = await rateLimit(limiter, identifier)
 
   if (!success) {
     return NextResponse.json(
@@ -61,8 +65,6 @@ export async function withProtection(
       }
     )
   }
-
-  const session = await auth()
 
   if (requireAuth && !session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

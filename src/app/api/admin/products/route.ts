@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createProtectedRouteNoParams } from '@/lib/api-protection'
 import { productCreateSchema } from '@/lib/validations'
+import { invalidateProductCaches } from '@/lib/cache-invalidation'
 
 type RouteContext = {
   session: { user: { id: string; name?: string | null; email?: string | null; image?: string | null; role: string } }
@@ -135,6 +136,8 @@ async function handlePost(
       })
     }
   }
+
+  await invalidateProductCaches(product.id, product.slug)
 
   return NextResponse.json(product, { status: 201 })
 }

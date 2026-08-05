@@ -27,8 +27,9 @@ async function handleGet(
     }
     
     return NextResponse.json(settings)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch store settings' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to fetch store settings:', _error)
+    return NextResponse.json({ error: 'Failed to fetch store settings' }, { status: 500 })
   }
 }
 
@@ -54,8 +55,9 @@ async function handlePut(
     })
 
     return NextResponse.json(settings)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to update store settings' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to update store settings:', _error)
+    return NextResponse.json({ error: 'Failed to update store settings' }, { status: 500 })
   }
 }
 

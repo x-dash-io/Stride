@@ -11,6 +11,7 @@ import { CartDrawer } from './header/CartDrawer'
 import { MobileMenu } from './header/MobileMenu'
 import { HeaderSearch } from './header/HeaderSearch'
 import { isStaffRole } from '@/lib/roles'
+import { FocusTrap } from '@/components/ui/focus-trap'
 
 const NAV_LINKS = [
   { label: 'Shop', href: '/products' },
@@ -135,6 +136,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
                         onClick={() => setUserMenuOpen(false)}
                         aria-hidden="true"
                       />
+                      <FocusTrap onEscape={() => setUserMenuOpen(false)}>
                       <div className="absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-border bg-popover shadow-lg animate-in fade-in slide-in-from-top-2">
                         <div className="px-4 py-3 border-b border-border/50">
                           <p className="text-sm font-medium truncate">{session.user.name}</p>
@@ -186,6 +188,7 @@ export function Header({ storeName = 'STRIDE', logoUrl }: { storeName?: string; 
                           </button>
                         </div>
                       </div>
+                      </FocusTrap>
                     </>
                   )}
                 </div>

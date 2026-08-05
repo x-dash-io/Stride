@@ -17,8 +17,9 @@ async function handleGet(
       orderBy: { sortOrder: 'asc' }
     })
     return NextResponse.json(zones)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch shipping zones' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to fetch shipping zones:', _error)
+    return NextResponse.json({ error: 'Failed to fetch shipping zones' }, { status: 500 })
   }
 }
 
@@ -46,8 +47,9 @@ async function handlePost(
     })
 
     return NextResponse.json(zone, { status: 201 })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to create shipping zone' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to create shipping zone:', _error)
+    return NextResponse.json({ error: 'Failed to create shipping zone' }, { status: 500 })
   }
 }
 

@@ -15,7 +15,6 @@ export interface Product {
   isTrending: boolean
   basePrice: number
   salePrice?: number | null
-  costPrice?: number | null
   currency: string
   weightKg?: number | null
   primaryImage?: string | null

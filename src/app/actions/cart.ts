@@ -22,8 +22,10 @@ export async function addToCart(formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
+  // Pass the raw client session id through even when signed in so a
+  // guest cart from this browser can be merged into the user's cart.
   const clientSessionId = (formData.get('sessionId') as string) || undefined
-  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
+  const sessionId = clientSessionId || (userId ? undefined : crypto.randomUUID())
 
   const result = await serviceAddToCart(userId, sessionId, parsed.data.variantId, parsed.data.quantity)
 
@@ -49,7 +51,7 @@ export async function updateCartQuantity(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
   const clientSessionId = (formData.get('sessionId') as string) || undefined
-  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
+  const sessionId = clientSessionId || (userId ? undefined : crypto.randomUUID())
 
   const result = await serviceUpdateCartQuantity(userId, sessionId, parsed.data.variantId, parsed.data.quantity)
 
@@ -73,7 +75,7 @@ export async function removeFromCart(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
   const clientSessionId = (formData.get('sessionId') as string) || undefined
-  const sessionId = userId ? undefined : (clientSessionId || crypto.randomUUID())
+  const sessionId = clientSessionId || (userId ? undefined : crypto.randomUUID())
 
   const result = await serviceRemoveFromCart(userId, sessionId, parsed.data.variantId)
 
@@ -105,7 +107,6 @@ export async function clearCartAction(sessionId?: string) {
 export async function getCartAction(sessionId?: string) {
   const session = await auth()
   const userId = session?.user?.id
-  const resolvedSessionId = userId ? undefined : sessionId
 
-  return serviceGetCart(userId, resolvedSessionId)
+  return serviceGetCart(userId, sessionId)
 }

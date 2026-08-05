@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Package, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react'
 import { Product } from '@/types'
+import { FocusTrap } from '@/components/ui/focus-trap'
 
 interface ProductImageGalleryProps {
   images: Product['images']
@@ -88,8 +89,12 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
       
       {/* Fullscreen Modal */}
       {isFullscreen && (
+        <FocusTrap onEscape={toggleFullscreen}>
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${productName} fullscreen view`}
           onClick={toggleFullscreen}
         >
           <button
@@ -126,6 +131,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
             </>
           )}
         </div>
+        </FocusTrap>
       )}
     </div>
   )

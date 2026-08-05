@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createProtectedRoute } from '@/lib/api-protection'
 import { productCreateSchema } from '@/lib/validations'
+import { invalidateProductCaches } from '@/lib/cache-invalidation'
 import { z } from 'zod'
 
 type RouteContext = {
@@ -107,6 +108,8 @@ async function handlePutById(
     },
   })
 
+  await invalidateProductCaches(product.id, product.slug)
+
   return NextResponse.json(product)
 }
 
@@ -135,10 +138,12 @@ async function handleDeleteById(
   }
 
   // Use soft delete by setting status to DISCONTINUED
-  await prisma.product.update({
+  const updated = await prisma.product.update({
     where: { id },
     data: { status: 'DISCONTINUED' }
   })
+  
+  await invalidateProductCaches(updated.id, updated.slug)
   
   return NextResponse.json({ success: true })
 }

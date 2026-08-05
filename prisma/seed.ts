@@ -1,5 +1,4 @@
-import { PrismaClient, UserRole, ProductStatus, GenderCategory, OrderStatus, PaymentStatus } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient, ProductStatus, GenderCategory, OrderStatus, PaymentStatus } from '@prisma/client'
 import { config } from 'dotenv'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -13,107 +12,8 @@ const prisma = new PrismaClient()
 
 async function main() {
   console.log('[START] Seeding database...')
+  console.log('[INFO] No user accounts are seeded. Create admins through the app (or register).')
 
-  // Get credentials from environment
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@stride.co.ke'
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'admin123'
-  const adminPhone = process.env.SEED_ADMIN_PHONE || '254700000000'
-  const adminName = process.env.SEED_ADMIN_NAME || 'Admin User'
-
-  const customerEmail = process.env.SEED_CUSTOMER_EMAIL || 'customer@stride.co.ke'
-  const customerPassword = process.env.SEED_CUSTOMER_PASSWORD || 'customer123'
-  const customerPhone = process.env.SEED_CUSTOMER_PHONE || '254711111111'
-  const customerName = process.env.SEED_CUSTOMER_NAME || 'Demo Customer'
-
-  // Create super admin user (Platform Manager)
-  const adminPasswordHash = await bcrypt.hash(adminPassword, 12)
-  const admin = await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: { role: UserRole.SUPER_ADMIN },
-    create: {
-      email: adminEmail,
-      name: adminName,
-      passwordHash: adminPasswordHash,
-      role: UserRole.SUPER_ADMIN,
-      phone: adminPhone,
-    },
-  })
-  console.log('[SUCCESS] Super Admin user created:', admin.email)
-
-  // Create store admin user (Client / Store Owner)
-  const ownerEmail = 'owner@stride.co.ke'
-  const ownerPassword = 'owner123'
-  const ownerPasswordHash = await bcrypt.hash(ownerPassword, 12)
-  const owner = await prisma.user.upsert({
-    where: { email: ownerEmail },
-    update: { role: UserRole.ADMIN },
-    create: {
-      email: ownerEmail,
-      name: 'Store Owner',
-      passwordHash: ownerPasswordHash,
-      role: UserRole.ADMIN,
-      phone: '254722222222',
-    },
-  })
-  console.log('[SUCCESS] Store Owner Admin user created:', owner.email)
-
-  // Create demo customer
-  const customerPasswordHash = await bcrypt.hash(customerPassword, 12)
-  const customer = await prisma.user.upsert({
-    where: { email: customerEmail },
-    update: {},
-    create: {
-      email: customerEmail,
-      name: customerName,
-      passwordHash: customerPasswordHash,
-      role: UserRole.CUSTOMER,
-      phone: customerPhone,
-    },
-  })
-  console.log('[SUCCESS] Demo customer created:', customer.email)
-
-  // Create additional regular users
-  const user2Password = await bcrypt.hash('user123', 12)
-  const user2 = await prisma.user.upsert({
-    where: { email: 'user2@stride.co.ke' },
-    update: {},
-    create: {
-      email: 'user2@stride.co.ke',
-      name: 'John Doe',
-      passwordHash: user2Password,
-      role: UserRole.CUSTOMER,
-      phone: '254722222222',
-    },
-  })
-  console.log('[SUCCESS] User 2 created:', user2.email)
-
-  const user3Password = await bcrypt.hash('user123', 12)
-  const user3 = await prisma.user.upsert({
-    where: { email: 'user3@stride.co.ke' },
-    update: {},
-    create: {
-      email: 'user3@stride.co.ke',
-      name: 'Jane Smith',
-      passwordHash: user3Password,
-      role: UserRole.CUSTOMER,
-      phone: '254733333333',
-    },
-  })
-  console.log('[SUCCESS] User 3 created:', user3.email)
-
-  const user4Password = await bcrypt.hash('user123', 12)
-  const user4 = await prisma.user.upsert({
-    where: { email: 'user4@stride.co.ke' },
-    update: {},
-    create: {
-      email: 'user4@stride.co.ke',
-      name: 'Mike Johnson',
-      passwordHash: user4Password,
-      role: UserRole.CUSTOMER,
-      phone: '254744444444',
-    },
-  })
-  console.log('[SUCCESS] User 4 created:', user4.email)
 
   // Create brands
   // brands[0]=Nike, brands[1]=Adidas, brands[2]=Puma, brands[3]=New Balance,

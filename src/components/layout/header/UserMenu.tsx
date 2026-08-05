@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { X, User, ShoppingCart, Heart, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { isStaffRole } from '@/lib/roles'
+import { FocusTrap } from '@/components/ui/focus-trap'
 
 export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { data: session } = useSession()
@@ -16,6 +17,7 @@ export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="User menu">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} aria-hidden="true" />
+      <FocusTrap onEscape={onClose}>
       <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
           <h2 className="font-semibold text-base">{isAdmin ? 'Admin' : 'Account'}</h2>
@@ -73,6 +75,7 @@ export function UserMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           </div>
         </div>
       </div>
+      </FocusTrap>
     </div>
   )
 }

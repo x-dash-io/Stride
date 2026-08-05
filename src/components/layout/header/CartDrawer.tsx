@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice } from '@/lib/utils'
+import { FocusTrap } from '@/components/ui/focus-trap'
 
 import { EmptyState } from '@/components/ui/empty-state'
 
@@ -37,18 +38,10 @@ export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isO
       document.body.style.overflow = ''
     }
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
     return () => {
       document.body.style.overflow = ''
-      window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   const portalTarget = typeof document !== 'undefined' ? (document.getElementById('portal-root') || document.body) : null
   if (!mounted || !isOpen || !portalTarget) return null
@@ -63,12 +56,13 @@ export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isO
       />
 
       {/* Cart Panel */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Shopping Cart"
-        className="fixed inset-y-0 right-0 z-50 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
-      >
+      <FocusTrap onEscape={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Shopping Cart"
+          className="fixed inset-y-0 right-0 z-50 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
+        >
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4 shrink-0">
           <div className="flex items-center gap-2">
@@ -243,6 +237,7 @@ export function CartDrawer({ isOpen: propsIsOpen, onClose: propsOnClose }: { isO
           </div>
         )}
       </div>
+      </FocusTrap>
     </>,
     portalTarget
   )

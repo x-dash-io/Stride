@@ -45,7 +45,6 @@ function serializeCartItem(item: RawCart['items'][number]): CartItem {
           ...rest.variant.product,
           basePrice: Number(rest.variant.product.basePrice),
           salePrice: rest.variant.product.salePrice ? Number(rest.variant.product.salePrice) : null,
-          costPrice: rest.variant.product.costPrice ? Number(rest.variant.product.costPrice) : null,
           weightKg: rest.variant.product.weightKg ? Number(rest.variant.product.weightKg) : null,
           variants: [],
           createdAt: rest.variant.product.createdAt.toISOString(),

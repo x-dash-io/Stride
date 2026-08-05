@@ -35,8 +35,9 @@ async function handlePutById(
     })
 
     return NextResponse.json(zone)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to update shipping zone' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to update shipping zone:', _error)
+    return NextResponse.json({ error: 'Failed to update shipping zone' }, { status: 500 })
   }
 }
 
@@ -49,8 +50,9 @@ async function handleDeleteById(
     const { id } = await params
     await prisma.shippingZone.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to delete shipping zone' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to delete shipping zone:', _error)
+    return NextResponse.json({ error: 'Failed to delete shipping zone' }, { status: 500 })
   }
 }
 

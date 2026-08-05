@@ -37,11 +37,14 @@ export function slugify(text: string): string {
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded && process.env.NODE_ENV === 'production') {
+    // Last entry is appended by the trusted platform proxy (e.g. Vercel/Cloudflare)
     const ips = forwarded.split(',').map(ip => ip.trim())
     return ips[ips.length - 1] || 'unknown'
   }
   return request.headers.get('x-real-ip') ||
          request.headers.get('cf-connecting-ip') ||
+         forwarded?.split(',')[0]?.trim() ||
+         request.headers.get('remote-addr') ||
          'unknown'
 }
 

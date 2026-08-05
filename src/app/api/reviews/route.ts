@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createProtectedRouteNoParams } from '@/lib/api-protection'
 import { reviewSchema } from '@/lib/validations'
+import { invalidateProductCaches } from '@/lib/cache-invalidation'
 
 type RouteContext = {
   session: { user: { id: string; name?: string | null; email?: string | null; image?: string | null; role: string } }
@@ -65,6 +66,9 @@ async function handleCreateReview(
       user: { select: { id: true, name: true, image: true } },
     },
   })
+
+  // New review changes the rating shown on the storefront — drop stale product caches
+  await invalidateProductCaches(productId)
 
   return NextResponse.json(review, { status: 201 })
 }

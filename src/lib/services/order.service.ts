@@ -6,7 +6,8 @@ import { shippingAddressSchema, paymentSchema } from '@/lib/validations'
 import { initiateStkPush } from '@/lib/mpesa'
 import { verifyCsrfToken } from '@/lib/csrf'
 import { ok, err, Result } from '@/lib/types/result'
-import { calculateTax } from '@/lib/pricing'
+import { TAX_RATE } from '@/lib/pricing'
+import { toCents, fromCents, applyRateCents } from '@/lib/money'
 
 export async function submitShippingAddress(formData: FormData): Promise<Result<{ addressId: string }, string>> {
   const session = await auth()
@@ -50,7 +51,7 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
 
   if (!userId) return err('You must be signed in to place an order')
 
-  if (input.csrfToken && !(await verifyCsrfToken(input.csrfToken))) {
+  if (!(await verifyCsrfToken(input.csrfToken ?? null))) {
     return err('Invalid CSRF token')
   }
 
@@ -79,18 +80,20 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
 
   // Recalculate shipping dynamically from DB zone matching state/county
   let shippingTotal = Number(cart.shippingTotal)
-  
-  // RECALCULATE PRICES FROM DATABASE TO PREVENT MANIPULATION
-  let recalculatedSubtotal = 0
-  for (const item of cart.items) {
-    const currentPrice = Number(item.variant.salePrice ?? item.variant.product.basePrice)
-    recalculatedSubtotal += currentPrice * item.quantity
-  }
-  
-  const subtotal = recalculatedSubtotal
-  const taxTotal = Math.round(subtotal * 0.16) // 16% tax rate
-  const discountTotal = Number(cart.discountTotal)
 
+  // RECALCULATE PRICES FROM DATABASE TO PREVENT MANIPULATION.
+  // All money math is done in integer cents to avoid float rounding errors.
+  let subtotalCents = 0
+  for (const item of cart.items) {
+    const unitPrice = Number(item.variant.salePrice ?? item.variant.product.basePrice)
+    subtotalCents += toCents(unitPrice) * item.quantity
+  }
+
+  const subtotal = fromCents(subtotalCents)
+  const taxCents = applyRateCents(subtotalCents, TAX_RATE)
+  const discountCents = toCents(Number(cart.discountTotal))
+
+  let shippingCents = toCents(shippingTotal)
   if (subtotal < 10000) {
     const zone = await prisma.shippingZone.findFirst({
       where: {
@@ -99,13 +102,17 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
       }
     })
     if (zone) {
-      shippingTotal = Number(zone.baseCost)
+      shippingCents = toCents(Number(zone.baseCost))
     }
   } else {
-    shippingTotal = 0
+    shippingCents = 0
   }
 
-  const grandTotal = subtotal + taxTotal + shippingTotal - discountTotal
+  const shippingTotalCents = shippingCents
+  const grandCents = Math.max(0, subtotalCents + taxCents + shippingTotalCents - discountCents)
+  const taxTotal = fromCents(taxCents)
+  const shippingTotalFinal = fromCents(shippingTotalCents)
+  const grandTotal = fromCents(grandCents)
 
   const order = await prisma.$transaction(async (tx) => {
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`
@@ -139,9 +146,9 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
         paymentMethod: input.paymentMethod,
         currency: 'KES',
         subtotal: subtotal,
-        discountTotal: discountTotal,
+        discountTotal: fromCents(discountCents),
         taxTotal: taxTotal,
-        shippingTotal: shippingTotal,
+        shippingTotal: shippingTotalFinal,
         grandTotal: grandTotal,
         shippingAddressId: address.id,
         billingAddressId: address.id,
@@ -153,10 +160,10 @@ export async function processPayment(input: ProcessPaymentInput): Promise<Result
             variantSku: item.variant.sku,
             size: item.variant.size,
             colour: item.variant.colour,
-            quantity: item.quantity,
-            unitPrice: Number(item.variant.salePrice ?? item.variant.product.basePrice),
-            totalPrice: Number(item.variant.salePrice ?? item.variant.product.basePrice) * item.quantity,
-            productImage: item.variant.product.images[0]?.url,
+          quantity: item.quantity,
+          unitPrice: fromCents(toCents(Number(item.variant.salePrice ?? item.variant.product.basePrice))),
+          totalPrice: fromCents(toCents(Number(item.variant.salePrice ?? item.variant.product.basePrice)) * item.quantity),
+          productImage: item.variant.product.images[0]?.url,
           })),
         },
       },

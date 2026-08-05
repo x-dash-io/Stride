@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/components/layout/header/CartDrawer'
 import { LenisProvider } from '@/components/LenisProvider'
+import { CookieConsent } from '@/components/CookieConsent'
 
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -109,11 +110,18 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} bg-background scroll-smooth`} suppressHydrationWarning>
       <body className="antialiased flex flex-col min-h-screen" suppressHydrationWarning>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-background focus:border focus:border-border focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium"
+        >
+          Skip to main content
+        </a>
         <LenisProvider>
           <Providers>
             {!isAdmin && <Header storeName={settings?.storeName} logoUrl={settings?.logoUrl} />}
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">{children}</main>
             {!isAdmin && <Footer storeName={settings?.storeName} storeTagline={settings?.storeTagline} settings={settings} />}
+            {!isAdmin && <CookieConsent />}
             <CartDrawer />
           </Providers>
         </LenisProvider>

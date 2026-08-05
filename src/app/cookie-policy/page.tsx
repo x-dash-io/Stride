@@ -22,10 +22,9 @@ export default function CookiePolicyPage() {
             <h2 className="text-xl font-semibold text-foreground">How We Use Cookies</h2>
             <p>STRIDE uses cookies for the following purposes:</p>
             <ul className="list-disc pl-5 space-y-2 mt-2">
-              <li><strong>Essential:</strong> Required for the website to function (cart, authentication, security)</li>
-              <li><strong>Analytics:</strong> Help us understand how visitors use our site (page views, navigation paths)</li>
-              <li><strong>Functional:</strong> Remember your preferences (currency, language, saved items)</li>
-              <li><strong>Marketing:</strong> Used to deliver relevant advertisements and measure campaign effectiveness</li>
+              <li><strong>Essential:</strong> Required for the website to function (cart, authentication, CSRF security)</li>
+              <li><strong>Analytics:</strong> Anonymous, privacy-friendly usage statistics via Vercel Analytics (no cookies set)</li>
+              <li><strong>Functional:</strong> Remember your preferences (currency, saved items)</li>
             </ul>
           </section>
 
@@ -34,15 +33,15 @@ export default function CookiePolicyPage() {
             <div className="space-y-4 mt-2">
               <div>
                 <p className="font-medium text-foreground">Session Cookies</p>
-                <p>These are temporary cookies that expire when you close your browser. They enable core functionality like maintaining your cart during a browsing session.</p>
+                <p>These are temporary cookies that expire when you close your browser. They enable core functionality like maintaining your cart and login session.</p>
               </div>
               <div>
                 <p className="font-medium text-foreground">Persistent Cookies</p>
-                <p>These remain on your device for a set period. We use them to remember your preferences and login status across visits.</p>
+                <p>These remain on your device for a set period. We use them to remember your login status across visits.</p>
               </div>
               <div>
                 <p className="font-medium text-foreground">Third-Party Cookies</p>
-                <p>We use services like Google Analytics and Facebook Pixel that may set their own cookies. Please refer to their respective privacy policies for details.</p>
+                <p>We do not currently place marketing or advertising cookies. If we introduce non-essential cookies in the future, we will ask for your consent first.</p>
               </div>
             </div>
           </section>

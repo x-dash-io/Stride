@@ -47,24 +47,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
     }
 
-    if (payment.status === 'SUCCESS') {
+    if (payment.status === 'SUCCESS' || payment.status === 'FAILED') {
+      // Terminal state — idempotent: re-delivered callbacks are acknowledged and dropped
       return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
     }
 
     if (ResultCode === 0) {
       const items = (CallbackMetadata?.Item || []) as CallbackMetadataItem[]
-      const amount = items.find((i) => i.Name === 'Amount')?.Value
+      const amount = Number(items.find((i) => i.Name === 'Amount')?.Value ?? 0)
       const mpesaReceiptNumber = items.find((i) => i.Name === 'MpesaReceiptNumber')?.Value
       const phoneNumber = items.find((i) => i.Name === 'PhoneNumber')?.Value
 
+      // Anti-tampering: the callback amount must match the payment we initiated
+      if (amount !== Number(payment.amount)) {
+        console.warn(`M-Pesa callback amount mismatch for ${CheckoutRequestID}: expected ${payment.amount}, got ${amount}`)
+        return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
+      }
+
       await prisma.$transaction(async (tx) => {
-        await tx.paymentTransaction.update({
-          where: { id: payment.id },
+        // Guarded transition: only PENDING payments may be marked SUCCESS,
+        // so concurrent/duplicate callbacks cannot double-apply.
+        const updated = await tx.paymentTransaction.updateMany({
+          where: { id: payment.id, status: 'PENDING' },
           data: {
             status: 'SUCCESS',
             gatewayResponse: payment.gatewayResponse ? { ...(payment.gatewayResponse as object), callback: body } : { callback: body },
           },
         })
+        if (updated.count === 0) return
 
         await tx.order.update({
           where: { id: payment.orderId },
@@ -121,10 +131,12 @@ export async function POST(request: NextRequest) {
 
     } else {
       await prisma.$transaction(async (tx) => {
-        await tx.paymentTransaction.update({
-          where: { id: payment.id },
+        // Guarded transition: only PENDING payments may be marked FAILED
+        const updated = await tx.paymentTransaction.updateMany({
+          where: { id: payment.id, status: 'PENDING' },
           data: { status: 'FAILED', gatewayResponse: payment.gatewayResponse ? { ...(payment.gatewayResponse as object), callback: body } : { callback: body } },
         })
+        if (updated.count === 0) return
 
         await tx.order.update({
           where: { id: payment.orderId },

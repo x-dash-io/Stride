@@ -101,6 +101,59 @@ async function recalculateCart(cartId: string) {
   })
 }
 
+/**
+ * Merges a guest (session-keyed) cart into a logged-in user's cart.
+ * Quantities are summed and capped at available stock; the guest cart is
+ * then deleted so its items are not lost when the user signs in.
+ */
+async function mergeGuestCartIntoUser(userId: string, sessionId: string): Promise<void> {
+  const guestCart = await prisma.cart.findFirst({ where: { sessionId, userId: null } })
+  if (!guestCart) return
+
+  const guestItems = await prisma.cartItem.findMany({
+    where: { cartId: guestCart.id },
+    include: {
+      variant: {
+        include: {
+          product: { select: { status: true, basePrice: true } },
+          inventory: { select: { quantityOnHand: true } },
+        },
+      },
+    },
+  })
+
+  const userCart = await getOrCreateCart(userId)
+
+  for (const item of guestItems) {
+    if (!item.variant.isActive || item.variant.product.status !== 'ACTIVE') continue
+
+    const availableStock = item.variant.inventory.reduce((s, inv) => s + inv.quantityOnHand, 0)
+    const unitPrice = Number(item.variant.salePrice ?? item.variant.basePrice ?? item.variant.product.basePrice)
+
+    const existing = await prisma.cartItem.findUnique({
+      where: { cartId_variantId: { cartId: userCart.id, variantId: item.variantId } },
+    })
+
+    const quantity = Math.min(existing ? existing.quantity + item.quantity : item.quantity, Math.max(availableStock, 0))
+    if (quantity <= 0) continue
+
+    if (existing) {
+      await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity, totalPrice: unitPrice * quantity },
+      })
+    } else {
+      await prisma.cartItem.create({
+        data: { cartId: userCart.id, variantId: item.variantId, quantity, unitPrice, totalPrice: unitPrice * quantity },
+      })
+    }
+  }
+
+  await prisma.cartItem.deleteMany({ where: { cartId: guestCart.id } })
+  await prisma.cart.delete({ where: { id: guestCart.id } })
+  await recalculateCart(userCart.id)
+}
+
 export async function addToCart(
   userId: string | undefined,
   sessionId: string | undefined,
@@ -113,6 +166,11 @@ export async function addToCart(
   }
 
   const { variantId: vId, quantity: qty } = parsed.data
+
+  // A signed-in user may still have a guest cart in this browser — adopt it first
+  if (userId && sessionId) {
+    await mergeGuestCartIntoUser(userId, sessionId)
+  }
 
   const variant = await prisma.productVariant.findUnique({
     where: { id: vId, isActive: true },
@@ -256,6 +314,11 @@ export async function clearCart(userId: string | undefined, sessionId?: string):
 }
 
 export async function getCart(userId?: string, sessionId?: string): Promise<CartWithItems | null> {
+  // Merge any guest cart into the signed-in user's cart (login sync)
+  if (userId && sessionId) {
+    await mergeGuestCartIntoUser(userId, sessionId)
+  }
+
   const cart = await prisma.cart.findFirst({
     where: userId ? { userId } : { sessionId },
     include: {

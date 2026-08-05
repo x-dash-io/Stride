@@ -6,6 +6,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { isStaffRole } from '@/lib/roles'
+import { FocusTrap } from '@/components/ui/focus-trap'
 
 const shopItems = [
   { label: 'Shop', href: '/products' },
@@ -20,6 +21,7 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   return (
     <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} aria-hidden="true" />
+      <FocusTrap onEscape={onClose}>
       <div className="fixed left-0 top-0 h-full w-full max-w-sm bg-background shadow-2xl flex flex-col animate-in slide-in-from-left duration-200">
         <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
           <Link href="/" className="font-serif font-bold text-xl" onClick={onClose}>STRIDE</Link>
@@ -96,6 +98,7 @@ export function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </div>
         </div>
       </div>
+      </FocusTrap>
     </div>
   )
 }

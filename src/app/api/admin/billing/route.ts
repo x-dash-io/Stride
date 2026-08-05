@@ -37,8 +37,9 @@ async function handleGet(
       status,
       invoices: serializedInvoices,
     })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch billing status' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to fetch billing status:', _error)
+    return NextResponse.json({ error: 'Failed to fetch billing status' }, { status: 500 })
   }
 }
 
@@ -73,8 +74,9 @@ async function handlePost(
     })
 
     return NextResponse.json(updated)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to submit payment' }, { status: 500 })
+  } catch (_error: unknown) {
+    console.error('[500] Failed to submit payment:', _error)
+    return NextResponse.json({ error: 'Failed to submit payment' }, { status: 500 })
   }
 }
 

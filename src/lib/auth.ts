@@ -20,6 +20,8 @@ const registerSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
+  // next-auth v4 does not auto-read AUTH_SECRET (v5 name) — wire explicitly
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   session: { 
     strategy: 'jwt' as const, 
     maxAge: 30 * 24 * 60 * 60,

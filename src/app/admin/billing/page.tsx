@@ -41,8 +41,7 @@ export default async function BillingPage() {
     latestInvoiceId: billingData.latestInvoiceId || '',
   }
 
-  const superAdminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@stride.co.ke'
-  const isSuperAdmin = session.user.email === superAdminEmail
+  const isSuperAdmin = session.user.role === SUPER_ADMIN_ROLE
 
   return (
     <div className="container-max py-8 min-h-screen">
