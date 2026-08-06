@@ -263,6 +263,23 @@
     @apply max-w-5xl mx-auto px-4 md:px-6 lg:px-8;
   }
 
+  /* Admin Dashboard Layout Redesign (Spacious, Left-aligned, Fluid) */
+  .admin-layout .container-max {
+    max-width: 1600px;
+    margin-left: 0;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .admin-layout .container-narrow {
+    max-width: 1200px;
+    margin-left: 0;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .section-padding {
     @apply py-16 md:py-24;
   }

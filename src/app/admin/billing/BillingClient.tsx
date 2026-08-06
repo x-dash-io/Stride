@@ -48,7 +48,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
   
   // Manager confirmation states
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null)
-  const [managerStatus, setManagerStatus] = useState<'PAID' | 'UNPAID' | 'OVERDUE' | 'WAIVED'>('PAID')
+  const [managerStatus, setManagerStatus] = useState<string>('PAID')
   const [managerNotes, setManagerNotes] = useState('')
   const [confirmMpesaRef, setConfirmMpesaRef] = useState('')
   const [isManagerSubmitting, setIsManagerSubmitting] = useState(false)
@@ -116,7 +116,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       <div className="flex items-center justify-between border-b border-border pb-5">
         <div>
           <h1 className="text-4xl font-bold font-serif text-foreground tracking-tight">Platform Billing & Invoices</h1>
@@ -125,14 +125,14 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
       </div>
 
       {billingStatus.isSuspended && (
-        <div className="relative overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/10 p-5 backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-xl border border-destructive/20 bg-destructive/10 p-5 backdrop-blur-sm">
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/20 text-destructive dark:text-destructive-foreground">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-amber-900 dark:text-amber-100 tracking-tight">Tenant Store Access Suspended</h3>
-              <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90 leading-relaxed font-medium">
+              <h3 className="text-base font-bold text-destructive tracking-tight">Tenant Store Access Suspended</h3>
+              <p className="mt-1 text-sm text-destructive/90 leading-relaxed font-medium">
                 The storefront is currently offline because the latest subscription invoice is overdue and the grace period has expired.
               </p>
             </div>
@@ -142,12 +142,12 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
 
       {/* Platform Verification Panel */}
       {isSuperAdmin && selectedInvoiceId && selectedInvoice && (
-        <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm shadow-lg animate-slide-down max-w-xl">
-          <CardHeader className="pb-4 bg-primary/5/50">
-            <CardTitle className="flex items-center gap-2 text-lg font-serif tracking-tight text-primary">
-              <ShieldCheck className="w-5 h-5" /> Manager Verification Console
+        <Card className="border border-border/50 bg-card shadow-sm animate-slide-down max-w-xl">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Manager Verification Console
             </CardTitle>
-            <CardDescription className="text-xs font-medium">
+            <CardDescription className="text-xs">
               Verify payment reference for period {format(new Date(selectedInvoice.periodStart), 'MMM d')} – {format(new Date(selectedInvoice.periodEnd), 'MMM d')}
             </CardDescription>
           </CardHeader>
@@ -157,7 +157,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                 <Label htmlFor="managerStatus" className="text-sm font-semibold tracking-tight">Set Status</Label>
                 <Select
                   value={managerStatus}
-                  onValueChange={setManagerStatus}
+                  onValueChange={(value: string) => setManagerStatus(value as 'PAID' | 'UNPAID' | 'OVERDUE' | 'WAIVED')}
                 >
                   <SelectTrigger id="managerStatus" className="w-full">
                     <SelectValue placeholder="Select status" />
@@ -172,10 +172,10 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
               </div>
 
               {managerStatus === 'PAID' && (
-                <div className="space-y-2.5 bg-gradient-to-br from-amber-500/10 to-amber-500/5 p-4 rounded-lg border border-amber-500/20">
+                <div className="space-y-2.5 bg-accent/40 p-5 rounded-xl border border-border/50">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground font-medium">Submitted M-Pesa Reference:</span>
-                    <span className="font-mono font-bold bg-primary/10 text-primary px-2.5 py-1 rounded border border-primary/30 text-sm">
+                    <span className="font-mono font-bold bg-background text-foreground px-2.5 py-1 rounded border border-border/50 text-sm">
                       {selectedInvoice.mpesaRef || 'None Submitted'}
                     </span>
                   </div>
@@ -225,7 +225,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
       )}
 
       {/* Invoice History */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-md">
+      <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-accent/50 to-card">
           <h2 className="font-serif font-bold text-lg text-foreground tracking-tight">Platform Invoice Ledger</h2>
           <span className="text-xs text-muted-foreground font-semibold bg-accent px-3 py-1 rounded-full">Showing all billing entries</span>
@@ -252,7 +252,7 @@ export function BillingClient({ initialStatus, initialInvoices, userId, isSuperA
                     <td className="p-4 font-bold text-sm text-foreground">{formatPrice(invoice.amountKes)}</td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold tracking-tight border ${
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold tracking-tight border ${
                           invoice.status === 'PAID'
                             ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
                             : invoice.status === 'WAIVED'

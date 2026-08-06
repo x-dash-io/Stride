@@ -30,12 +30,12 @@ export function PaymentStep({ onSubmit, onBack, isProcessing, mpesaStatus, mpesa
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Method</CardTitle>
-          <CardDescription>Choose how you&apos;d like to pay</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-card border border-border rounded-xl p-6 md:p-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-serif font-bold">Payment Method</h2>
+          <p className="text-sm text-muted-foreground mt-1">Choose how you&apos;d like to pay</p>
+        </div>
+        <div className="space-y-6">
           <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'MPESA_STK_PUSH' | 'CASH_ON_DELIVERY')} className="space-y-4">
             <div className="border-2 rounded-lg p-4 bg-primary/5">
               <RadioGroupItem value="MPESA_STK_PUSH" className="flex items-center gap-3 cursor-pointer">
@@ -80,29 +80,29 @@ export function PaymentStep({ onSubmit, onBack, isProcessing, mpesaStatus, mpesa
           )}
 
           <input type="hidden" name="paymentMethod" value={paymentMethod} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {mpesaStatus !== 'idle' && (
-        <Card className={cn(
-          'p-4 border',
-          mpesaStatus === 'waiting' && 'bg-blue-50 border-blue-200',
-          mpesaStatus === 'success' && 'bg-green-50 border-green-200',
-          mpesaStatus === 'error' && 'bg-red-50 border-red-200'
+        <div className={cn(
+          'p-4 border rounded-xl',
+          mpesaStatus === 'waiting' && 'bg-blue-50/50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800',
+          mpesaStatus === 'success' && 'bg-green-50/50 border-green-200 dark:bg-green-900/20 dark:border-green-800',
+          mpesaStatus === 'error' && 'bg-red-50/50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
         )}>
           <div className="flex items-center gap-3">
-            {mpesaStatus === 'waiting' && <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />}
-            {mpesaStatus === 'success' && <CheckCircle className="w-5 h-5 text-green-600" />}
-            {mpesaStatus === 'error' && <AlertCircle className="w-5 h-5 text-red-600" />}
+            {mpesaStatus === 'waiting' && <Loader2 className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin" />}
+            {mpesaStatus === 'success' && <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />}
+            {mpesaStatus === 'error' && <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
             <div>
               <p className="font-medium">
                 {mpesaStatus === 'waiting' ? 'Waiting for Payment' : 
                  mpesaStatus === 'success' ? 'Payment Successful' : 'Payment Failed'}
               </p>
-              <p className="text-sm text-muted-foreground">{mpesaMessage}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{mpesaMessage}</p>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       <div className="flex gap-3 justify-end">

@@ -1,8 +1,7 @@
 'use client'
 
-import { Menu } from 'lucide-react'
 import Link from 'next/link'
-import { MobileNavDrawer } from './MobileNavDrawer'
+import { AdminSidebarTrigger } from './AdminSidebar'
 
 interface MobileHeaderProps {
   storeName?: string | null
@@ -20,23 +19,12 @@ interface MobileHeaderProps {
   isSuperAdmin?: boolean
 }
 
-export function MobileHeader({ storeName, navigationItems, suspendedNav, isSuspended, isSuperAdmin }: MobileHeaderProps) {
-  const pathname = '/admin'
-
+export function MobileHeader({ storeName }: MobileHeaderProps) {
   return (
     <header className="lg:hidden sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {navigationItems && (
-            <MobileNavDrawer
-              storeName={storeName}
-              navigationItems={navigationItems}
-              suspendedNav={suspendedNav}
-              isSuspended={isSuspended}
-              isSuperAdmin={isSuperAdmin}
-              pathname={pathname}
-            />
-          )}
+          <AdminSidebarTrigger />
           <Link href="/admin" className="flex items-center gap-2">
             <span className="font-serif text-lg font-bold tracking-tight text-foreground">
               {storeName || 'STRIDE'}

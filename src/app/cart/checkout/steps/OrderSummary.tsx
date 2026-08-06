@@ -20,12 +20,12 @@ export function OrderSummary({ cart, shippingCost = 500 }: OrderSummaryProps) {
 
   return (
     <div className="sticky top-24">
-      <Card className="border">
-        <CardHeader className="pb-4">
-          <CardTitle>Order Summary</CardTitle>
-          <CardDescription>Review your order details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="bg-muted/30 border border-border rounded-xl p-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-serif font-bold">Order Summary</h2>
+          <p className="text-sm text-muted-foreground mt-1">Review your order details</p>
+        </div>
+        <div className="space-y-4">
           <div className="border-b pb-4 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
@@ -72,8 +72,8 @@ export function OrderSummary({ cart, shippingCost = 500 }: OrderSummaryProps) {
               <span className="text-xs font-medium text-blue-700">Easy Returns</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

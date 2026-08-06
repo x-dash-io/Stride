@@ -68,7 +68,7 @@ export function HeaderSearch() {
     fetchResults()
   }, [debouncedQuery])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault()
       setIsOpen(true)
@@ -115,13 +115,13 @@ export function HeaderSearch() {
     <div className="relative w-full max-w-[280px]" ref={containerRef} suppressHydrationWarning>
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative flex items-center gap-0">
-          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none shrink-0 z-10" aria-hidden="true" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none shrink-0 z-10" aria-hidden="true" />
 
           <Input
             ref={inputRef}
             type="search"
             placeholder="Search products…"
-            className="w-full h-9 pl-8.5 pr-7 bg-muted/50 border-border/50 text-sm placeholder:text-muted-foreground/60 hover:bg-muted focus:bg-background focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-transparent transition-all duration-200 dark:bg-muted/30 outline-none"
+            className="w-full h-9 pl-10 pr-6 bg-muted/50 border-border/50 text-sm placeholder:text-muted-foreground/60 hover:bg-muted focus:bg-background focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-transparent transition-all duration-200 dark:bg-muted/30 outline-none rounded-md"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleFocus}
@@ -147,22 +147,22 @@ export function HeaderSearch() {
       </form>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in-0 slide-in-from-top-2 duration-150">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden z-50 animate-in fade-in-0 slide-in-from-top-2 duration-150">
           {!query.trim() ? (
-            <div className="p-2.5">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</h4>
-                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-                  <Command className="h-2.5 w-2.5" /> K
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-sans">Categories</h4>
+                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1 font-sans">
+                  <Command className="h-3 w-3" /> K
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {POPULAR_CATEGORIES.map((category) => (
                   <Link
                     key={category.name}
                     href={category.href}
                     onClick={handleResultClick}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="inline-flex items-center px-2.5 py-1 rounded-sm bg-muted text-xs font-medium text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
                     {category.name}
                   </Link>
@@ -172,7 +172,9 @@ export function HeaderSearch() {
           ) : (
             <div>
               {isLoading ? (
-                <HeaderSearchSkeleton />
+                <div className="p-4">
+                  <HeaderSearchSkeleton />
+                </div>
               ) : results.length > 0 ? (
                 <div className="py-1">
                   {results.slice(0, 6).map((product) => (
@@ -183,7 +185,7 @@ export function HeaderSearch() {
                       className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
                     >
                       {product.image ? (
-                        <div className="w-9 h-9 bg-muted rounded-lg overflow-hidden shrink-0">
+                        <div className="w-9 h-9 bg-muted rounded-md overflow-hidden shrink-0">
                           <img
                             src={product.image}
                             alt={product.name}
@@ -194,7 +196,7 @@ export function HeaderSearch() {
                           />
                         </div>
                       ) : (
-                        <div className="w-9 h-9 bg-muted rounded-lg shrink-0" />
+                        <div className="w-9 h-9 bg-muted rounded-md shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate text-foreground">{product.name}</p>

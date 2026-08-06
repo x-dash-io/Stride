@@ -2,24 +2,24 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xs flex flex-col">
-      <div className="relative aspect-square w-full">
+    <div className="block bg-card border border-border rounded-xl overflow-hidden relative flex flex-col">
+      <div className="aspect-square bg-muted relative overflow-hidden">
         <Skeleton className="w-full h-full rounded-none" />
-        <Skeleton className="absolute top-3 left-3 w-16 h-5 rounded-full" />
       </div>
-      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-1/3" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-1/2" />
+
+      <div className="p-4 flex flex-col flex-1">
+        <Skeleton className="h-3 w-1/3 mb-1" />
+        <div className="space-y-1 mb-2">
+          <Skeleton className="h-5 w-full" />
+          <Skeleton className="h-5 w-4/5" />
         </div>
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-4 w-12" />
-          </div>
-          <Skeleton className="h-9 w-full rounded-lg" />
+        
+        <div className="flex items-baseline gap-2 mb-3 mt-auto">
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-4 w-12" />
         </div>
+        
+        <Skeleton className="h-9 w-full rounded-md lg:hidden mt-2" />
       </div>
     </div>
   )

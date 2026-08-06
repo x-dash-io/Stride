@@ -102,12 +102,12 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Shipping Address</CardTitle>
-          <CardDescription>Where should we deliver your order?</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-card border border-border rounded-xl p-6 md:p-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-serif font-bold">Shipping Address</h2>
+          <p className="text-sm text-muted-foreground mt-1">Where should we deliver your order?</p>
+        </div>
+        <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="label">Address Label</Label>
@@ -188,8 +188,8 @@ export function ShippingStep({ onNext, onBack, onZoneChange }: ShippingStepProps
               <Input value="Kenya" readOnly className="bg-muted font-medium" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
