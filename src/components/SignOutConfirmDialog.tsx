@@ -51,10 +51,10 @@ export function SignOutConfirmDialog({ className, iconOnly }: SignOutConfirmDial
         <Button
           variant="ghost"
           size={iconOnly ? "icon" : "sm"}
-          className={`text-muted-foreground hover:text-destructive hover:bg-destructive/10 ${iconOnly ? '' : 'w-full justify-start gap-2'} ${className || ''}`}
+          className={`text-muted-foreground hover:text-destructive hover:bg-destructive/10 ${iconOnly ? '' : 'w-full justify-start gap-2 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0'} ${className || ''}`}
         >
-          <LogOut className="w-4 h-4" />
-          {!iconOnly && <span>Sign Out</span>}
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!iconOnly && <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>

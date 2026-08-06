@@ -4,6 +4,7 @@ import * as React from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AdminSidebar, AdminLayoutContent } from './AdminSidebar'
 import { MobileHeader } from './MobileHeader'
+import { DesktopHeader } from './DesktopHeader'
 import { AdminSuspensionBanner } from './AdminSuspensionBanner'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
@@ -37,9 +38,11 @@ export function AdminLayoutClient({
       />
 
       <AdminLayoutContent>
-        <div className="flex min-h-screen bg-muted/30 flex-col">
           {/* Mobile Header */}
           <MobileHeader storeName={storeName} />
+
+          {/* Desktop Header */}
+          <DesktopHeader storeName={storeName} />
 
           {/* Suspension Banner */}
           {isSuspended && !isSuperAdmin && (
@@ -68,7 +71,6 @@ export function AdminLayoutClient({
             </Suspense>
             {childContent}
           </main>
-        </div>
       </AdminLayoutContent>
     </SidebarProvider>
   )

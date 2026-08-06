@@ -2,13 +2,18 @@ import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
-import { Users, Package, ShoppingBag, Receipt, Plus, ArrowRight, CreditCard, Clock, Activity, Landmark } from 'lucide-react'
+import { Users, Package, ShoppingBag, Receipt, Plus, ArrowRight, CreditCard, Clock, Activity, Landmark, TrendingUp, TrendingDown, Minus, Target, AlertTriangle, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
+import { format, subDays, startOfDay, endOfDay } from 'date-fns'
 import { getBillingStatus } from '@/lib/services/billing.service'
 import { requireStaff } from '@/lib/authz'
 import { SUPER_ADMIN_ROLE } from '@/lib/roles'
 import { DashboardChart } from '@/components/admin/DashboardChart'
+import { DashboardFilters } from '@/components/admin/DashboardFilters'
+import { KPICard } from '@/components/admin/KPICard'
+import { DashboardSkeleton } from '@/components/admin/DashboardSkeleton'
+import { RecentOrdersTable } from '@/components/admin/RecentOrdersTable'
+import { LowStockTable } from '@/components/admin/LowStockTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,64 +21,183 @@ export const metadata: Metadata = {
   title: 'Admin Dashboard | STRIDE',
 }
 
-async function getStats() {
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+interface DateRange {
+  from: Date
+  to: Date
+}
 
-  const [totalUsers, totalProducts, totalOrders, totalRevenue, recentOrders, lowStockProducts, ordersLast30Days] = await Promise.all([
+interface PriorPeriodStats {
+  revenue: number
+  orders: number
+  users: number
+  products: number
+}
+
+async function getStats(dateRange?: DateRange) {
+  const to = dateRange?.to ? endOfDay(dateRange.to) : endOfDay(new Date())
+  const from = dateRange?.from ? startOfDay(dateRange.from) : startOfDay(subDays(new Date(), 30))
+  
+  const priorTo = subDays(from, 1)
+  const priorFrom = subDays(priorTo, 30)
+
+  const [
+    totalUsers,
+    totalProducts,
+    totalOrders,
+    totalRevenue,
+    recentOrders,
+    lowStockProducts,
+    ordersInRange,
+    priorOrdersInRange,
+    priorPeriodStats
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
     prisma.order.count(),
-    prisma.order.aggregate({ _sum: { grandTotal: true }, where: { paymentStatus: 'CAPTURED' } }),
+    prisma.order.aggregate({ 
+      _sum: { grandTotal: true }, 
+      where: { paymentStatus: 'CAPTURED' } 
+    }),
     prisma.order.findMany({
-      take: 5,
+      take: 10,
       orderBy: { createdAt: 'desc' },
       include: { user: { select: { name: true, email: true } } },
     }),
     prisma.productVariant.findMany({
       where: { isActive: true, inventory: { some: { quantityOnHand: { lte: 5 } } } },
       include: { product: { select: { name: true } }, inventory: true },
-      take: 5,
+      take: 10,
     }),
     prisma.order.findMany({
       where: {
         paymentStatus: 'CAPTURED',
-        createdAt: { gte: thirtyDaysAgo }
+        createdAt: { gte: from, lte: to }
       },
       select: {
         createdAt: true,
         grandTotal: true,
       }
-    })
+    }),
+    prisma.order.findMany({
+      where: {
+        paymentStatus: 'CAPTURED',
+        createdAt: { gte: priorFrom, lte: priorTo }
+      },
+      select: {
+        createdAt: true,
+        grandTotal: true,
+      }
+    }),
+    Promise.all([
+      prisma.order.aggregate({ 
+        _sum: { grandTotal: true }, 
+        where: { paymentStatus: 'CAPTURED', createdAt: { gte: priorFrom, lte: priorTo } } 
+      }),
+      prisma.order.count({ where: { createdAt: { gte: priorFrom, lte: priorTo } } }),
+      prisma.user.count({ where: { createdAt: { gte: priorFrom, lte: priorTo } } }),
+      prisma.product.count({ where: { createdAt: { gte: priorFrom, lte: priorTo } } }),
+    ])
   ])
 
-  const revenueMap = new Map<string, number>()
-  for (let i = 0; i < 30; i++) {
+  // Serialize Decimal fields for client components
+  const serializedRecentOrders = recentOrders.map(order => ({
+    ...order,
+    grandTotal: Number(order.grandTotal),
+  }))
+
+  const serializedLowStockProducts = lowStockProducts.map(variant => ({
+    ...variant,
+    basePrice: Number(variant.basePrice),
+    salePrice: variant.salePrice ? Number(variant.salePrice) : null,
+    weightKg: variant.weightKg ? Number(variant.weightKg) : null,
+    product: variant.product,
+    inventory: variant.inventory,
+  }))
+
+  const [priorRevenueAgg, priorOrders, priorUsers, priorProducts] = priorPeriodStats
+  
+  const priorRevenue = Number(priorRevenueAgg._sum.grandTotal || 0)
+  const currentRevenue = Number(totalRevenue._sum.grandTotal || 0)
+  
+  const revenueTrend = ordersInRange.reduce((acc, order) => {
+    const d = format(order.createdAt, 'MMM dd')
+    const existing = acc.find(item => item.date === d)
+    if (existing) {
+      existing.revenue += Number(order.grandTotal)
+    } else {
+      acc.push({ date: d, revenue: Number(order.grandTotal) })
+    }
+    return acc
+  }, [] as Array<{ date: string; revenue: number }>)
+  
+  const priorRevenueTrend = priorOrdersInRange.reduce((acc, order) => {
+    const d = format(order.createdAt, 'MMM dd')
+    const existing = acc.find(item => item.date === d)
+    if (existing) {
+      existing.priorRevenue = (existing.priorRevenue || 0) + Number(order.grandTotal)
+    } else {
+      acc.push({ date: d, priorRevenue: Number(order.grandTotal) })
+    }
+    return acc
+  }, [] as Array<{ date: string; priorRevenue: number }>)
+  
+  const allDates = Array.from({ length: 30 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - i)
-    revenueMap.set(format(d, 'MMM dd'), 0)
-  }
-
-  ordersLast30Days.forEach(order => {
-    const d = format(order.createdAt, 'MMM dd')
-    if (revenueMap.has(d)) {
-      revenueMap.set(d, revenueMap.get(d)! + Number(order.grandTotal))
+    return format(d, 'MMM dd')
+  }).reverse()
+  
+  const completeTrend = allDates.map(date => {
+    const current = revenueTrend.find(item => item.date === date)
+    const prior = priorRevenueTrend.find(item => item.date === date)
+    return { 
+      date, 
+      revenue: current?.revenue || 0,
+      priorRevenue: prior?.priorRevenue || 0
     }
   })
 
-  const revenueTrend = Array.from(revenueMap.entries())
-    .map(([date, revenue]) => ({ date, revenue }))
-    .reverse()
+  const calculateDelta = (current: number, prior: number) => {
+    if (prior === 0) return current > 0 ? 100 : 0
+    return ((current - prior) / prior) * 100
+  }
 
   return {
     totalUsers,
     totalProducts,
     totalOrders,
-    totalRevenue: Number(totalRevenue._sum.grandTotal || 0),
-    recentOrders,
-    lowStockProducts,
-    revenueTrend,
+    totalRevenue: currentRevenue,
+    recentOrders: serializedRecentOrders,
+    lowStockProducts: serializedLowStockProducts,
+    revenueTrend: completeTrend,
+    priorPeriod: {
+      revenue: priorRevenue,
+      orders: priorOrders,
+      users: priorUsers,
+      products: priorProducts,
+    },
+    deltas: {
+      revenue: calculateDelta(currentRevenue, priorRevenue),
+      orders: calculateDelta(totalOrders, priorOrders),
+      users: calculateDelta(totalUsers, priorUsers),
+      products: calculateDelta(totalProducts, priorProducts),
+    },
+    dateRange: { from, to }
   }
+}
+
+interface KPIMetric {
+  label: string
+  value: string | number
+  delta: number
+  deltaLabel?: string
+  target?: number
+  targetLabel?: string
+  icon: React.ReactNode
+  iconBg: string
+  trend?: 'up' | 'down' | 'neutral'
+  href?: string
+  description?: string
 }
 
 export default async function AdminDashboardPage() {
@@ -145,11 +269,11 @@ export default async function AdminDashboardPage() {
           <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
             <div className="flex flex-col justify-between h-full space-y-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Monthly Fee</p>
-                  <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight">{formatPrice(3500)}</p>
+                  <p className="text-2xl font-extrabold mt-1 text-foreground tracking-tight break-words">{formatPrice(3500)}</p>
                 </div>
-                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
+                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2 flex-shrink-0">
                   <Landmark className="w-5 h-5 text-primary" />
                 </div>
               </div>
@@ -161,9 +285,9 @@ export default async function AdminDashboardPage() {
           <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
             <div className="flex flex-col justify-between h-full space-y-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pending Approvals</p>
-                  <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight">
+                  <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight break-words">
                     {pendingConfirmations > 0 ? (
                       <span className="text-amber-600 dark:text-amber-400 animate-pulse">{pendingConfirmations}</span>
                     ) : (
@@ -171,7 +295,7 @@ export default async function AdminDashboardPage() {
                     )}
                   </p>
                 </div>
-                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
+                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2 flex-shrink-0">
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
               </div>
@@ -183,13 +307,13 @@ export default async function AdminDashboardPage() {
           <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
             <div className="flex flex-col justify-between h-full space-y-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Grace Deadline</p>
-                  <p className="text-sm font-bold mt-2 text-destructive bg-destructive/10 px-2 py-1 rounded inline-block">
+                  <p className="text-sm font-bold mt-2 text-destructive bg-destructive/10 px-2 py-1 rounded inline-block break-words">
                     {format(new Date(billing.graceDeadline), 'MMM d, yyyy')}
                   </p>
                 </div>
-                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
+                <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2 flex-shrink-0">
                   <CreditCard className="w-5 h-5 text-primary" />
                 </div>
               </div>
@@ -274,12 +398,18 @@ export default async function AdminDashboardPage() {
     )
   }
 
-  // Regular Store Admin Dashboard
+// Regular Store Admin Dashboard
   const stats = await getStats()
+  
+  // Define targets (these could come from settings in the future)
+  const REVENUE_TARGET = 500000 // 500K KES monthly target
+  const ORDERS_TARGET = 200
+  const PRODUCTS_TARGET = 500
+  const USERS_TARGET = 1000
 
   return (
     <div className="space-y-10 animate-fade-in">
-      {/* Header */}
+      {/* Header with Filters */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="text-left">
           <h1 className="text-4xl font-serif font-bold text-foreground">Admin Dashboard</h1>
@@ -299,142 +429,113 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Asymmetric Stats Grid (5-column layout: Revenue spans 2, others span 1) */}
-      <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 gap-6">
-        {/* Total Revenue (Primary Metric, spans 2 columns with gold Stride secondary branding) */}
-        <div className="bg-card rounded-xl p-6 shadow-sm border-2 border-secondary/20 bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent hover:border-secondary/30 transition-all duration-300 hover:shadow-md md:col-span-3 lg:col-span-2">
-          <div className="flex flex-col justify-between h-full space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Revenue</p>
-                <p className="text-4xl font-extrabold mt-2 text-foreground tracking-tight">{formatPrice(stats.totalRevenue)}</p>
-              </div>
-              <div className="bg-secondary/15 rounded-xl p-2.5">
-                <Receipt className="w-6 h-6 text-secondary" />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium text-left">Accumulated sales revenue from fully captured customer payments.</p>
-          </div>
-        </div>
+      {/* Global Filters */}
+      <DashboardFilters
+        defaultRange={stats.dateRange}
+        statusOptions={['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']}
+        paymentStatusOptions={['PENDING', 'CAPTURED', 'FAILED', 'REFUNDED']}
+        showPresets={true}
+      />
 
-        {/* Total Orders (Secondary Metric) */}
-        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
-          <div className="flex flex-col justify-between h-full space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Orders</p>
-                <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight">{stats.totalOrders.toLocaleString()}</p>
-              </div>
-              <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
-                <ShoppingBag className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium text-left">Total completed orders placed.</p>
-          </div>
-        </div>
-
-        {/* Total Products (Secondary Metric) */}
-        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
-          <div className="flex flex-col justify-between h-full space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Products</p>
-                <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight">{stats.totalProducts.toLocaleString()}</p>
-              </div>
-              <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
-                <Package className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium text-left">Active items in store catalog.</p>
-          </div>
-        </div>
-
-        {/* Total Users (Secondary Metric) */}
-        <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 md:col-span-3 lg:col-span-1">
-          <div className="flex flex-col justify-between h-full space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Users</p>
-                <p className="text-3xl font-extrabold mt-1 text-foreground tracking-tight">{stats.totalUsers.toLocaleString()}</p>
-              </div>
-              <div className="bg-primary/5 dark:bg-zinc-800 rounded-xl p-2">
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium text-left">Registered customer profiles.</p>
-          </div>
-        </div>
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
+        <KPICard
+          label="Total Revenue"
+          value={formatPrice(stats.totalRevenue)}
+          delta={stats.deltas.revenue}
+          deltaLabel="vs prior period"
+          target={REVENUE_TARGET}
+          targetLabel="of monthly target"
+          trend={stats.deltas.revenue > 0 ? 'up' : stats.deltas.revenue < 0 ? 'down' : 'neutral'}
+          icon={<Receipt className="w-6 h-6 text-secondary" />}
+          iconBg="bg-secondary/15"
+          isPrimary={true}
+          href="/admin/orders"
+          description="Accumulated sales revenue from fully captured customer payments."
+        />
+        <KPICard
+          label="Total Orders"
+          value={stats.totalOrders.toLocaleString()}
+          delta={stats.deltas.orders}
+          deltaLabel="vs prior period"
+          target={ORDERS_TARGET}
+          targetLabel="of monthly target"
+          trend={stats.deltas.orders > 0 ? 'up' : stats.deltas.orders < 0 ? 'down' : 'neutral'}
+          icon={<ShoppingBag className="w-5 h-5 text-primary" />}
+          iconBg="bg-primary/5 dark:bg-zinc-800"
+          href="/admin/orders"
+          description="Total completed orders placed."
+        />
+        <KPICard
+          label="Total Products"
+          value={stats.totalProducts.toLocaleString()}
+          delta={stats.deltas.products}
+          deltaLabel="vs prior period"
+          target={PRODUCTS_TARGET}
+          targetLabel="of catalog target"
+          trend={stats.deltas.products > 0 ? 'up' : stats.deltas.products < 0 ? 'down' : 'neutral'}
+          icon={<Package className="w-5 h-5 text-primary" />}
+          iconBg="bg-primary/5 dark:bg-zinc-800"
+          href="/admin/products"
+          description="Active items in store catalog."
+        />
+        <KPICard
+          label="Total Users"
+          value={stats.totalUsers.toLocaleString()}
+          delta={stats.deltas.users}
+          deltaLabel="vs prior period"
+          target={USERS_TARGET}
+          targetLabel="of user target"
+          trend={stats.deltas.users > 0 ? 'up' : stats.deltas.users < 0 ? 'down' : 'neutral'}
+          icon={<Users className="w-5 h-5 text-primary" />}
+          iconBg="bg-primary/5 dark:bg-zinc-800"
+          href="/admin/users"
+          description="Registered customer profiles."
+        />
       </div>
 
       {/* Revenue Trend Chart */}
       <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden text-left">
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <h2 className="text-lg font-bold font-serif">Revenue Trend (Last 30 Days)</h2>
         </div>
-        <div className="p-6">
-          <DashboardChart data={stats.revenueTrend} />
+        <div className="p-6" style={{ height: '320px' }}>
+          <DashboardChart 
+            data={stats.revenueTrend} 
+            targetValue={REVENUE_TARGET}
+            targetLabel="Monthly Target"
+            showPriorPeriod={true}
+          />
         </div>
       </div>
 
-      {/* Grid Detail Content (Asymmetrical 12-column split) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Recent Orders (Left side: spans 7 columns) */}
-        <div className="bg-card rounded-xl border border-border/50 shadow-sm lg:col-span-6 overflow-hidden text-left">
-          <div className="p-6 border-b border-border flex items-center justify-between">
+      {/* Detail Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Recent Orders */}
+        <div className="bg-card rounded-xl border border-border/50 shadow-sm lg:col-span-6 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 className="text-lg font-bold font-serif">Recent Orders</h2>
-            <Button variant="ghost" size="sm" asChild className="hover:bg-accent transition-colors">
+            <Button variant="ghost" size="sm" asChild className="hover:bg-accent transition-colors whitespace-nowrap">
               <Link href="/admin/orders">View All Orders</Link>
             </Button>
           </div>
-          <div className="divide-y divide-border">
-{stats.recentOrders.length > 0 ? (
-               stats.recentOrders.map((order) => (
-                 <div key={order.id} className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 hover:bg-accent/40 hover:translate-x-0.5 transition-all duration-200">
-                   <div className="flex-1 min-w-0">
-                     <p className="font-semibold text-sm text-foreground">#{order.orderNumber}</p>
-                     <p className="text-xs text-muted-foreground mt-1">
-                       {order.user?.name || 'Guest'} • {format(new Date(order.createdAt), 'MMM d, yyyy')}
-                     </p>
-                   </div>
-                   <div className="text-right flex flex-col items-end gap-1.5">
-                     <p className="font-bold text-sm text-foreground">{formatPrice(Number(order.grandTotal))}</p>
-                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary dark:text-primary-foreground border border-primary/20 whitespace-nowrap">
-                       {order.status}
-                     </span>
-                   </div>
-                 </div>
-               ))
-             ) : (
-               <div className="p-6 text-center text-muted-foreground text-sm">No orders yet</div>
-             )}
+          <div className="overflow-x-auto">
+            <RecentOrdersTable data={stats.recentOrders} />
           </div>
         </div>
 
-        {/* Low Stock Alerts (Right side: spans 5 columns) */}
-        <div className="bg-card rounded-xl border border-border/50 shadow-sm lg:col-span-6 overflow-hidden text-left">
-          <div className="p-6 border-b border-border flex items-center justify-between">
+        {/* Low Stock Alerts */}
+        <div className="bg-card rounded-xl border border-border/50 shadow-sm lg:col-span-6 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-bold font-serif">Low Stock Alerts</h2>
           </div>
-          <div className="divide-y divide-border">
-            {stats.lowStockProducts.length > 0 ? (
-              stats.lowStockProducts.map((variant) => (
-<div key={variant.id} className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 hover:bg-accent/40 hover:translate-x-0.5 transition-all duration-200">
-                 <div className="flex-1 min-w-0">
-                   <p className="font-semibold text-sm text-foreground truncate">{variant.product.name}</p>
-                   <p className="text-xs text-muted-foreground mt-1 font-medium">Size: {variant.size} • Color: {variant.colour}</p>
-                 </div>
-                 <div className="text-right flex flex-col items-end gap-1.5">
-                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive dark:text-destructive-foreground border border-destructive/20 whitespace-nowrap">
-                     {variant.inventory.reduce((sum, inv) => sum + inv.quantityOnHand, 0)} left
-                   </span>
-                   <p className="text-[9px] text-muted-foreground font-mono">SKU: {variant.sku}</p>
-                 </div>
-               </div>
-              ))
-            ) : (
-              <div className="p-6 text-center text-muted-foreground text-sm">All products well stocked</div>
-            )}
-          </div>
+          {stats.lowStockProducts.length > 0 ? (
+            <div className="overflow-x-auto">
+              <LowStockTable data={stats.lowStockProducts} />
+            </div>
+          ) : (
+            <div className="p-6 text-center text-muted-foreground text-sm">All products well stocked</div>
+          )}
         </div>
       </div>
     </div>

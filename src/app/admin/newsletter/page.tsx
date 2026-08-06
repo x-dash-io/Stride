@@ -1,12 +1,11 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { ArrowLeft, Search, Mail, ChevronLeft, ChevronRight, Download } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { ArrowLeft, Mail, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { NewsletterFilter } from '@/components/admin/NewsletterFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,42 +62,7 @@ export default async function AdminNewsletterPage({
         </div>
       </div>
 
-      <form method="get" className="mb-6 flex flex-wrap gap-4 max-w-4xl">
-        <div className="relative flex-1 max-w-md">
-          <Input
-            type="text"
-            name="search"
-            defaultValue={search}
-            placeholder="Search by email..."
-            className="pl-9"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        </div>
-        <Select
-          defaultValue={subscribed}
-          onValueChange={(value) => {
-            const params = new URLSearchParams()
-            if (search) params.set('search', search)
-            params.set('subscribed', value)
-            params.set('page', '1')
-            window.location.href = `/admin/newsletter?${params.toString()}`
-          }}
-        >
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="UNSUBSCRIBED">Unsubscribed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" asChild>
-          <a href="/api/admin/newsletter/export" download>
-            <Download className="w-4 h-4 mr-2" /> Export CSV
-          </a>
-        </Button>
-      </form>
+      <NewsletterFilter search={search} subscribed={subscribed} />
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">

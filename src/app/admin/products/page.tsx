@@ -2,13 +2,13 @@ import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
-import { Package, Plus, Search, Edit, Trash2, Eye, MoreHorizontal } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, MoreHorizontal, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { ProductsFilter, ProductsSearchFilter } from '@/components/admin/ProductsFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,51 +71,8 @@ export default async function AdminProductsPage({
 
   return (
     <div className="container-max py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
-            <Package className="w-4 h-4" /> Back to Dashboard
-          </Link>
-          <h1 className="text-4xl font-serif font-bold">Products</h1>
-          <p className="text-muted-foreground mt-1">{total} product{total !== 1 ? 's' : ''}</p>
-        </div>
-        <Button asChild>
-          <Link href="/admin/products/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Link>
-        </Button>
-      </div>
-
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            className="pl-10"
-            defaultValue={search}
-          />
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {statusFilters.map((status) => {
-            const isActive = currentStatus === status
-            const href = status === 'ALL' 
-              ? `/admin/products${search ? `?search=${search}` : ''}`
-              : `/admin/products?status=${status}${search ? `&search=${search}` : ''}`
-            return (
-              <Link
-                key={status}
-                href={href}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                }`}
-              >
-                {status === 'ALL' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+      <ProductsFilter search={search} status={currentStatus} total={total} />
+      <ProductsSearchFilter search={search} status={currentStatus} />
 
       {items.length > 0 ? (
         <div className="bg-card border border-border rounded-xl overflow-hidden">

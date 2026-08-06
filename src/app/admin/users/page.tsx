@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { ArrowLeft, Search, Users, ChevronLeft, ChevronRight, Shield } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { ArrowLeft, Users, ChevronLeft, ChevronRight, Shield } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { UsersFilter } from '@/components/admin/UsersFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,37 +77,7 @@ export default async function AdminUsersPage({
         </div>
       </div>
 
-      <form method="get" className="mb-6 flex flex-wrap gap-4 max-w-4xl">
-        <div className="relative flex-1 max-w-md">
-          <Input
-            type="text"
-            name="search"
-            defaultValue={search}
-            placeholder="Search by name or email..."
-            className="pl-9"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        </div>
-        <Select
-          defaultValue={role}
-          onValueChange={(value) => {
-            const params = new URLSearchParams()
-            if (search) params.set('search', search)
-            params.set('role', value)
-            params.set('page', '1')
-            window.location.href = `/admin/users?${params.toString()}`
-          }}
-        >
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Filter by role" />
-          </SelectTrigger>
-          <SelectContent>
-            {roleOptions.map((r) => (
-              <SelectItem key={r} value={r}>{r}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </form>
+      <UsersFilter search={search} role={role} />
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">

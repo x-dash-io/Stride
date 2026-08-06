@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { AdminSidebarTrigger } from './AdminSidebar'
-import { ThemeSwitcher } from '@/components/theme-switcher'
 import { signOut } from 'next-auth/react'
+import { ThemeSwitcher } from '@/components/theme-switcher'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,22 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { User, LogOut, Settings, ChevronDown } from 'lucide-react'
-
-interface MobileHeaderProps {
-  storeName?: string | null
-  navigationItems?: Array<{
-    href: string
-    name: string
-    icon: any
-  }>
-  suspendedNav?: Array<{
-    href: string
-    name: string
-    icon: any
-  }>
-  isSuspended?: boolean
-  isSuperAdmin?: boolean
-}
 
 const handleSignOut = async () => {
   if (typeof window !== 'undefined') {
@@ -38,26 +21,22 @@ const handleSignOut = async () => {
   await signOut({ callbackUrl: '/', redirect: true })
 }
 
-export function MobileHeader({ storeName }: MobileHeaderProps) {
+interface DesktopHeaderProps {
+  storeName?: string | null
+}
+
+export function DesktopHeader({ storeName }: DesktopHeaderProps) {
   return (
-    <header className="lg:hidden sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <AdminSidebarTrigger />
-          <Link href="/admin" className="flex items-center gap-2">
-            <span className="font-serif text-lg font-bold tracking-tight text-foreground">
-              {storeName || 'STRIDE'}
-            </span>
-          </Link>
-        </div>
-        <div className="flex items-center gap-2">
+    <header className="hidden lg:flex sticky top-0 z-20 w-full border-b border-border bg-background/80 backdrop-blur-md items-center">
+      <div className="px-6 py-3 flex items-center justify-end w-full gap-4">
+        <div className="flex items-center gap-4">
           <ThemeSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin</span>
-                <ChevronDown className="w-4 h-4 hidden sm:inline" />
+                <span>Admin</span>
+                <ChevronDown className="w-4 h-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

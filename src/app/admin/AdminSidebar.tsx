@@ -3,14 +3,14 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingBag, 
-  Truck, 
-  Settings, 
-  CreditCard, 
-  ExternalLink, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Truck,
+  Settings,
+  CreditCard,
+  ExternalLink,
   AlertTriangle,
   Tag,
   Image as ImageIcon,
@@ -22,37 +22,23 @@ import {
   Users,
   Mail,
   Receipt,
-  LogOut,
-  User,
-  Sun,
-  Moon,
 } from 'lucide-react'
-import { 
-  Sidebar, 
-  SidebarHeader, 
-  SidebarFooter, 
-  SidebarContent, 
-  SidebarGroup, 
-  SidebarGroupLabel, 
-  SidebarGroupContent, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton, 
-  SidebarMenuSub, 
-  SidebarMenuSubItem, 
-  SidebarMenuSubButton,
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
   SidebarTrigger,
   SidebarInset,
   SidebarRail,
-  useSidebar,
 } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { ThemeSwitcher } from '@/components/theme-switcher'
-import { SignOutButton } from './SignOutButton'
-import { AdminSuspensionBanner } from './AdminSuspensionBanner'
-import { MobileHeader } from './MobileHeader'
-import { cn } from '@/lib/utils'
+
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
@@ -73,35 +59,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users,
   Mail,
   Receipt,
-  LogOut,
-  User,
-  Sun,
-  Moon,
 }
-
-const allAdminNav = [
-  { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
-  { name: 'Products', href: '/admin/products', icon: 'Package' },
-  { name: 'Orders', href: '/admin/orders', icon: 'ShoppingBag' },
-  { name: 'Categories', href: '/admin/categories', icon: 'FolderKanban' },
-  { name: 'Brands', href: '/admin/brands', icon: 'Tag' },
-  { name: 'Collections', href: '/admin/collections', icon: 'Layers' },
-  { name: 'Banners', href: '/admin/banners', icon: 'ImageIcon' },
-  { name: 'Inventory', href: '/admin/inventory', icon: 'Boxes' },
-  { name: 'Warehouses', href: '/admin/warehouses', icon: 'Warehouse' },
-  { name: 'Reviews', href: '/admin/reviews', icon: 'MessageSquare' },
-  { name: 'Users', href: '/admin/users', icon: 'Users' },
-  { name: 'Newsletter', href: '/admin/newsletter', icon: 'Mail' },
-  { name: 'Payments', href: '/admin/payments', icon: 'Receipt' },
-  { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: 'Truck' },
-  { name: 'Store Settings', href: '/admin/settings/store', icon: 'Settings' },
-  { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
-]
-
-const superAdminNav = [
-  { name: 'Platform Dashboard', href: '/admin', icon: 'LayoutDashboard' },
-  { name: 'Platform Billing', href: '/admin/billing', icon: 'CreditCard' },
-]
 
 interface NavItem {
   name: string
@@ -116,7 +74,7 @@ interface AdminSidebarProps {
   isSuperAdmin?: boolean
   storeName?: string
 }
-
+  
 function AdminSidebarInner({
   navigationItems,
   suspendedNav,
@@ -125,11 +83,10 @@ function AdminSidebarInner({
   storeName,
 }: AdminSidebarProps) {
   const pathname = usePathname()
-  const { state } = useSidebar()
 
   const renderIcon = (iconName: string) => {
     const Icon = iconMap[iconName]
-    return Icon ? <Icon className="h-5 w-5" /> : null
+    return Icon ? <Icon aria-hidden="true" /> : null
   }
 
   const isActive = (href: string) => {
@@ -137,11 +94,11 @@ function AdminSidebarInner({
     return pathname.startsWith(href)
   }
 
-  return (
-    <Sidebar collapsible="icon">
+return (
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
-        <Link href="/admin" className="flex items-center gap-3 px-2 py-2" onClick={() => {}}>
-          <span className="font-serif text-xl font-bold tracking-tight text-foreground truncate">
+        <Link href="/admin" className="flex items-center gap-3 rounded-md px-2 py-2">
+          <span className="font-serif text-xl font-bold tracking-tight text-foreground">
             {storeName || 'STRIDE'}
           </span>
         </Link>
@@ -154,7 +111,7 @@ function AdminSidebarInner({
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                  <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.name}>
                     <Link href={item.href}>
                       {renderIcon(item.icon)}
                       <span className="truncate">{item.name}</span>
@@ -170,13 +127,14 @@ function AdminSidebarInner({
                     .filter(item => item.href !== '/admin' && item.href !== '/admin/subscription')
                     .map((item) => (
                       <SidebarMenuItem key={item.href}>
-                        <span
+                        <SidebarMenuButton
+                          disabled
                           title="Unlock by clearing your subscription dues"
-                          className="flex items-center gap-3 px-2 py-2 rounded-md text-sm font-medium cursor-not-allowed opacity-40 text-muted-foreground select-none"
+                          className="cursor-not-allowed opacity-40 text-muted-foreground select-none"
                         >
                           {renderIcon(item.icon)}
                           <span className="truncate">{item.name}</span>
-                        </span>
+                        </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
                 </>
@@ -186,19 +144,7 @@ function AdminSidebarInner({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              Admin User
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 px-2">
-          <ThemeSwitcher />
-          <SignOutButton />
-        </div>
-      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }
@@ -208,12 +154,12 @@ export function AdminSidebar(props: AdminSidebarProps) {
 }
 
 export function AdminSidebarTrigger() {
-  return <SidebarTrigger tooltip="Toggle Sidebar" />
+  return <SidebarTrigger aria-label="Toggle Sidebar" />
 }
 
 export function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarInset>
+    <SidebarInset className="min-h-screen bg-muted/30 flex flex-col">
       {children}
     </SidebarInset>
   )

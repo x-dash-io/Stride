@@ -1,11 +1,10 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { ArrowLeft, Search, Receipt, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { ArrowLeft, Receipt, ChevronLeft, ChevronRight } from 'lucide-react'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
+import { PaymentsFilter } from '@/components/admin/PaymentsFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,37 +69,7 @@ export default async function AdminPaymentsPage({
         </div>
       </div>
 
-      <form method="get" className="mb-6 flex flex-wrap gap-4 max-w-4xl">
-        <div className="relative flex-1 max-w-md">
-          <Input
-            type="text"
-            name="search"
-            defaultValue={search}
-            placeholder="Search by transaction ID, order number, or email..."
-            className="pl-9"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        </div>
-        <Select
-          defaultValue={status}
-          onValueChange={(value) => {
-            const params = new URLSearchParams()
-            if (search) params.set('search', search)
-            params.set('status', value)
-            params.set('page', '1')
-            window.location.href = `/admin/payments?${params.toString()}`
-          }}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </form>
+      <PaymentsFilter search={search} status={status} />
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
