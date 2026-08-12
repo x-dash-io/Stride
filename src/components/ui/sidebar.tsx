@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
 
@@ -37,33 +37,6 @@ function useSidebar() {
   return context
 }
 
-const sidebarVariants = cva(
-  "group/sidebar-wrapper flex min-h-svh flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear",
-  {
-    variants: {
-      side: {
-        left: "left-0",
-        right: "right-0",
-      },
-      variant: {
-        sidebar: "fixed inset-y-0 z-10 w-(--sidebar-width) md:flex",
-        floating: "fixed inset-y-0 z-10 w-(--sidebar-width) md:flex rounded-lg border border-sidebar-border shadow-lg",
-        inset: "w-(--sidebar-width) flex-none",
-      },
-      collapsible: {
-        offcanvas: "",
-        icon: "",
-        none: "w-(--sidebar-width) min-w-(--sidebar-width)",
-      },
-    },
-    defaultVariants: {
-      side: "left",
-      variant: "sidebar",
-      collapsible: "offcanvas",
-    },
-  }
-)
-
 const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -73,13 +46,60 @@ const Sidebar = React.forwardRef<
   }
 >((props, ref) => {
   const { side = "left", variant = "sidebar", collapsible = "offcanvas", className, style, children, ...rest } = props
-  const { state } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
+  // Static sidebar: always visible, no collapse/offcanvas behavior.
+  if (collapsible === "none") {
+    return (
+      <div
+        ref={ref}
+        data-side={side}
+        data-variant={variant}
+        className={cn(
+          "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
+          className
+        )}
+        style={{ "--sidebar-width": SIDEBAR_WIDTH, ...style } as React.CSSProperties}
+        {...rest}
+      >
+        {children}
+      </div>
+    )
+  }
+
+  // Mobile: render inside a slide-in Sheet, driven by the shared sidebar state.
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetContent
+          data-side={side}
+          data-variant={variant}
+          side={side}
+          className="w-(--sidebar-width-mobile) max-w-[85%] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          style={{ "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
+        >
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <TooltipProvider delayDuration={0}>
+            <div ref={ref} className="flex h-full w-full flex-col" {...rest}>
+              {children}
+            </div>
+          </TooltipProvider>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  // Desktop: a fixed panel plus an in-flow spacer that reserves its width so
+  // page content is pushed over rather than covered. The spacer and the fixed
+  // panel both animate width/position together based on `data-state`.
   return (
     <TooltipProvider delayDuration={0}>
       <div
-        ref={ref}
-        className={cn(sidebarVariants({ side, variant, collapsible }), className)}
+        className="group peer hidden md:block text-sidebar-foreground"
+        data-state={state}
+        data-collapsible={state === "collapsed" ? collapsible : ""}
+        data-variant={variant}
+        data-side={side}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,
@@ -87,14 +107,46 @@ const Sidebar = React.forwardRef<
             ...style,
           } as React.CSSProperties
         }
-        data-side={side}
-        data-variant={variant}
-        data-collapsible={collapsible}
-        data-state={state}
-        {...rest}
       >
-        {children}
-        <SidebarRail />
+        {/* Spacer: reserves layout space in the flex row */}
+        <div
+          className={cn(
+            "relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+            "group-data-[collapsible=offcanvas]:w-0",
+            "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+            "group-data-[side=right]:rotate-180"
+          )}
+        />
+        {/* Fixed visual panel */}
+        <div
+          ref={ref}
+          data-side={side}
+          data-variant={variant}
+          className={cn(
+            "fixed inset-y-0 z-10 flex h-svh w-(--sidebar-width) flex-col transition-[left,right,width] duration-200 ease-linear",
+            side === "left"
+              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
+              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+            "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+            variant === "floating"
+              ? "p-2"
+              : side === "left"
+              ? "border-r border-sidebar-border"
+              : "border-l border-sidebar-border",
+            className
+          )}
+          {...rest}
+        >
+          <div
+            className={cn(
+              "flex h-full w-full flex-col bg-sidebar",
+              variant === "floating" && "rounded-lg border border-sidebar-border shadow-lg"
+            )}
+          >
+            {children}
+          </div>
+          <SidebarRail />
+        </div>
       </div>
     </TooltipProvider>
   )
@@ -143,32 +195,26 @@ const SidebarRail = React.forwardRef<HTMLButtonElement, React.ComponentProps<"bu
     const { toggleSidebar, state } = useSidebar()
 
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              ref={ref}
-              onClick={toggleSidebar}
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "relative flex h-full w-3 items-center justify-center transition-all ease-linear focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-sidebar",
-                className
-              )}
-              {...props}
-            >
-              {state === "expanded" ? (
-                <ChevronLeft className="h-4 w-4 text-muted-foreground transition-transform" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" align="center">
-            Toggle Sidebar
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <button
+        ref={ref}
+        type="button"
+        onClick={toggleSidebar}
+        title="Toggle Sidebar"
+        aria-label="Toggle Sidebar"
+        className={cn(
+          "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 cursor-w-resize items-center justify-center transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
+          "after:absolute after:inset-y-0 after:left-1/2 after:w-px after:bg-sidebar-border hover:after:bg-sidebar-ring",
+          "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:hover:bg-sidebar-accent/40",
+          className
+        )}
+        {...props}
+      >
+        {state === "expanded" ? (
+          <ChevronLeft className="h-3 w-3 text-sidebar-foreground/40" aria-hidden="true" />
+        ) : (
+          <ChevronRight className="h-3 w-3 text-sidebar-foreground/40" aria-hidden="true" />
+        )}
+      </button>
     )
   }
 )
@@ -179,9 +225,9 @@ const SidebarInset = React.forwardRef<
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
   return (
-    <main
+    <div
       ref={ref}
-      className={cn("relative flex min-h-svh flex-1 flex-col bg-background", className)}
+      className={cn("relative flex min-h-svh w-full flex-1 flex-col bg-background", className)}
       {...props}
     />
   )
@@ -258,7 +304,7 @@ const SidebarProvider = React.forwardRef<
     <SidebarContext.Provider value={contextValue}>
       <div
         ref={ref}
-        className={cn("group/sidebar-wrapper flex min-h-svh", className)}
+        className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,
@@ -269,23 +315,6 @@ const SidebarProvider = React.forwardRef<
         {...props}
       >
         {children}
-        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className="w-(--sidebar-width-mobile) p-0"
-            side="left"
-          >
-            <div className="flex h-full flex-col">
-              {React.Children.map(children, (child) => {
-                if (React.isValidElement(child) && (child.type as any).displayName === "SidebarContent") {
-                  return React.cloneElement(child as React.ReactElement<{ className?: string }>, { className: "flex-1 overflow-y-auto" })
-                }
-                return child
-              })}
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
     </SidebarContext.Provider>
   )
@@ -426,12 +455,13 @@ const SidebarMenuButton = React.forwardRef<
     variant?: "default" | "outline"
     size?: "default" | "sm" | "lg"
     className?: string
+    tooltip?: string
   }
->(({ asChild = false, isActive, variant = "default", size = "default", className, ...props }, ref) => {
+>(({ asChild = false, isActive, variant = "default", size = "default", className, tooltip, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
-  const { state } = useSidebar()
+  const { state, isMobile } = useSidebar()
 
-  return (
+  const button = (
     <Comp
       ref={ref}
       data-active={isActive}
@@ -439,6 +469,21 @@ const SidebarMenuButton = React.forwardRef<
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...props}
     />
+  )
+
+  // Only show the tooltip when the sidebar is collapsed to icons on desktop;
+  // when expanded the label is already visible next to the icon.
+  if (!tooltip || isMobile || state !== "collapsed") {
+    return button
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent side="right" align="center">
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
   )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
