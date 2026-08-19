@@ -65,17 +65,31 @@ export function PaymentStep({ onSubmit, onBack, isProcessing, mpesaStatus, mpesa
           {paymentMethod === 'MPESA_STK_PUSH' && (
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">M-Pesa Phone Number *</Label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                placeholder="2547XXXXXXXX"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-              <p className="text-xs text-muted-foreground">Format: 2547XXXXXXXX</p>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium pointer-events-none">
+                  🇰🇪
+                </span>
+                <Input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  placeholder="0712 345 678"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    // Strip non-digits, allow + prefix
+                    const raw = e.target.value.replace(/[^\d+]/g, '')
+                    setPhoneNumber(raw)
+                  }}
+                  className="pl-10"
+                  required
+                  disabled={isSubmitting}
+                  maxLength={15}
+                  inputMode="tel"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Accepted formats: 07XXXXXXXX · 01XXXXXXXX · +2547XXXXXXXX
+              </p>
             </div>
           )}
 

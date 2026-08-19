@@ -427,6 +427,7 @@ model Order {
   @@index([email])
   @@index([shippingAddressId])
   @@index([billingAddressId])
+  @@index([deliveryAgentId])
 }
 
 model OrderItem {

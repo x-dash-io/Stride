@@ -124,7 +124,7 @@ export function CheckoutClient({ cart, defaultAddress, userEmail, isGuest = fals
           />
         )
       case 'confirmation':
-        return <ConfirmationStep orderNumber={orderNumber} onContinueShopping={() => router.push('/products')} onViewOrders={() => router.push('/account/orders')} />
+        return <ConfirmationStep orderNumber={orderNumber} paymentMethod={paymentMethod} onContinueShopping={() => router.push('/products')} onViewOrders={() => router.push('/account/orders')} />
     }
   }
 

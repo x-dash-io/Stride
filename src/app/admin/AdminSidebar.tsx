@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingBag,
   Truck,
+  MapPinned,
   Settings,
   CreditCard,
   ExternalLink,
@@ -37,7 +38,6 @@ import {
   SidebarInset,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
 
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -45,6 +45,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Package,
   ShoppingBag,
   Truck,
+  MapPinned,
   Settings,
   CreditCard,
   ExternalLink,
@@ -67,8 +68,14 @@ interface NavItem {
   icon: string
 }
 
+interface NavGroup {
+  label: string
+  items: NavItem[]
+}
+
 interface AdminSidebarProps {
   navigationItems: NavItem[]
+  navigationGroups?: NavGroup[]
   suspendedNav?: NavItem[]
   isSuspended?: boolean
   isSuperAdmin?: boolean
@@ -77,6 +84,7 @@ interface AdminSidebarProps {
   
 function AdminSidebarInner({
   navigationItems,
+  navigationGroups,
   suspendedNav,
   isSuspended,
   isSuperAdmin,
@@ -94,6 +102,11 @@ function AdminSidebarInner({
     return pathname.startsWith(href)
   }
 
+  // Fall back to a single unlabeled group if the caller didn't pass grouped nav
+  const groups: NavGroup[] = navigationGroups && navigationGroups.length > 0
+    ? navigationGroups
+    : [{ label: isSuperAdmin ? 'Platform Access' : 'Store Management', items: navigationItems }]
+
 return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
@@ -101,47 +114,58 @@ return (
           <span className="font-serif text-xl font-bold tracking-tight text-foreground">
             {storeName || 'STRIDE'}
           </span>
+          {isSuperAdmin && (
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full px-2 py-0.5">
+              Super Admin
+            </span>
+          )}
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>{isSuperAdmin ? 'Platform Access' : 'Store Management'}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.name}>
-                    <Link href={item.href}>
-                      {renderIcon(item.icon)}
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+        {groups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.name}>
+                      <Link href={item.href}>
+                        {renderIcon(item.icon)}
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
-              {isSuspended && !isSuperAdmin && suspendedNav && (
-                <>
-                  <Separator className="my-2" />
-                  {suspendedNav
-                    .filter(item => item.href !== '/admin' && item.href !== '/admin/subscription')
-                    .map((item) => (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          disabled
-                          title="Unlock by clearing your subscription dues"
-                          className="cursor-not-allowed opacity-40 text-muted-foreground select-none"
-                        >
-                          {renderIcon(item.icon)}
-                          <span className="truncate">{item.name}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                </>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isSuspended && !isSuperAdmin && suspendedNav && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Locked</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {suspendedNav
+                  .filter(item => item.href !== '/admin' && item.href !== '/admin/subscription')
+                  .map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        disabled
+                        title="Unlock by clearing your subscription dues"
+                        className="cursor-not-allowed opacity-40 text-muted-foreground select-none"
+                      >
+                        {renderIcon(item.icon)}
+                        <span className="truncate">{item.name}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarRail />

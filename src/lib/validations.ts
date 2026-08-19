@@ -93,6 +93,13 @@ export const registerSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>
 
+export const deliveryAgentCreateSchema = z.object({
+  name: sanitizedName,
+  email: sanitizedEmail,
+  phone: sanitizedOptionalText(20),
+  password: passwordSchema,
+})
+
 export const forgotPasswordSchema = z.object({
   email: sanitizedEmail,
 })
@@ -249,7 +256,8 @@ export const reviewModerationSchema = z.object({
 })
 
 export const orderUpdateSchema = z.object({
-  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED', 'ON_HOLD']),
+  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED', 'ON_HOLD']).optional(),
   paymentStatus: z.enum(['PENDING', 'AUTHORIZED', 'CAPTURED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED']).optional(),
+  deliveryAgentId: z.string().min(1).nullable().optional(),
   note: sanitizedOptionalText(500),
 })

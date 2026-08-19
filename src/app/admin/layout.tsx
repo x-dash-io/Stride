@@ -43,6 +43,7 @@ export default async function AdminLayout({
     { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
     { name: 'Products', href: '/admin/products', icon: 'Package' },
     { name: 'Orders', href: '/admin/orders', icon: 'ShoppingBag' },
+    { name: 'Delivery Agents', href: '/admin/delivery-agents', icon: 'Truck' },
     { name: 'Categories', href: '/admin/categories', icon: 'FolderKanban' },
     { name: 'Brands', href: '/admin/brands', icon: 'Tag' },
     { name: 'Collections', href: '/admin/collections', icon: 'Layers' },
@@ -53,22 +54,69 @@ export default async function AdminLayout({
     { name: 'Users', href: '/admin/users', icon: 'Users' },
     { name: 'Newsletter', href: '/admin/newsletter', icon: 'Mail' },
     { name: 'Payments', href: '/admin/payments', icon: 'Receipt' },
-    { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: 'Truck' },
+    { name: 'Shipping Zones', href: '/admin/settings/shipping', icon: 'MapPinned' },
     { name: 'Store Settings', href: '/admin/settings/store', icon: 'Settings' },
     { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
   ]
 
-  const navigationItems = isSuperAdmin
-    ? [
+  // Grouped nav for the regular admin sidebar — mirrors allAdminNav but organized
+  // into labeled sections for a more scannable sidebar.
+  const adminNavGroups = [
+    {
+      label: 'Overview',
+      items: allAdminNav.filter(i => ['/admin'].includes(i.href)),
+    },
+    {
+      label: 'Catalog',
+      items: allAdminNav.filter(i =>
+        ['/admin/products', '/admin/categories', '/admin/brands', '/admin/collections', '/admin/banners', '/admin/inventory', '/admin/warehouses'].includes(i.href)
+      ),
+    },
+    {
+      label: 'Sales',
+      items: allAdminNav.filter(i =>
+        ['/admin/orders', '/admin/delivery-agents', '/admin/payments', '/admin/reviews'].includes(i.href)
+      ),
+    },
+    {
+      label: 'Audience',
+      items: allAdminNav.filter(i => ['/admin/users', '/admin/newsletter'].includes(i.href)),
+    },
+    {
+      label: 'Settings',
+      items: allAdminNav.filter(i =>
+        ['/admin/settings/shipping', '/admin/settings/store', '/admin/subscription'].includes(i.href)
+      ),
+    },
+  ].filter(group => group.items.length > 0)
+
+  // Platform-level sidebar for super admins: cross-tenant concerns only,
+  // grouped the same way the regular admin nav is for a consistent feel.
+  const platformNavGroups = [
+    {
+      label: 'Platform',
+      items: [
         { name: 'Platform Dashboard', href: '/admin', icon: 'LayoutDashboard' },
         { name: 'Platform Billing', href: '/admin/billing', icon: 'CreditCard' },
-      ]
+      ],
+    },
+  ]
+
+  const navigationGroups = isSuperAdmin
+    ? platformNavGroups
     : isSuspended
     ? [
-        { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
-        { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
+        {
+          label: 'Store Management',
+          items: [
+            { name: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+            { name: 'Subscription', href: '/admin/subscription', icon: 'CreditCard' },
+          ],
+        },
       ]
-    : allAdminNav
+    : adminNavGroups
+
+  const navigationItems = navigationGroups.flatMap(g => g.items)
 
   // Suspended admin: if they try to visit any locked route, redirect to subscription
   if (isSuspended && !isSuperAdmin) {
@@ -83,6 +131,7 @@ export default async function AdminLayout({
     <AdminLayoutClient
       childContent={children}
       navigationItems={navigationItems}
+      navigationGroups={navigationGroups}
       suspendedNav={allAdminNav}
       isSuspended={isSuspended}
       isSuperAdmin={isSuperAdmin}

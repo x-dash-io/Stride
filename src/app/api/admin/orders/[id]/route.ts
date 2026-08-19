@@ -26,18 +26,29 @@ async function handlePutById(
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
 
+  if (parsed.data.deliveryAgentId) {
+    const agent = await prisma.user.findUnique({
+      where: { id: parsed.data.deliveryAgentId },
+      select: { id: true, role: true },
+    })
+    if (!agent || agent.role !== 'DELIVERY_AGENT') {
+      return NextResponse.json({ error: 'Selected user is not a delivery agent' }, { status: 400 })
+    }
+  }
+
   const updated = await prisma.$transaction(async (tx) => {
     const result = await tx.order.update({
       where: { id },
       data: {
-        ...(parsed.data.status !== order.status && { status: parsed.data.status }),
+        ...(parsed.data.status && parsed.data.status !== order.status && { status: parsed.data.status }),
         ...(parsed.data.paymentStatus && parsed.data.paymentStatus !== order.paymentStatus && {
           paymentStatus: parsed.data.paymentStatus,
         }),
+        ...(parsed.data.deliveryAgentId !== undefined && { deliveryAgentId: parsed.data.deliveryAgentId }),
       },
     })
 
-    if (parsed.data.status !== order.status) {
+    if (parsed.data.status && parsed.data.status !== order.status) {
       await tx.orderStatusHistory.create({
         data: {
           orderId: id,

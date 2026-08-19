@@ -13,6 +13,7 @@ import { Suspense } from 'react'
 interface AdminLayoutClientProps {
   childContent: React.ReactNode
   navigationItems: Array<{ name: string; href: string; icon: string }>
+  navigationGroups?: Array<{ label: string; items: Array<{ name: string; href: string; icon: string }> }>
   suspendedNav: Array<{ name: string; href: string; icon: string }>
   isSuspended: boolean
   isSuperAdmin: boolean
@@ -22,6 +23,7 @@ interface AdminLayoutClientProps {
 export function AdminLayoutClient({
   childContent,
   navigationItems,
+  navigationGroups,
   suspendedNav,
   isSuspended,
   isSuperAdmin,
@@ -32,6 +34,7 @@ export function AdminLayoutClient({
       <AdminSidebar
         storeName={storeName}
         navigationItems={navigationItems}
+        navigationGroups={navigationGroups}
         suspendedNav={suspendedNav}
         isSuspended={isSuspended}
         isSuperAdmin={isSuperAdmin}

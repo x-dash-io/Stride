@@ -9,6 +9,8 @@ import { OrderStatus } from '@prisma/client'
 import { requireStaff } from '@/lib/authz'
 import { ADMIN_ROLE } from '@/lib/roles'
 import { OrderStatusManager } from './OrderStatusManager'
+import { AssignDeliveryAgent } from './AssignDeliveryAgent'
+import { DELIVERY_AGENT_ROLE } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +63,12 @@ export default async function AdminOrderDetailPage({
   if (!order) {
     notFound()
   }
+
+  const deliveryAgents = await prisma.user.findMany({
+    where: { role: DELIVERY_AGENT_ROLE },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: 'asc' },
+  })
 
   return (
     <div className="container-max py-8">
@@ -263,6 +271,13 @@ export default async function AdminOrderDetailPage({
               paymentStatus={order.paymentStatus}
             />
           </div>
+
+          {/* Delivery Agent (mainly relevant for Cash on Delivery orders) */}
+          <AssignDeliveryAgent
+            orderId={order.id}
+            currentAgentId={order.deliveryAgentId}
+            agents={deliveryAgents}
+          />
 
           {/* Timeline */}
           {order.statusHistory.length > 0 && (
