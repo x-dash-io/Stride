@@ -61,7 +61,12 @@ export function AddressForm({ initialData, addressId }: AddressFormProps) {
     const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
     if (!data.firstName || data.firstName.length < 2) newErrors.firstName = 'First name is required'
     if (!data.lastName || data.lastName.length < 2) newErrors.lastName = 'Last name is required'
-    if (!data.phone || data.phone.length < 6) newErrors.phone = 'Valid phone number is required'
+    // Accept: 07XXXXXXXX, 01XXXXXXXX, +2547XXXXXXXX, 2547XXXXXXXX
+    const digits = data.phone.replace(/\D/g, '')
+    const normalised = digits.startsWith('0') ? '254' + digits.slice(1) : digits.startsWith('254') ? digits : '254' + digits
+    if (!data.phone || !/^(0[17]\d{8}|\+?254[17]\d{8})$/.test(data.phone.trim()) && normalised.length !== 12) {
+      newErrors.phone = 'Enter a valid Kenyan phone number (e.g. 0712345678)'
+    }
     if (!data.addressLine1 || data.addressLine1.length < 5) newErrors.addressLine1 = 'Address must be at least 5 characters'
     if (!data.city || data.city.length < 2) newErrors.city = 'City is required'
     if (!data.state || data.state.length < 2) newErrors.state = 'County is required'

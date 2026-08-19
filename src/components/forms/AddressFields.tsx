@@ -20,8 +20,18 @@ const LABEL_OPTIONS = [
   { value: 'Other', label: 'Other' },
 ] as const
 
-const COUNTRY_OPTIONS = [
-  { value: 'KE', label: 'Kenya' },
+// All 47 Kenya counties
+const KENYA_COUNTIES = [
+  'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet',
+  'Embu', 'Garissa', 'Homa Bay', 'Isiolo', 'Kajiado',
+  'Kakamega', 'Kericho', 'Kiambu', 'Kilifi', 'Kirinyaga',
+  'Kisii', 'Kisumu', 'Kitui', 'Kwale', 'Laikipia',
+  'Lamu', 'Machakos', 'Makueni', 'Mandera', 'Marsabit',
+  'Meru', 'Migori', 'Mombasa', 'Murang\'a', 'Nairobi',
+  'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua',
+  'Nyeri', 'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River',
+  'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu',
+  'Vihiga', 'Wajir', 'West Pokot',
 ] as const
 
 export function AddressFields({
@@ -75,15 +85,33 @@ export function AddressFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number (M-Pesa registered)</Label>
-        <Input
-          id="phone"
-          type="tel"
-          value={data.phone}
-          onChange={(e) => onFieldChange('phone', e.target.value)}
-          placeholder="0712 345 678 or 254712345678"
-          disabled={isLoading}
-        />
+        <Label htmlFor="phone">
+          Phone Number
+          <span className="ml-1 text-xs text-muted-foreground">(M-Pesa registered)</span>
+        </Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium pointer-events-none">
+            🇰🇪
+          </span>
+          <Input
+            id="phone"
+            type="tel"
+            value={data.phone}
+            onChange={(e) => {
+              // Strip non-digits, allow + prefix
+              const raw = e.target.value.replace(/[^\d+]/g, '')
+              onFieldChange('phone', raw)
+            }}
+            placeholder="0712 345 678"
+            className="pl-10"
+            disabled={isLoading}
+            maxLength={15}
+            inputMode="tel"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Accepted formats: 07XXXXXXXX · 01XXXXXXXX · +2547XXXXXXXX
+        </p>
         {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
       </div>
 
@@ -100,7 +128,7 @@ export function AddressFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+        <Label htmlFor="addressLine2">Address Line 2 <span className="text-muted-foreground">(Optional)</span></Label>
         <Input
           id="addressLine2"
           value={data.addressLine2 || ''}
@@ -124,13 +152,22 @@ export function AddressFields({
         </div>
         <div className="space-y-2">
           <Label htmlFor="state">County</Label>
-          <Input
-            id="state"
+          <Select
             value={data.state}
-            onChange={(e) => onFieldChange('state', e.target.value)}
-            placeholder="e.g. Nairobi County"
+            onValueChange={(v) => onFieldChange('state', v)}
             disabled={isLoading}
-          />
+          >
+            <SelectTrigger id="state">
+              <SelectValue placeholder="Select county…" />
+            </SelectTrigger>
+            <SelectContent className="max-h-64 overflow-y-auto">
+              {KENYA_COUNTIES.map((county) => (
+                <SelectItem key={county} value={county}>
+                  {county}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
         </div>
         <div className="space-y-2">
@@ -138,22 +175,31 @@ export function AddressFields({
           <Input
             id="postalCode"
             value={data.postalCode}
-            onChange={(e) => onFieldChange('postalCode', e.target.value)}
+            onChange={(e) => onFieldChange('postalCode', e.target.value.replace(/\D/g, ''))}
             placeholder="e.g. 00100"
             disabled={isLoading}
+            maxLength={10}
+            inputMode="numeric"
           />
           {errors.postalCode && <p className="text-sm text-destructive">{errors.postalCode}</p>}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="country">Country</Label>
-        <Input value="Kenya" readOnly className="bg-muted font-medium" />
+        <Label>Country</Label>
+        <Input value="Kenya 🇰🇪" readOnly className="bg-muted font-medium cursor-not-allowed" />
       </div>
 
       <div className="flex items-center gap-2">
-        <Switch id="isDefault" checked={data.isDefault} onCheckedChange={(checked) => onFieldChange('isDefault', checked)} disabled={isLoading} />
-        <Label htmlFor="isDefault" className="text-sm cursor-pointer">Set as default address</Label>
+        <Switch
+          id="isDefault"
+          checked={data.isDefault}
+          onCheckedChange={(checked) => onFieldChange('isDefault', checked)}
+          disabled={isLoading}
+        />
+        <Label htmlFor="isDefault" className="text-sm cursor-pointer">
+          Set as default address
+        </Label>
       </div>
     </div>
   )

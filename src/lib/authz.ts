@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { isStaffRole, isRoleAllowed, type Role } from '@/lib/roles'
+import { isStaffRole, isDeliveryAgent, isRoleAllowed, type Role } from '@/lib/roles'
 
 type Session = NonNullable<Awaited<ReturnType<typeof auth>>>
 
@@ -60,6 +60,25 @@ export async function requireStaff(
 
   if (roles ? !isRoleAllowed(session.user.role, roles) : !isStaffRole(session.user.role)) {
     redirect(unauthorizedRedirectTo)
+  }
+
+  return session
+}
+
+/**
+ * Authorization guard for delivery agent area (/delivery).
+ * Allows DELIVERY_AGENT, ADMIN, and SUPER_ADMIN roles.
+ */
+export async function requireDeliveryAccess(): Promise<Session> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    redirect('/auth/login?callbackUrl=/delivery')
+  }
+
+  const role = session.user.role
+  if (!isStaffRole(role) && !isDeliveryAgent(role)) {
+    redirect('/')
   }
 
   return session
