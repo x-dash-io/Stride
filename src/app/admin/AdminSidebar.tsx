@@ -180,11 +180,3 @@ export function AdminSidebar(props: AdminSidebarProps) {
 export function AdminSidebarTrigger() {
   return <SidebarTrigger aria-label="Toggle Sidebar" />
 }
-
-export function AdminLayoutContent({ children }: { children: React.ReactNode }) {
-  return (
-    <SidebarInset className="min-h-screen bg-muted/30 flex flex-col">
-      {children}
-    </SidebarInset>
-  )
-}

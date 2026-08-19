@@ -111,7 +111,7 @@ const Sidebar = React.forwardRef<
         {/* Spacer: reserves layout space in the flex row */}
         <div
           className={cn(
-            "relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+            "relative h-full w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
             "group-data-[side=right]:rotate-180"
@@ -131,8 +131,8 @@ const Sidebar = React.forwardRef<
             variant === "floating"
               ? "p-2"
               : side === "left"
-              ? "border-r border-sidebar-border"
-              : "border-l border-sidebar-border",
+                ? "border-r border-sidebar-border"
+                : "border-l border-sidebar-border",
             className
           )}
           {...rest}
@@ -227,7 +227,11 @@ const SidebarInset = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("relative flex min-h-svh w-full flex-1 flex-col bg-background", className)}
+      className={cn(
+        "relative flex min-h-svh min-w-0 w-full flex-1 flex-col bg-background",
+        "overflow-x-hidden", // Prevent horizontal overflow
+        className
+      )}
       {...props}
     />
   )
@@ -304,7 +308,7 @@ const SidebarProvider = React.forwardRef<
     <SidebarContext.Provider value={contextValue}>
       <div
         ref={ref}
-        className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
+        className={cn("group/sidebar-wrapper flex min-h-svh w-full overflow-x-hidden", className)}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,

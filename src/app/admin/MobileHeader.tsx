@@ -40,7 +40,7 @@ const handleSignOut = async () => {
 
 export function MobileHeader({ storeName }: MobileHeaderProps) {
   return (
-    <header className="lg:hidden sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <header className="lg:hidden w-full border-b border-border bg-background">
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <AdminSidebarTrigger />

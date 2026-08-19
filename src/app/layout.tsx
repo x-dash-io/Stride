@@ -116,7 +116,7 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <LenisProvider>
+        <LenisProvider enabled={!isAdmin}>
           <Providers>
             {!isAdmin && <Header storeName={settings?.storeName} logoUrl={settings?.logoUrl} />}
             <main id="main-content" className="flex-1">{children}</main>

@@ -27,7 +27,7 @@ interface DesktopHeaderProps {
 
 export function DesktopHeader({ storeName }: DesktopHeaderProps) {
   return (
-    <header className="hidden lg:flex sticky top-0 z-20 w-full border-b border-border bg-background/80 backdrop-blur-md items-center">
+    <header className="hidden lg:flex w-full border-b border-border bg-background items-center">
       <div className="px-6 py-3 flex items-center justify-end w-full gap-4">
         <div className="flex items-center gap-4">
           <ThemeSwitcher />
